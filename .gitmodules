@@ -1,0 +1,3 @@
+[submodule "src/Rpackage"]
+	path = src/Rpackage
+	url = https://github.com/FertigLab/CoGAPS
