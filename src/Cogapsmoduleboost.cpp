@@ -2,8 +2,8 @@
 #include <boost/python/numpy.hpp>
 #include <numpy/numpyconfig.h>
 #include <numpy/ndarrayobject.h>
-#include "Rpackage/src/GapsDispatcher.h"
-#include "Rpackage/src/data_structures/Matrix.h"
+#include "./Rpackage/src/GapsDispatcher.h"
+#include "./Rpackage/src/data_structures/Matrix.h"
 
 namespace p = boost::python;
 namespace np = boost::python::numpy;
