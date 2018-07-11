@@ -1,8 +1,8 @@
 #include <boost/python.hpp>
-#include <boost/python/numpy.hpp>
-#include <numpy/numpyconfig.h>
-#include <numpy/ndarrayobject.h>
-#include <iostream>
+//#include <boost/python/numpy.hpp>
+//#include <numpy/numpyconfig.h>
+//#include <numpy/ndarrayobject.h>
+//#include <iostream>
 
 namespace p = boost::python;
 namespace np = boost::python::numpy;
