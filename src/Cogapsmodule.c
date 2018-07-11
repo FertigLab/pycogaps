@@ -1,10 +1,10 @@
-#include <Python/Python.h>
-#include <numpy/numpyconfig.h>
-#include <numpy/ndarrayobject.h>
-#include "Rpackage/src/GapsDispatcher.h"
-#include "Rpackage/src/data_structures/Matrix.h"
+#include <Python.h>
+//#include <numpy/numpyconfig.h>
+//#include <numpy/ndarrayobject.h>
+//#include "Rpackage/src/GapsDispatcher.h"
+//#include "Rpackage/src/data_structures/Matrix.h"
 //#include "Cogapssupport.hpp"
-
+/*
 RowMatrix convertPyMatrix(const PyArrayObject *pymat)
 {
     RowMatrix mat(pymat->dimensions[0], pymat->dimensions[1]);
@@ -52,11 +52,6 @@ PyArrayObject *convertColMatrix(const ColMatrix &cmat)
     return pymat;
 }
 
-static PyObject *test_do_nothing(PyObject *self, PyObject *args)
-{
-    return Py_None;
-}
-
 static PyObject *test_matrices(PyObject *self, PyObject *args)
 {
     PyArrayObject *DMatrix;
@@ -91,22 +86,28 @@ static PyObject *run(PyObject *self, PyObject *args, PyObject *kwds)
 
     return PyTuple_Pack(2, AMatrix, PMatrix);
 }
+*/
+
+static PyObject *test_do_nothing(PyObject *self, PyObject *args)
+{
+    return Py_None;
+}
 
 static PyMethodDef Cogaps_methods[] =
-  {
-    {"test_matrices", test_matrices, METH_VARARGS, NULL},
+{
+    //{"test_matrices", test_matrices, METH_VARARGS, NULL},
     {"test_do_nothing", test_do_nothing, METH_NOARGS, NULL},
-    {"run", (PyCFunction)run, METH_VARARGS|METH_KEYWORDS, NULL},
+    //{"run", (PyCFunction)run, METH_VARARGS|METH_KEYWORDS, NULL},
     {NULL, NULL, 0, NULL}
-  };
+};
 
 static struct PyModuleDef Cogapsmodule =
-  {
+{
     PyModuleDef_HEAD_INIT, "Cogaps", NULL, -1, Cogaps_methods
-  };
+};
 
 PyMODINIT_FUNC PyInit_Cogaps(void)
 {
-  import_array();
-  return PyModule_Create(&Cogapsmodule);
+    import_array();
+    return PyModule_Create(&Cogapsmodule);
 }
