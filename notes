@@ -1,4 +1,0 @@
-
-
-g++ -c -I/usr/include/python2.7/ -fPIC HelloWorld.cpp -o HelloWorld.o
-g++ -shared -Wl,-soname,GapsHelloWorld.so -o GapsHelloWorld.so HelloWorld.o -lpython2.7 -lboost_python
