@@ -18,6 +18,7 @@ COGAPS_SOURCES := \
 	src/Rpackage/src/file_parser/MtxParser.cpp \
 	src/Rpackage/src/file_parser/TsvParser.cpp \
 	src/Rpackage/src/math/Algorithms.cpp \
+	src/Rpackage/src/math/Math.cpp \
 	src/Rpackage/src/math/Random.cpp
 
 OBJECTS := \
