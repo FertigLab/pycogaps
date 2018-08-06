@@ -1,9 +1,9 @@
 CXX := g++
 CXXFLAGS := -fPIC
-LIBS := -lpython2.7 -lboost_python
+LIBS := -lpython2.7 -lboost_python -lboost_numpy
 
 PY_SOURCES := \
-	src/HelloWorld.cpp
+	src/CogapsPy.cpp
 
 COGAPS_SOURCES := \
 	src/Rpackage/src/AtomicDomain.cpp \
