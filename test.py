@@ -1,4 +1,6 @@
-import CogapsPy
-import numpy as np
+import sys
+sys.path.insert(0,"./src")
+from Cogaps import Cogaps
 
-print(CogapsPy.CoGAPS("data/GIST.tsv"))
+result = Cogaps("data/GIST.tsv")
+result.graphPmean()
