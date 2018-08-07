@@ -1,9 +1,11 @@
 CXX := g++
-CXXFLAGS := -fPIC
+CXXFLAGS := -fPIC -O2
 LIBS := -lpython2.7 -lboost_python -lboost_numpy
 
 PY_SOURCES := \
 	src/CogapsPy.cpp
+
+PY_INCLUDES := -I$(PYTHON_INC) -I$(NUMPY_INC)
 
 COGAPS_SOURCES := \
 	src/Rpackage/src/AtomicDomain.cpp \
@@ -34,7 +36,7 @@ CogapsPy.so : $(OBJECTS)
 build/%.o : src/%.cpp
 	@mkdir -p build
 	@mkdir -p build/libcogaps
-	$(CXX) $(CXXFLAGS) -I$(PYTHON_INC) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(PY_INCLUDES) -c $< -o $@
 
 build/libcogaps/%.o : src/Rpackage/src/%.cpp
 	@mkdir -p build
