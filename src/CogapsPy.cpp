@@ -42,14 +42,14 @@ np::ndarray convertToPyMat(const ColMatrix &cmat)
     return pymat;
 }
 
-p::tuple CoGAPS(std::string dataFilePath)
+p::tuple CoGAPS(std::string dataPath, unsigned numPatterns, unsigned maxIterations)
 {
-  GapsRunner runner(dataFilePath, false, 3, false,
+  GapsRunner runner(dataPath, false, numPatterns, false,
         std::vector<unsigned>(1));
 
   gaps::random::setSeed(123);
   runner.recordSeed(123);
-  runner.setMaxIterations(1000);
+  runner.setMaxIterations(maxIterations);
   runner.setSparsity(0.01f, 0.01f, false);
   runner.setMaxGibbsMass(100.f, 100.f);
   runner.setMaxThreads(1);
