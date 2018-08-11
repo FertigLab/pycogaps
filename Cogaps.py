@@ -2,6 +2,8 @@ import CogapsPy
 import numpy as np
 import matplotlib.pyplot as plt
 from operator import itemgetter
+import os
+from zipfile import ZipFile
 
 def geneThreshold(rankMat, patt):
     cutRank = rankMat.shape[0]
@@ -53,10 +55,8 @@ def patternMarkers(Amat, Pmat, pumpThreshold):
                     statMat[i,j] += 1
     return (statMat, sstat)
 
-
-
 class Cogaps:
-    def __init__(self, data):
+    def __init__(self, load=False, dataPath='', numPatterns=0, maxIterations=0, runName=None):
         '''
         if isinstance(data, str):
              data needs to be parsed from file
@@ -65,7 +65,46 @@ class Cogaps:
         else:
              throw input error
         '''
-        self.Amean, self.Asd, self.Pmean, self.Psd = CogapsPy.CoGAPS(data)
+        if load is False:
+            if runName is None:
+                self.runName = os.path.splitext(os.path.basename(dataPath))[0] + ".cogaps_" + str(numPatterns)
+            else:
+                self.runName = runName
+            self.Amean, self.Asd, self.Pmean, self.Psd = CogapsPy.CoGAPS(dataPath, numPatterns, maxIterations)
+        else:
+            self.Amean = None
+            self.Asd = None
+            self.Pmean = None
+            self.Psd = None
+            self.runName = os.path.splitext(os.path.basename(dataPath))[0]
+            zip = ZipFile(dataPath, 'r')
+            zip.extractall('.')
+            zip.close()
+            self.Amean = np.loadtxt(self.runName + "_Amean.tsv", delimiter='\t')
+            self.Asd = np.loadtxt(self.runName + "_Asd.tsv", delimiter='\t')
+            self.Pmean = np.loadtxt(self.runName + "_Pmean.tsv", delimiter='\t')
+            self.Psd = np.loadtxt(self.runName + "_Psd.tsv", delimiter='\t')
+            os.remove(self.runName + "_Amean.tsv")
+            os.remove(self.runName + "_Asd.tsv")
+            os.remove(self.runName + "_Pmean.tsv")
+            os.remove(self.runName + "_Psd.tsv")
+            print('Cogaps object loaded with results from ' + dataPath + '.')
+            
+
+    def saveResults(self):
+        files = ['./'+ self.runName + "_Amean.tsv", './'+ self.runName + "_Asd.tsv", './'+ self.runName + "_Pmean.tsv", './'+ self.runName + "_Psd.tsv"]
+        np.savetxt(self.runName + "_Amean.tsv", self.Amean, delimiter='\t')
+        np.savetxt(self.runName + "_Asd.tsv", self.Asd, delimiter='\t')
+        np.savetxt(self.runName + "_Pmean.tsv", self.Pmean, delimiter='\t')
+        np.savetxt(self.runName + "_Psd.tsv", self.Psd, delimiter='\t')
+
+        with ZipFile(self.runName + '.zip', 'w') as zip:
+            for file in files:
+                zip.write(file)
+                os.remove(file)
+
+        print('Cogaps results saved and zipped in ' + self.runName + '.zip.')
+        
         
         
     def graphPatternMarkerStats(self, pumpThreshold):
