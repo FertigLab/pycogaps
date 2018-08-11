@@ -3,55 +3,55 @@ import numpy as np
 import matplotlib.pyplot as plt
 from operator import itemgetter
 
-def gene_threshold(rank_mat, pat):
-    cut_rank = rank_mat.shape[0]
-    for i in range(rank_mat.shape[0]):
-        for j in range(rank_mat.shape[1]):
-            if (j != pat) and (rank_mat[i,j] <= rank_mat[i,pat]):
-                cut_rank = min(cut_rank, max(0.0, rank_mat[i,pat]-1))
-    return cut_rank
+def geneThreshold(rankMat, patt):
+    cutRank = rankMat.shape[0]
+    for i in range(rankMat.shape[0]):
+        for j in range(rankMat.shape[1]):
+            if (j != patt) and (rankMat[i,j] <= rankMat[i,patt]):
+                cutRank = min(cutRank, max(0.0, rankMat[i,patt]-1))
+    return cutRank
 
-def pattern_markers(P_mat, A_mat, pump_threshold):
-    num_genes, num_patterns = A_mat.shape
-    stat_mat = np.zeros(shape=(num_genes, num_patterns))
+def patternMarkers(Amat, Pmat, pumpThreshold):
+    numGenes, numPatterns = Amat.shape
+    statMat = np.zeros(shape=(numGenes, numPatterns))
 
     #normalize matrices
-    factors = np.sum(P_mat, axis=1)
+    factors = np.sum(Pmat, axis=1)
     factors[factors == 0] = 1.0
-    P_mat = P_mat / factors[:,None]
-    scales = np.amax(P_mat, axis=1)
-    A_mat = A_mat * factors * scales
+    Pmat = Pmat / factors[:,None]
+    scales = np.amax(Pmat, axis=1)
+    Amat = Amat * factors * scales
 
     #compute sstat (can be further numpy optimized)
-    sstat = np.zeros(shape=(num_genes, num_patterns))
-    lp = np.zeros(shape=(num_patterns))
-    diff = np.zeros(shape=(num_patterns))
-    for j in range(num_patterns):
+    sstat = np.zeros(shape=(numGenes, numPatterns))
+    lp = np.zeros(shape=(numPatterns))
+    diff = np.zeros(shape=(numPatterns))
+    for j in range(numPatterns):
         lp[j] = 1.0
-        for i in range(num_genes):
-            gene_max = np.amax(A_mat[i])
-            if gene_max > 0.0:
-                diff = A_mat[i]/gene_max - lp
+        for i in range(numGenes):
+            geneMax = np.amax(Amat[i])
+            if geneMax > 0.0:
+                diff = Amat[i]/geneMax - lp
             else:
                 diff = lp * -1.0
                 sstat[i,j] = np.asscalar(np.sqrt(np.dot(diff,diff)))
                 lp[j] = 0.0
 
     #update PUMP matrix
-    if pump_threshold == 0: # == PUMP_UNIQUE
-        for i in range(num_genes):
-            min_index = np.asscalar(np.argmin(sstat[i]))
-            stat_mat[i,min_index] += 1
-    elif pump_threshold == 1: # == PUMP_CUT
-        rank_mat = np.zeros(shape=(num_genes, num_patterns))
-        for j in range(num_patterns):
-            rank_mat[:,j] = np.argsort(sstat[:,j])
-        for j in range(num_patterns):
-            cut_rank = gene_threshold(rank_mat, j)
-            for i in range(num_genes):
-                if (rank_mat[i,j] <= cut_rank):
-                    stat_mat[i,j] += 1
-    return (stat_mat, sstat)
+    if pumpThreshold == 0: # == PUMP_UNIQUE
+        for i in range(numGenes):
+            minIndex = np.asscalar(np.argmin(sstat[i]))
+            statMat[i,minIndex] += 1
+    elif pumpThreshold == 1: # == PUMP_CUT
+        rankMat = np.zeros(shape=(numGenes, numPatterns))
+        for j in range(numPatterns):
+            rankMat[:,j] = np.argsort(sstat[:,j])
+        for j in range(numPatterns):
+            cutRank = geneThreshold(rankMat, j)
+            for i in range(numGenes):
+                if (rankMat[i,j] <= cutRank):
+                    statMat[i,j] += 1
+    return (statMat, sstat)
 
 
 
@@ -69,42 +69,42 @@ class Cogaps:
         
         
     def graphPatternMarkerStats(self, pumpThreshold):
-        stat_mat, sstat = pattern_markers(self.Pmean, self.Amean, pumpThreshold)
+        statMat, sstat = patternMarkers(self.Amean, self.Pmean, pumpThreshold)
 
-        orig_mat = np.matmul(self.Amean, self.Pmean)
-        num_genes, num_samples = orig_mat.shape
-        num_patterns = self.Amean.shape[1]
-        #gene_names = np.array(Amean_rowNames, dtype=object)
+        origMat = np.matmul(self.Amean, self.Pmean)
+        numGenes, numSamples = origMat.shape
+        numPatterns = self.Amean.shape[1]
+        #geneNames = np.array(AmeanRowNames, dtype=object)
 
-        rearr_orig_mat = None
-        #all_rearr_rowNames = None
-        for j in range(num_patterns):
-            which_genes = stat_mat[:,j]
-            selected_genes = orig_mat[which_genes==1,:]
-            selected_sstat = sstat[which_genes==1,j]
-            #selected_rowNames = gene_names[which_genes==1,0]
+        rearrOrigMat = None
+        #allRearrRowNames = None
+        for j in range(numPatterns):
+            whichGenes = statMat[:,j]
+            selectedGenes = origMat[whichGenes==1,:]
+            selectedSstat = sstat[whichGenes==1,j]
+            #selectedRowNames = geneNames[whichGenes==1,0]
 
-            rearr_indices = np.argsort(selected_sstat)
-            rearr_genes = np.empty(shape=(selected_genes.shape[0], num_samples))
-            #rearr_rowNames = np.empty(shape=(selected_rowNames.shape[0],1), dtype=object)
-            for i in range(selected_genes.shape[0]):
-                rearr_genes[i] = selected_genes[rearr_indices[i]]
-                #rearr_rowNames[i] = selected_rowNames[rearr_indices[i]]
-            if rearr_orig_mat is None:
-                rearr_orig_mat = rearr_genes
-                #all_rearr_rowNames = rearr_rowNames
+            rearrIndices = np.argsort(selectedSstat)
+            rearrGenes = np.empty(shape=(selectedGenes.shape[0], numSamples))
+            #rearrRowNames = np.empty(shape=(selectedRowNames.shape[0],1), dtype=object)
+            for i in range(selectedGenes.shape[0]):
+                rearrGenes[i] = selectedGenes[rearrIndices[i]]
+                #rearrRowNames[i] = selectedRowNames[rearrIndices[i]]
+            if rearrOrigMat is None:
+                rearrOrigMat = rearrGenes
+                #allRearrRowNames = rearrRowNames
             else:
-                rearr_orig_mat = np.concatenate((rearr_orig_mat, rearr_genes), axis=0)
-                #all_rearr_rowNames = np.concatenate((all_rearr_rowNames, rearr_rowNames), axis=0)
+                rearrOrigMat = np.concatenate((rearrOrigMat, rearrGenes), axis=0)
+                #allRearrRowNames = np.concatenate((allRearrRowNames, rearrRowNames), axis=0)
 
-        norm_rearr_orig_mat = rearr_orig_mat / (np.abs(rearr_orig_mat).sum(axis=1)[:,None])
+        normRearrOrigMat = rearrOrigMat / (np.abs(rearrOrigMat).sum(axis=1)[:,None])
 
         fig, ax = plt.subplots(figsize=(100,3))
-        im = ax.imshow(norm_rearr_orig_mat.T, cmap='afmhot', interpolation=None, aspect='auto')
+        im = ax.imshow(normRearrOrigMat.T, cmap='afmhot', interpolation=None, aspect='auto')
         ax.set_yticks(np.arange(self.Pmean.shape[1]))
         ax.set_xticks(np.arange(self.Amean.shape[0])[0::10])
-        #ax.set_yticklabels(Pmean_colNames)
-        #ax.set_xticklabels(all_rearr_rowNames[0::10])
+        #ax.set_yticklabels(PmeanColNames)
+        #ax.set_xticklabels(allRearrRowNames[0::10])
         ax.tick_params(top=True, bottom=False,
                        labeltop=True, labelbottom=False)
         plt.setp(ax.get_xticklabels(), rotation=-90, ha="right",
