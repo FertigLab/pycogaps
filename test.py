@@ -1,4 +1,7 @@
-import CogapsPy
-import numpy as np
+import sys
+sys.path.insert(0,"./src")
+from Cogaps import Cogaps
 
-print(CogapsPy.CoGAPS("data/GIST.tsv"))
+result = Cogaps(load=False, dataPath="data/GIST.tsv", numPatterns=5, maxIterations=50000)
+result.graphPmean()
+result.graphPatternMarkerStats(0)
