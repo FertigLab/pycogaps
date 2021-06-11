@@ -1,8 +1,10 @@
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
 import sys
+import sysconfig
 import setuptools
 
+from pybind11.setup_helpers import Pybind11Extension, build_ext
 __version__ = '0.0.1'
 
 
@@ -22,6 +24,11 @@ class get_pybind_include(object):
 
 
 ext_modules = [
+    Pybind11Extension("cogaps",
+        ["src/bindings.cpp"],
+        # Example: passing in the version to the compiled code
+        define_macros = [('VERSION_INFO', __version__)],
+        ),
     Extension(
         name='cogaps',
         sources=[
@@ -95,7 +102,7 @@ class BuildExt(build_ext):
     """A custom build extension for adding compiler-specific options."""
     c_opts = {
         'msvc': ['/EHsc'],
-        'unix': [],
+        'unix': ["-I Rpackage/src/include -nostdlib -undefined dynamic_lookup"],
     }
 
     if sys.platform == 'darwin':
@@ -104,6 +111,7 @@ class BuildExt(build_ext):
     def build_extensions(self):
         ct = self.compiler.compiler_type
         opts = self.c_opts.get(ct, [])
+        opts.append("-I Rpackage/src/include -nostdlib -undefined dynamic_lookup")
         if ct == 'unix':
             opts.append('-DVERSION_INFO="%s"' % self.distribution.get_version())
             opts.append(cpp_flag(self.compiler))
@@ -127,4 +135,5 @@ setup(
     install_requires=['pybind11>=2.2'],
     cmdclass={'build_ext': BuildExt},
     zip_safe=False,
+    # extra_compile_args=["-I src/Rpackage/src/include", "-nostdlib" "-undefined dynamic_lookup"]
 )
