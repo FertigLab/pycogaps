@@ -23,11 +23,6 @@ class get_pybind_include(object):
 
 
 ext_modules = [
-    # Pybind11Extension("cogaps",
-    #     ["src/bindings.cpp"],
-    #     # Example: passing in the version to the compiled code
-    #     define_macros = [('VERSION_INFO', __version__)],
-    #     ),
     Pybind11Extension(
         name='cogaps',
         sources=[
