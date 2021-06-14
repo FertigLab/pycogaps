@@ -15,10 +15,7 @@ float runCogaps(const std::string &path)
     GapsParameters params(path);
     GapsRandomState randState(params.seed);
     GapsResult result(gaps::run(path, params, std::string(), &randState));
-
     return result.meanChiSq;
-    std::cout<<"we did it joe";
-    return 0;
 }
 
 PYBIND11_MODULE(cogaps, m)
