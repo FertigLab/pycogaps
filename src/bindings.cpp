@@ -1,8 +1,8 @@
-#include "Rpackage/src/GapsRunner.h"
-#include "Rpackage/src/utils/GlobalConfig.h"
-#include "Rpackage/src/GapsParameters.h"
-#include "Rpackage/src/GapsResult.h"
-#include "Rpackage/src/math/Random.h"
+#include "CoGAPS/src/GapsRunner.h"
+#include "CoGAPS/src/utils/GlobalConfig.h"
+#include "CoGAPS/src/GapsParameters.h"
+#include "CoGAPS/src/GapsResult.h"
+#include "CoGAPS/src/math/Random.h"
 
 #include <pybind11/pybind11.h>
 #include <iostream>
