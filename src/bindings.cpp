@@ -1,10 +1,9 @@
-//#include "Rpackage/src/GapsRunner.h"
-//#include "Rpackage/src/utils/GlobalConfig.h"
-//#include "Rpackage/src/GapsParameters.h"
-//#include "Rpackage/src/GapsResult.h"
-//#include "Rpackage/src/math/Random.h"
-// TODO: resolve this issue!! It can't find the boost library
-#include "Rpackage/src/include/*"
+#include "Rpackage/src/GapsRunner.h"
+#include "Rpackage/src/utils/GlobalConfig.h"
+#include "Rpackage/src/GapsParameters.h"
+#include "Rpackage/src/GapsResult.h"
+#include "Rpackage/src/math/Random.h"
+
 #include <pybind11/pybind11.h>
 #include <iostream>
 #define STRINGIFY(x) #x
@@ -13,11 +12,11 @@ namespace py = pybind11;
 
 float runCogaps(const std::string &path)
 {
-//    GapsParameters params(path);
-//    GapsRandomState randState(params.seed);
-//    GapsResult result(gaps::run(path, params, std::string(), &randState));
+    GapsParameters params(path);
+    GapsRandomState randState(params.seed);
+    GapsResult result(gaps::run(path, params, std::string(), &randState));
 
-//    return result.meanChiSq;
+    return result.meanChiSq;
     std::cout<<"we did it joe";
     return 0;
 }

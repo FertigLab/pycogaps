@@ -1,7 +1,6 @@
-from setuptools import setup, Extension
+from setuptools import setup
 from setuptools.command.build_ext import build_ext
 import sys
-import sysconfig
 import setuptools
 
 from pybind11.setup_helpers import Pybind11Extension, build_ext
@@ -137,5 +136,4 @@ setup(
     cmdclass={'build_ext': BuildExt},
     zip_safe=False,
     language="c++",
-   # extra_compile_args=["-I src/Rpackage/src/include", "-nostdlib" "-undefined dynamic_lookup"],
 )
