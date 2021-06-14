@@ -24,12 +24,12 @@ class get_pybind_include(object):
 
 
 ext_modules = [
-    Pybind11Extension("cogaps",
-        ["src/bindings.cpp"],
-        # Example: passing in the version to the compiled code
-        define_macros = [('VERSION_INFO', __version__)],
-        ),
-    Extension(
+    # Pybind11Extension("cogaps",
+    #     ["src/bindings.cpp"],
+    #     # Example: passing in the version to the compiled code
+    #     define_macros = [('VERSION_INFO', __version__)],
+    #     ),
+    Pybind11Extension(
         name='cogaps',
         sources=[
             'src/bindings.cpp',
@@ -63,7 +63,7 @@ ext_modules = [
             # Path to pybind11 headers
             get_pybind_include(),
             get_pybind_include(user=True),
-            'src/Rpackage/src/include'
+            './src/Rpackage/src/include/'
         ],
         language='c++'
     ),
@@ -102,16 +102,17 @@ class BuildExt(build_ext):
     """A custom build extension for adding compiler-specific options."""
     c_opts = {
         'msvc': ['/EHsc'],
-        'unix': ["-I Rpackage/src/include -nostdlib -undefined dynamic_lookup"],
+        'unix': [],
     }
 
     if sys.platform == 'darwin':
-        c_opts['unix'] += ['-stdlib=libc++', '-mmacosx-version-min=10.7']
+        c_opts['unix'] += ['-stdlib=libc++', '-mmacosx-version-min=10.9']
 
     def build_extensions(self):
         ct = self.compiler.compiler_type
         opts = self.c_opts.get(ct, [])
-        opts.append("-I Rpackage/src/include -nostdlib -undefined dynamic_lookup")
+        opts.append("-mmacosx-version-min=10.9")
+        opts.append("-I src/Rpackage/src/include/*")
         if ct == 'unix':
             opts.append('-DVERSION_INFO="%s"' % self.distribution.get_version())
             opts.append(cpp_flag(self.compiler))
@@ -128,12 +129,13 @@ setup(
     version=__version__,
     author='Thomas Sherman',
     author_email='tomsherman159@gmail.com',
-    url='https://github.com/FertigLab/Cogaps_PY',
+    url='https://github.com/FertigLab/pycogaps',
     description='Non-Negative Matrix Factorization Algorithm',
     long_description='',
     ext_modules=ext_modules,
     install_requires=['pybind11>=2.2'],
     cmdclass={'build_ext': BuildExt},
     zip_safe=False,
-    # extra_compile_args=["-I src/Rpackage/src/include", "-nostdlib" "-undefined dynamic_lookup"]
+    language="c++",
+   # extra_compile_args=["-I src/Rpackage/src/include", "-nostdlib" "-undefined dynamic_lookup"],
 )
