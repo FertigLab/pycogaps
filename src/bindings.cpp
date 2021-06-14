@@ -1,8 +1,13 @@
 #include "Rpackage/src/GapsRunner.h"
 #include "Rpackage/src/utils/GlobalConfig.h"
+#include "Rpackage/src/GapsParameters.h"
+#include "Rpackage/src/GapsResult.h"
+#include "Rpackage/src/math/Random.h"
 
 #include <pybind11/pybind11.h>
-
+#include <iostream>
+#define STRINGIFY(x) #x
+#define MACRO_STRINGIFY(x) STRINGIFY(x)
 namespace py = pybind11;
 
 float runCogaps(const std::string &path)
