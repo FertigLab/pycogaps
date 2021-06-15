@@ -1,4 +1,3 @@
-[submodule "src/Rpackage"]
-	path = src/Rpackage
-	url = https://github.com/FertigLab/CoGAPS
-	ignore = all
+[submodule "src/CoGAPS"]
+	path = src/CoGAPS
+	url = https://github.com/FertigLab/CoGAPS.git
