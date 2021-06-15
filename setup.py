@@ -25,6 +25,7 @@ class get_pybind_include(object):
 ext_modules = [
     Pybind11Extension(
         name='cogaps',
+        language='c++',
         sources=[
             'src/bindings.cpp',
             'src/CoGAPS/src/GapsParameters.cpp',
@@ -57,7 +58,6 @@ ext_modules = [
             get_pybind_include(user=True),
             './src/CoGAPS/src/include/'
         ],
-        language='c++'
     ),
 ]
 
@@ -98,12 +98,12 @@ class BuildExt(build_ext):
     }
 
     if sys.platform == 'darwin':
-        c_opts['unix'] += ['-stdlib=libc++', '-mmacosx-version-min=10.9']
+        c_opts['unix'] += ['-stdlib=libc++', '-mmacosx-version-min=10.13']
 
     def build_extensions(self):
         ct = self.compiler.compiler_type
         opts = self.c_opts.get(ct, [])
-        opts.append("-mmacosx-version-min=10.9")
+        opts.append("-mmacosx-version-min=10.13")
         opts.append("-I src/CoGAPS/src/include/*")
         if ct == 'unix':
             opts.append('-DVERSION_INFO="%s"' % self.distribution.get_version())
