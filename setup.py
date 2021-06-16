@@ -23,34 +23,31 @@ class get_pybind_include(object):
 
 
 ext_modules = [
-    Pybind11Extension(
-        name='cogaps',
-        language='c++',
-        sources=[
-            'src/bindings.cpp',
-            'src/CoGAPS/src/GapsParameters.cpp',
-            'src/CoGAPS/src/GapsResult.cpp',
-            'src/CoGAPS/src/GapsRunner.cpp',
-            'src/CoGAPS/src/GapsStatistics.cpp',
-            'src/CoGAPS/src/atomic/AtomicDomain.cpp',
-            'src/CoGAPS/src/atomic/ProposalQueue.cpp',
-            'src/CoGAPS/src/data_structures/HashSets.cpp',
-            'src/CoGAPS/src/data_structures/HybridMatrix.cpp',
-            'src/CoGAPS/src/data_structures/HybridVector.cpp',
-            'src/CoGAPS/src/data_structures/Matrix.cpp',
-            'src/CoGAPS/src/data_structures/SparseIterator.cpp',
-            'src/CoGAPS/src/data_structures/SparseMatrix.cpp',
-            'src/CoGAPS/src/data_structures/SparseVector.cpp',
-            'src/CoGAPS/src/data_structures/Vector.cpp',
-            'src/CoGAPS/src/file_parser/CharacterDelimitedParser.cpp',
-            'src/CoGAPS/src/file_parser/FileParser.cpp',
-            'src/CoGAPS/src/file_parser/MtxParser.cpp',
-            'src/CoGAPS/src/gibbs_sampler/DenseNormalModel.cpp',
-            'src/CoGAPS/src/gibbs_sampler/SparseNormalModel.cpp',
-            'src/CoGAPS/src/math/Math.cpp',
-            'src/CoGAPS/src/math/MatrixMath.cpp',
-            'src/CoGAPS/src/math/Random.cpp',
-            'src/CoGAPS/src/math/VectorMath.cpp'            
+    Pybind11Extension("pycogaps",
+        ['src/bindings.cpp',
+            # 'src/CoGAPS/src/GapsParameters.cpp',
+            # 'src/CoGAPS/src/GapsResult.cpp',
+            # 'src/CoGAPS/src/GapsRunner.cpp',
+            # 'src/CoGAPS/src/GapsStatistics.cpp',
+            # 'src/CoGAPS/src/atomic/AtomicDomain.cpp',
+            # 'src/CoGAPS/src/atomic/ProposalQueue.cpp',
+            # 'src/CoGAPS/src/data_structures/HashSets.cpp',
+            # 'src/CoGAPS/src/data_structures/HybridMatrix.cpp',
+            # 'src/CoGAPS/src/data_structures/HybridVector.cpp',
+            # 'src/CoGAPS/src/data_structures/Matrix.cpp',
+            # 'src/CoGAPS/src/data_structures/SparseIterator.cpp',
+            # 'src/CoGAPS/src/data_structures/SparseMatrix.cpp',
+            # 'src/CoGAPS/src/data_structures/SparseVector.cpp',
+            # 'src/CoGAPS/src/data_structures/Vector.cpp',
+            # 'src/CoGAPS/src/file_parser/CharacterDelimitedParser.cpp',
+            # 'src/CoGAPS/src/file_parser/FileParser.cpp',
+            # 'src/CoGAPS/src/file_parser/MtxParser.cpp',
+            # 'src/CoGAPS/src/gibbs_sampler/DenseNormalModel.cpp',
+            # 'src/CoGAPS/src/gibbs_sampler/SparseNormalModel.cpp',
+            # 'src/CoGAPS/src/math/Math.cpp',
+            # 'src/CoGAPS/src/math/MatrixMath.cpp',
+            # 'src/CoGAPS/src/math/Random.cpp',
+            # 'src/CoGAPS/src/math/VectorMath.cpp'
         ],
         include_dirs=[
             # Path to pybind11 headers
@@ -103,8 +100,9 @@ class BuildExt(build_ext):
     def build_extensions(self):
         ct = self.compiler.compiler_type
         opts = self.c_opts.get(ct, [])
-        opts.append("-mmacosx-version-min=10.13")
-        opts.append("-I src/CoGAPS/src/include/*")
+        opts.append("-mmacosx-version-min=10.9")
+        opts.append("-I ./src/CoGAPS/src/include/")
+        opts.append(("-l cogaps"))
         if ct == 'unix':
             opts.append('-DVERSION_INFO="%s"' % self.distribution.get_version())
             opts.append(cpp_flag(self.compiler))
@@ -117,7 +115,7 @@ class BuildExt(build_ext):
         build_ext.build_extensions(self)
 
 setup(
-    name='cogaps',
+    name='pycogaps',
     version=__version__,
     author='Thomas Sherman',
     author_email='tomsherman159@gmail.com',
