@@ -4,7 +4,7 @@ jeanette johnson 6/14/21
 before running:
 navigate to your pycogaps direcotry and run 'pip install .'
 '''
-import cogaps
+import pycogaps
 
-cogaps.runCogaps("./data/GIST.csv")
+pycogaps.runCogaps("./data/GIST.csv")
 
