@@ -7,4 +7,4 @@ navigate to your pycogaps direcotry and run 'pip install .'
 import pycogaps
 
 pycogaps.runCogaps("./data/GIST.csv")
-
+pycogaps.runCPPTests() 
