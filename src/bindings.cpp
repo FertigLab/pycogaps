@@ -3,7 +3,7 @@
 #include "CoGAPS/src/GapsParameters.h"
 #include "CoGAPS/src/GapsResult.h"
 #include "CoGAPS/src/math/Random.h"
-
+#include "CoGAPS/src/cpp_tests/catch.h"
 #include <pybind11/pybind11.h>
 #include <iostream>
 #define STRINGIFY(x) #x
@@ -22,11 +22,11 @@ float runCogaps(const std::string &path)
       return 0.0;
 }
 
-void runCPPTests()
+int runCPPTests()
 {
     std::cout<<"in the cpp testing function";
-    return;
-
+    //return run_catch_unit_tests();
+    return 0;
 }
 
 PYBIND11_MODULE(pycogaps, m)
