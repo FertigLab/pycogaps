@@ -22,8 +22,16 @@ float runCogaps(const std::string &path)
       return 0.0;
 }
 
+void runCPPTests()
+{
+    std::cout<<"in the cpp testing function";
+    return;
+
+}
+
 PYBIND11_MODULE(pycogaps, m)
 {
     m.doc() = "CoGAPS Python Package";
     m.def("runCogaps", &runCogaps, "Run CoGAPS Algorithm");
+    m.def("runCPPTests", &runCPPTests, "Run CoGAPS C++ Tests");
 }
