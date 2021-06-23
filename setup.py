@@ -4,6 +4,7 @@ import sys
 import setuptools
 
 from pybind11.setup_helpers import Pybind11Extension, build_ext
+
 __version__ = '0.0.1'
 
 
@@ -24,44 +25,44 @@ class get_pybind_include(object):
 
 ext_modules = [
     Pybind11Extension("pycogaps",
-        ['src/bindings.cpp',
-         'src/CoGAPS/src/GapsParameters.cpp',
-         'src/CoGAPS/src/GapsResult.cpp',
-         'src/CoGAPS/src/GapsRunner.cpp',
-         'src/CoGAPS/src/GapsStatistics.cpp',
-	 'src/CoGAPS/src/atomic/Atom.cpp',
-	 'src/CoGAPS/src/atomic/ConcurrentAtom.cpp',
-         'src/CoGAPS/src/atomic/AtomicDomain.cpp',
-	 'src/CoGAPS/src/atomic/ConcurrentAtomicDomain.cpp',
-         'src/CoGAPS/src/atomic/ProposalQueue.cpp',
-         'src/CoGAPS/src/data_structures/HashSets.cpp',
-         'src/CoGAPS/src/data_structures/HybridMatrix.cpp',
-         'src/CoGAPS/src/data_structures/HybridVector.cpp',
-         'src/CoGAPS/src/data_structures/Matrix.cpp',
-         'src/CoGAPS/src/data_structures/SparseIterator.cpp',
-         'src/CoGAPS/src/data_structures/SparseMatrix.cpp',
-         'src/CoGAPS/src/data_structures/SparseVector.cpp',
-         'src/CoGAPS/src/data_structures/Vector.cpp',
-         'src/CoGAPS/src/file_parser/CharacterDelimitedParser.cpp',
-         'src/CoGAPS/src/file_parser/FileParser.cpp',
-         'src/CoGAPS/src/file_parser/MtxParser.cpp',
-	 'src/CoGAPS/src/file_parser/MatrixElement.cpp',
-         'src/CoGAPS/src/gibbs_sampler/DenseNormalModel.cpp',
-         'src/CoGAPS/src/gibbs_sampler/SparseNormalModel.cpp',
-	 'src/CoGAPS/src/gibbs_sampler/AlphaParameters.cpp',
-         'src/CoGAPS/src/math/Math.cpp',
-         'src/CoGAPS/src/math/MatrixMath.cpp',
-         'src/CoGAPS/src/math/Random.cpp',
-         'src/CoGAPS/src/math/VectorMath.cpp',
-	 'src/CoGAPS/src/test-runner.cpp'
-        ],
-        include_dirs=[
-            # Path to pybind11 headers
-            get_pybind_include(),
-            get_pybind_include(user=True),
-            './src/CoGAPS/src/include/'
-        ],
-    ),
+                      ['src/bindings.cpp',
+                       'src/CoGAPS/src/GapsParameters.cpp',
+                       'src/CoGAPS/src/GapsResult.cpp',
+                       'src/CoGAPS/src/GapsRunner.cpp',
+                       'src/CoGAPS/src/GapsStatistics.cpp',
+                       'src/CoGAPS/src/atomic/Atom.cpp',
+                       'src/CoGAPS/src/atomic/ConcurrentAtom.cpp',
+                       'src/CoGAPS/src/atomic/AtomicDomain.cpp',
+                       'src/CoGAPS/src/atomic/ConcurrentAtomicDomain.cpp',
+                       'src/CoGAPS/src/atomic/ProposalQueue.cpp',
+                       'src/CoGAPS/src/data_structures/HashSets.cpp',
+                       'src/CoGAPS/src/data_structures/HybridMatrix.cpp',
+                       'src/CoGAPS/src/data_structures/HybridVector.cpp',
+                       'src/CoGAPS/src/data_structures/Matrix.cpp',
+                       'src/CoGAPS/src/data_structures/SparseIterator.cpp',
+                       'src/CoGAPS/src/data_structures/SparseMatrix.cpp',
+                       'src/CoGAPS/src/data_structures/SparseVector.cpp',
+                       'src/CoGAPS/src/data_structures/Vector.cpp',
+                       'src/CoGAPS/src/file_parser/CharacterDelimitedParser.cpp',
+                       'src/CoGAPS/src/file_parser/FileParser.cpp',
+                       'src/CoGAPS/src/file_parser/MtxParser.cpp',
+                       'src/CoGAPS/src/file_parser/MatrixElement.cpp',
+                       'src/CoGAPS/src/gibbs_sampler/DenseNormalModel.cpp',
+                       'src/CoGAPS/src/gibbs_sampler/SparseNormalModel.cpp',
+                       'src/CoGAPS/src/gibbs_sampler/AlphaParameters.cpp',
+                       'src/CoGAPS/src/math/Math.cpp',
+                       'src/CoGAPS/src/math/MatrixMath.cpp',
+                       'src/CoGAPS/src/math/Random.cpp',
+                       'src/CoGAPS/src/math/VectorMath.cpp',
+                       'src/CoGAPS/src/test-runner.cpp'
+                       ],
+                      include_dirs=[
+                          # Path to pybind11 headers
+                          get_pybind_include(),
+                          get_pybind_include(user=True),
+                          './src/CoGAPS/src/include/'
+                      ],
+                      ),
 ]
 
 
@@ -119,6 +120,7 @@ class BuildExt(build_ext):
         for ext in self.extensions:
             ext.extra_compile_args = opts
         build_ext.build_extensions(self)
+
 
 setup(
     name='pycogaps',
