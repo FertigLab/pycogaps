@@ -52,7 +52,8 @@ ext_modules = [
          'src/CoGAPS/src/math/Math.cpp',
          'src/CoGAPS/src/math/MatrixMath.cpp',
          'src/CoGAPS/src/math/Random.cpp',
-         'src/CoGAPS/src/math/VectorMath.cpp'
+         'src/CoGAPS/src/math/VectorMath.cpp',
+	 'src/CoGAPS/src/test-runner.cpp'
         ],
         include_dirs=[
             # Path to pybind11 headers
