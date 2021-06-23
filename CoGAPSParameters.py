@@ -16,7 +16,7 @@ class CogapsParams(object):
         self.alphaA = 0.01
         self.alphaP = 0.01
         self.maxGibbsMassA = 100
-        self.maxGibbMassP = 100
+        self.maxGibbsMassP = 100
         self.seed = current_milli_time()
         self.sparseOptimization = False
         self.cut = self.nPatterns
