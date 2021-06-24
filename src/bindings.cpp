@@ -4,34 +4,66 @@
 #include "CoGAPS/src/GapsResult.h"
 #include "CoGAPS/src/math/Random.h"
 #include "CoGAPS/src/cpp_tests/catch.h"
+#include "CoGAPS/src/file_parser/FileParser.h"
+#include "CoGAPS/src/include/boost/algorithm/string/join.hpp"
+
 #include <pybind11/pybind11.h>
+#include <pybind11/complex.h>
+#include <pybind11/stl.h>
+
 #include <iostream>
+#include <vector>
+#include <iterator>
+
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
 namespace py = pybind11;
 
-float runCogaps(const std::string &path)
+// run cogaps algorithm, return result
+GapsResult runCogaps(const std::string &path)
 {
-    std::cout<<"1";
     GapsParameters params(path);
-    std::cout<<"2";
     GapsRandomState randState(params.seed);
     GapsResult result(gaps::run(path, params, std::string(), &randState));
-    return result.meanChiSq;
-      std::cout<<"in the runcogaps fxn";
-      return 0.0;
+    return result;
 }
 
-int runCPPTests()
+std::string getBuildReport()
 {
-    std::cout<<"in the cpp testing function";
-    //return run_catch_unit_tests();
-    return 0;
+    return buildReport();
+}
+
+bool isCheckpointsEnabled()
+{
+#ifdef GAPS_DISABLE_CHECKPOINTS
+    return false;
+#else
+    return true;
+#endif
+}
+
+bool isCompiledWithOpenMPSupport()
+{
+#ifdef __GAPS_OPENMP__
+    return true;
+#else
+    return false;
+#endif
+}
+
+std::string getFileInfo(const std::string &path)
+{
+    FileParser fp(path);
+    return "dimensions: " + std::to_string(fp.nRow()) + ", " + std::to_string(fp.nCol()) 
+    + "\nrowNames: " + boost::algorithm::join(fp.rowNames(), " ") + "\nolNames: " + boost::algorithm::join(fp.colNames(), " ");
 }
 
 PYBIND11_MODULE(pycogaps, m)
 {
     m.doc() = "CoGAPS Python Package";
     m.def("runCogaps", &runCogaps, "Run CoGAPS Algorithm");
-    m.def("runCPPTests", &runCPPTests, "Run CoGAPS C++ Tests");
+    m.def("getBuildReport", &getBuildReport, "Return build report.");
+    m.def("isCheckpointsEnabled", &isCheckpointsEnabled, "Return whether checkpoints enabled.");
+    m.def("isCompiledWithOpenMPSupport", &isCompiledWithOpenMPSupport, "Return whether compiled with Open MP Support.");
+    m.def("getFileInfo", &getFileInfo, "Get info of inputted file.");
 }
