@@ -23,19 +23,20 @@
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
 namespace py = pybind11;
 
-// run cogaps algorithm, return result
+// run cogaps algorithm, return result 
 GapsResult runCogaps(const std::string &path)
-
-float runCogaps(const std::string &path, GapsParameters params)
 {
-    std::cout<<"1";
-    std::cout<<"2";
     GapsParameters params(path);
     GapsRandomState randState(params.seed);
     GapsResult result(gaps::run(path, params, std::string(), &randState));
-    return result.meanChiSq;
-    std::cout<<"in the runcogaps fxn";
-    return 0.0;
+    return result;
+}
+
+// overload, with given params
+GapsResult runCogaps(const std::string &path, GapsParameters params)
+{
+    GapsRandomState randState(params.seed);
+    GapsResult result(gaps::run(path, params, std::string(), &randState));
     return result;
 }
 
@@ -67,14 +68,20 @@ std::string getFileInfo(const std::string &path)
     FileParser fp(path);
     return "dimensions: " + std::to_string(fp.nRow()) + ", " + std::to_string(fp.nCol())
     + "\nrowNames: " + boost::algorithm::join(fp.rowNames(), " ") + "\ncolNames: " + boost::algorithm::join(fp.colNames(), " ");
-    std::cout<<"in the cpp testing function";
     return 0;
+}
+
+void runCPPTests()
+{
+    std::cout << "running CPPTests";
 }
 
 PYBIND11_MODULE(pycogaps, m)
 {
     m.doc() = "CoGAPS Python Package";
-    m.def("runCogaps", &runCogaps, "Run CoGAPS Algorithm");
+    m.def("runCogaps", py::overload_cast<const std::string &>(&runCogaps), "Run CoGAPS Algorithm");
+    m.def("runCogaps", py::overload_cast<const std::string &, GapsParameters >(&runCogaps), "Run CoGAPS Algorithm");
+    // m.def("runCogaps", &runCogaps, "Run CoGAPS Algorithm");
     m.def("runCPPTests", &runCPPTests, "Run CoGAPS C++ Tests");
     py::class_<GapsParameters>(m, "GapsParameters")
         .def(py::init<const std::string &>())
