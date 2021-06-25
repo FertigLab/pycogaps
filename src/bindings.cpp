@@ -25,10 +25,17 @@ namespace py = pybind11;
 
 // run cogaps algorithm, return result
 GapsResult runCogaps(const std::string &path)
+
+float runCogaps(const std::string &path, GapsParameters params)
 {
+    std::cout<<"1";
+    std::cout<<"2";
     GapsParameters params(path);
     GapsRandomState randState(params.seed);
     GapsResult result(gaps::run(path, params, std::string(), &randState));
+    return result.meanChiSq;
+    std::cout<<"in the runcogaps fxn";
+    return 0.0;
     return result;
 }
 
@@ -58,14 +65,50 @@ bool isCompiledWithOpenMPSupport()
 std::string getFileInfo(const std::string &path)
 {
     FileParser fp(path);
-    return "dimensions: " + std::to_string(fp.nRow()) + ", " + std::to_string(fp.nCol()) 
+    return "dimensions: " + std::to_string(fp.nRow()) + ", " + std::to_string(fp.nCol())
     + "\nrowNames: " + boost::algorithm::join(fp.rowNames(), " ") + "\ncolNames: " + boost::algorithm::join(fp.colNames(), " ");
+    std::cout<<"in the cpp testing function";
+    return 0;
 }
 
 PYBIND11_MODULE(pycogaps, m)
 {
     m.doc() = "CoGAPS Python Package";
     m.def("runCogaps", &runCogaps, "Run CoGAPS Algorithm");
+    m.def("runCPPTests", &runCPPTests, "Run CoGAPS C++ Tests");
+    py::class_<GapsParameters>(m, "GapsParameters")
+        .def(py::init<const std::string &>())
+        .def("print", &GapsParameters::print)
+        .def_readwrite("checkpointOutFile", &GapsParameters::checkpointOutFile)
+        .def_readwrite("checkpointFile", &GapsParameters::checkpointFile)
+        .def_readwrite("seed", &GapsParameters::seed)
+        .def_readwrite("nGenes", &GapsParameters::nGenes)
+        .def_readwrite("nSamples", &GapsParameters::nSamples)
+        .def_readwrite("nPatterns", &GapsParameters::nPatterns)
+        .def_readwrite("nIterations", &GapsParameters::nIterations)
+        .def_readwrite("maxThreads", &GapsParameters::maxThreads)
+        .def_readwrite("outputFrequency", &GapsParameters::outputFrequency)
+        .def_readwrite("checkpointInterval", &GapsParameters::checkpointInterval)
+        .def_readwrite("snapshotFrequency", &GapsParameters::snapshotFrequency)
+        .def_readwrite("alphaA", &GapsParameters::alphaA)
+        .def_readwrite("alphaP", &GapsParameters::alphaP)
+        .def_readwrite("maxGibbsMassA", &GapsParameters::maxGibbsMassA)
+        .def_readwrite("maxGibbsMassP", &GapsParameters::maxGibbsMassP)
+        .def_readwrite("pumpThreshold", &GapsParameters::pumpThreshold)
+        .def_readwrite("snapshotPhase", &GapsParameters::snapshotPhase)
+        .def_readwrite("useFixedPatterns", &GapsParameters::useFixedPatterns)
+        .def_readwrite("subsetData", &GapsParameters::subsetData)
+        .def_readwrite("useCheckPoint", &GapsParameters::useCheckPoint)
+        .def_readwrite("transposeData", &GapsParameters::transposeData)
+        .def_readwrite("printMessages", &GapsParameters::printMessages)
+        .def_readwrite("subsetGenes", &GapsParameters::subsetGenes)
+        .def_readwrite("printThreadUsage", &GapsParameters::printThreadUsage)
+        .def_readwrite("useSparseOptimization", &GapsParameters::useSparseOptimization)
+        .def_readwrite("takePumpSamples", &GapsParameters::takePumpSamples)
+        .def_readwrite("asynchronousUpdates", &GapsParameters::asynchronousUpdates)
+        .def_readwrite("whichMatrixFixed", &GapsParameters::whichMatrixFixed)
+        .def_readwrite("workerID", &GapsParameters::workerID)
+        .def_readwrite("runningDistributed", &GapsParameters::runningDistributed);
     m.def("getBuildReport", &getBuildReport, "Return build report.");
     m.def("isCheckpointsEnabled", &isCheckpointsEnabled, "Return whether checkpoints enabled.");
     m.def("isCompiledWithOpenMPSupport", &isCompiledWithOpenMPSupport, "Return whether compiled with Open MP Support.");
@@ -93,7 +136,7 @@ PYBIND11_MODULE(pycogaps, m)
         .def_readwrite("meanChiSq", &GapsResult::meanChiSq)
         .def_readwrite("averageQueueLengthA", &GapsResult::averageQueueLengthA)
         .def_readwrite("averageQueueLengthP", &GapsResult::averageQueueLengthP);
-    
+
     py::class_<Matrix>(m, "Matrix")
         .def(py::init<>())
         .def(py::init<unsigned &, unsigned &>())
