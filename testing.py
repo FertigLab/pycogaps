@@ -7,7 +7,8 @@ navigate to your pycogaps direcotry and run 'pip install .'
 import pycogaps
 
 result = pycogaps.runCogaps("./data/GIST.csv")
-# print(result.meanChiSq)
+print("AMEAN: ", result.Amean)
+print("chisqHistory: ", result.chisqHistory)
 print(pycogaps.getBuildReport())
 print(pycogaps.isCheckpointsEnabled())
 print(pycogaps.isCompiledWithOpenMPSupport())
