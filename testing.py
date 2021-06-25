@@ -14,7 +14,7 @@ path = "./data/GIST.csv"
 print("-- Passing params object into runCogaps function --\n")
 prm = pycogaps.GapsParameters(path)
 prm.print()  # c++ method to display all parameter values
-# pycogaps.runCogaps(path, prm)
+pycogaps.runCogaps(path, prm)
 result = pycogaps.runCogaps(path)
 print("AMEAN: ", result.Amean)
 print("chisqHistory: ", result.chisqHistory)

@@ -23,10 +23,18 @@
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
 namespace py = pybind11;
 
-// run cogaps algorithm, return GapsResult object
+// run cogaps algorithm, return result 
 GapsResult runCogaps(const std::string &path)
 {
     GapsParameters params(path);
+    GapsRandomState randState(params.seed);
+    GapsResult result(gaps::run(path, params, std::string(), &randState));
+    return result;
+}
+
+// overload, with given params
+GapsResult runCogaps(const std::string &path, GapsParameters params)
+{
     GapsRandomState randState(params.seed);
     GapsResult result(gaps::run(path, params, std::string(), &randState));
     return result;
@@ -71,7 +79,9 @@ void runCPPTests()
 PYBIND11_MODULE(pycogaps, m)
 {
     m.doc() = "CoGAPS Python Package";
-    m.def("runCogaps", &runCogaps, "Run CoGAPS Algorithm");
+    m.def("runCogaps", py::overload_cast<const std::string &>(&runCogaps), "Run CoGAPS Algorithm");
+    m.def("runCogaps", py::overload_cast<const std::string &, GapsParameters >(&runCogaps), "Run CoGAPS Algorithm");
+    // m.def("runCogaps", &runCogaps, "Run CoGAPS Algorithm");
     m.def("runCPPTests", &runCPPTests, "Run CoGAPS C++ Tests");
     py::class_<GapsParameters>(m, "GapsParameters")
         .def(py::init<const std::string &>())
