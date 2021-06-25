@@ -5,23 +5,13 @@ before running:
 navigate to your pycogaps direcotry and run 'pip install .'
 '''
 import pycogaps
-import CoGAPSParameters
+
 path = "./data/GIST.csv"
 
-print("-- Testing python bindings --\n")
-# pycogaps.runCogaps("./data/GIST.csv")
-pycogaps.runCPPTests()
-
-# print("-- Testing CogapsParams object --\n")
-# params = CoGAPSParameters.CogapsParams()
-# params.show()
+# print("-- Testing python bindings --\n")
+# pycogaps.runCPPTests()
 
 print("-- Passing params object into runCogaps function --\n")
 prm = pycogaps.GapsParameters(path)
+prm.print()  # c++ method to display all parameter values
 pycogaps.runCogaps(path, prm)
-
-
-
-# print("-- Making pho --\n")
-# largepho = pypho.pypho()
-# pycogaps.testStructCasting(largepho)
