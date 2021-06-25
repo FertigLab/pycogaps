@@ -6,6 +6,15 @@ navigate to your pycogaps direcotry and run 'pip install .'
 '''
 import pycogaps
 
+path = "./data/GIST.csv"
+
+# print("-- Testing python bindings --\n")
+# pycogaps.runCPPTests()
+
+print("-- Passing params object into runCogaps function --\n")
+prm = pycogaps.GapsParameters(path)
+prm.print()  # c++ method to display all parameter values
+pycogaps.runCogaps(path, prm)
 result = pycogaps.runCogaps("./data/GIST.csv")
 print("AMEAN: ", result.Amean)
 print("chisqHistory: ", result.chisqHistory)
