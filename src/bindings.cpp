@@ -18,6 +18,8 @@
 #include <iostream>
 #include <vector>
 #include <iterator>
+#include <unordered_map>
+#include <string>
 
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
@@ -63,13 +65,17 @@ bool isCompiledWithOpenMPSupport()
 #endif
 }
 
-std::string getFileInfo(const std::string &path)
+std::unordered_map<std::string, std::vector<std::string>> getFileInfo(const std::string &path)
 {
     FileParser fp(path);
-    return "dimensions: " + std::to_string(fp.nRow()) + ", " + std::to_string(fp.nCol())
-    + "\nrowNames: " + boost::algorithm::join(fp.rowNames(), " ") + "\ncolNames: " + boost::algorithm::join(fp.colNames(), " ");
-    return 0;
+    std::unordered_map<std::string, std::vector<std::string>> fileInfo;
+    std::vector<std::string> dim{ std::to_string(fp.nRow()), std::to_string(fp.nCol())};
+    std::vector<std::string> rname{boost::algorithm::join(fp.rowNames(), " ")};
+    std::vector<std::string> cname{boost::algorithm::join(fp.colNames(), " ")};
+    fileInfo = {{"dimensions", dim}, {"rowNames", rname}, {"colNames", cname}};
+    return fileInfo;
 }
+
 
 void runCPPTests()
 {
@@ -80,7 +86,7 @@ PYBIND11_MODULE(pycogaps, m)
 {
     m.doc() = "CoGAPS Python Package";
     m.def("runCogaps", py::overload_cast<const std::string &>(&runCogaps), "Run CoGAPS Algorithm");
-    m.def("runCogaps", py::overload_cast<const std::string &, GapsParameters >(&runCogaps), "Run CoGAPS Algorithm");
+    m.def("runCogaps", py::overload_cast<const std::string &, GapsParameters >(&runCogaps), "Run CoGAPS Algorithm, with parameters");
     // m.def("runCogaps", &runCogaps, "Run CoGAPS Algorithm");
     m.def("runCPPTests", &runCPPTests, "Run CoGAPS C++ Tests");
     py::class_<GapsParameters>(m, "GapsParameters")
