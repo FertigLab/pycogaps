@@ -6,12 +6,12 @@ def getRetinaSubset(n=1):
 
 def nrowHelper(data):
     if isinstance(data, str):
-        return pycogaps.getFileInfo(data)["dimensions"][0]
+        return int(pycogaps.getFileInfo(data)["dimensions"][0])
     return data.shape[0] # assuming data is pandas dataframe
 
 def ncolHelper(data):
     if isinstance(data, str):
-        return pycogaps.getFileInfo(data)["dimensions"][1]
+        return int(pycogaps.getFileInfo(data)["dimensions"][1])
     return data.shape[1] # assuming data is pandas dataframe
 
 def getGeneNames(data, transpose):
