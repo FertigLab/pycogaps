@@ -23,8 +23,8 @@
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
 namespace py = pybind11;
 
-// run cogaps algorithm, return result 
-GapsResult runCogaps(const std::string &path)
+
+GapsResult runCogapsNoParams(const std::string &path)
 {
     GapsParameters params(path);
     GapsRandomState randState(params.seed);
@@ -33,11 +33,16 @@ GapsResult runCogaps(const std::string &path)
 }
 
 // overload, with given params
-GapsResult runCogaps(const std::string &path, GapsParameters params)
+GapsResult runCogapsWithParams(const std::string &path, GapsParameters params)
 {
     GapsRandomState randState(params.seed);
     GapsResult result(gaps::run(path, params, std::string(), &randState));
     return result;
+}
+
+GapsResult runCogapsFromMatWithParams(Matrix mat, GapsParameters params)
+{
+    // TODO: implement
 }
 
 std::string getBuildReport()
@@ -79,9 +84,13 @@ void runCPPTests()
 PYBIND11_MODULE(pycogaps, m)
 {
     m.doc() = "CoGAPS Python Package";
-    m.def("runCogaps", py::overload_cast<const std::string &>(&runCogaps), "Run CoGAPS Algorithm");
-    m.def("runCogaps", py::overload_cast<const std::string &, GapsParameters >(&runCogaps), "Run CoGAPS Algorithm");
-    // m.def("runCogaps", &runCogaps, "Run CoGAPS Algorithm");
+// having issues with this overloading method, pretty much as described here: https://github.com/pybind/pybind11/issues/3035
+// for now I'm just giving the functions unique names and then deciding which to call in PyCoGAPS.py... not the prettiest solution
+//    m.def("runCogaps", py::overload_cast<const std::string &>(&runCogaps), "Run CoGAPS Algorithm");
+//    m.def("runCogaps", py::overload_cast<const std::string &, GapsParameters>(&runCogaps), "Run CoGAPS Algorithm");
+    m.def("runCogaps", &runCogapsNoParams, "Run CoGAPS Algorithm with only a path supplied");
+    m.def("runCogapsWithParams", &runCogapsWithParams, "Run CoGAPS Algorithm with user supplied GapsParameters object");
+    m.def("runCogapsFromMatWithParams", &runCogapsFromMatWithParams, "Run CoGAPS Algorithm with user-supplied GapsParameters and a Matrix object");
     m.def("runCPPTests", &runCPPTests, "Run CoGAPS C++ Tests");
     py::class_<GapsParameters>(m, "GapsParameters")
         .def(py::init<const std::string &>())

@@ -1,5 +1,36 @@
 import time
 import math
+import pycogaps
+
+
+# contains wrappers for every C++ bound function
+# TODO: getters, setters, input sanitation
+
+def CoGAPS(path, params=None):
+    if params is None:
+        return pycogaps.runCogaps(path)
+    else:
+        return pycogaps.runCogapsWithParams(path, params)
+
+
+def GapsParameters(path):
+    return pycogaps.GapsParameters(path)
+
+
+def getBuildReport():
+    return pycogaps.getBuildReport()
+
+
+def isCheckpointsEnabled():
+    return pycogaps.isCheckpointsEnabled()
+
+
+def isCompiledWithOpenMPSupport():
+    return pycogaps.isCompiledWithOpenMPSupport()
+
+
+def getFileInfo(path):
+    return pycogaps.getFileInfo(path)
 
 
 def current_milli_time():
