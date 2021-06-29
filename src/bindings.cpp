@@ -18,21 +18,11 @@
 #include <iostream>
 #include <vector>
 #include <iterator>
-#include <unordered_map>
-#include <string>
 
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
 namespace py = pybind11;
 
-// run cogaps algorithm, return result 
-GapsResult runCogaps(const std::string &path)
-{
-    GapsParameters params(path);
-    GapsRandomState randState(params.seed);
-    GapsResult result(gaps::run(path, params, std::string(), &randState));
-    return result;
-}
 
 // overload, with given params
 GapsResult runCogaps(const std::string &path, GapsParameters params)
@@ -41,6 +31,11 @@ GapsResult runCogaps(const std::string &path, GapsParameters params)
     GapsResult result(gaps::run(path, params, std::string(), &randState));
     return result;
 }
+
+//GapsResult runCogapsFromMatrix(Matrix mat, GapsParameters params)
+//{
+//    // TODO: implement
+//}
 
 std::string getBuildReport()
 {
@@ -65,17 +60,13 @@ bool isCompiledWithOpenMPSupport()
 #endif
 }
 
-std::unordered_map<std::string, std::vector<std::string>> getFileInfo(const std::string &path)
+std::string getFileInfo(const std::string &path)
 {
     FileParser fp(path);
-    std::unordered_map<std::string, std::vector<std::string>> fileInfo;
-    std::vector<std::string> dim{ std::to_string(fp.nRow()), std::to_string(fp.nCol())};
-    std::vector<std::string> rname{boost::algorithm::join(fp.rowNames(), " ")};
-    std::vector<std::string> cname{boost::algorithm::join(fp.colNames(), " ")};
-    fileInfo = {{"dimensions", dim}, {"rowNames", rname}, {"colNames", cname}};
-    return fileInfo;
+    return "dimensions: " + std::to_string(fp.nRow()) + ", " + std::to_string(fp.nCol())
+    + "\nrowNames: " + boost::algorithm::join(fp.rowNames(), " ") + "\ncolNames: " + boost::algorithm::join(fp.colNames(), " ");
+    return 0;
 }
-
 
 void runCPPTests()
 {
@@ -85,10 +76,13 @@ void runCPPTests()
 PYBIND11_MODULE(pycogaps, m)
 {
     m.doc() = "CoGAPS Python Package";
-    m.def("runCogaps", py::overload_cast<const std::string &>(&runCogaps), "Run CoGAPS Algorithm");
-    m.def("runCogaps", py::overload_cast<const std::string &, GapsParameters >(&runCogaps), "Run CoGAPS Algorithm, with parameters");
-    // m.def("runCogaps", &runCogaps, "Run CoGAPS Algorithm");
+    m.def("runCogaps", &runCogaps, "Run CoGAPS Algorithm");
     m.def("runCPPTests", &runCPPTests, "Run CoGAPS C++ Tests");
+    py::enum_<GapsAlgorithmPhase>(m, "GapsAlgorithmPhase")
+        .value("GAPS_EQUILIBRATION_PHASE", GAPS_EQUILIBRATION_PHASE)
+        .value("GAPS_SAMPLING_PHASE", GAPS_SAMPLING_PHASE)
+        .value("GAPS_ALL_PHASES", GAPS_ALL_PHASES)
+        .export_values();
     py::class_<GapsParameters>(m, "GapsParameters")
         .def(py::init<const std::string &>())
         .def("print", &GapsParameters::print)
