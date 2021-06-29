@@ -4,21 +4,18 @@ jeanette johnson 6/14/21
 before running:
 navigate to your pycogaps direcotry and run 'pip install .'
 '''
-import pycogaps
+from PyCoGAPS import * # gonna try to only use things from this module
 
 path = "./data/GIST.csv"
 
-# print("-- Testing python bindings --\n")
-# pycogaps.runCPPTests()
-
 print("-- Passing params object into runCogaps function --\n")
-prm = pycogaps.GapsParameters(path)
+prm = GapsParameters(path)
 prm.print()  # c++ method to display all parameter values
-pycogaps.runCogaps(path, prm)
-result = pycogaps.runCogaps(path)
+CoGAPS(path, prm)
+result = CoGAPS(path)
 print("AMEAN: ", result.Amean)
 print("chisqHistory: ", result.chisqHistory)
-print(pycogaps.getBuildReport())
-print(pycogaps.isCheckpointsEnabled())
-print(pycogaps.isCompiledWithOpenMPSupport())
-print(pycogaps.getFileInfo(path))
+print(getBuildReport())
+print(isCheckpointsEnabled())
+print(isCompiledWithOpenMPSupport())
+print(getFileInfo(path))
