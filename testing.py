@@ -8,13 +8,9 @@ from PyCoGAPS import * # gonna try to only use things from this module
 
 path = "./data/GIST.csv"
 
-# print("-- Testing python bindings --\n")
-# pycogaps.runCPPTests()
-
 print("-- Passing params object into runCogaps function --\n")
 prm = GapsParameters(path)
 prm.print()  # c++ method to display all parameter values
-CoGAPS(path, prm)
 CoGAPS(path, prm)
 result = CoGAPS(path)
 print("AMEAN: ", result.Amean)
