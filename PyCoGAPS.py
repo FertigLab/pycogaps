@@ -9,10 +9,10 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
            BPPARAM=None, workerID=1, asynchronousUpdates=None, nSnapshots=0,
            snapshotPhase='sampling'):
     """
-
+    Python wrapper to run CoGAPS via bindings
     @param path: path to data
     @param params: GapsParameters object
-    @param nThreads:
+    @param nThreads: number of threads to use
     @param messages: whether to print messages
     @param outputFrequency:
     @param uncertainty:
@@ -24,7 +24,7 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
     @param workerID:
     @param asynchronousUpdates:
     @param nSnapshots:
-    @param snapshotPhase:
+    @param snapshotPhase: one of "sampling", "equilibration", "all"
     @return: a CogapsResult object
     """
     # check OpenMP support
@@ -112,10 +112,10 @@ def setParams(paramobj, list):
 def setParam(paramobj, whichParam, value):
     """
 
-    @param paramobj:
-    @param whichParam:
-    @param value:
-    @return:
+    @param paramobj: a GapsParameters object
+    @param whichParam: the name of the parameter you wish to change
+    @param value: the value to set whichParam as
+    @return: nothing; paramobj will be modified
     """
     if whichParam == "alpha":
         paramobj.alphaA = value
