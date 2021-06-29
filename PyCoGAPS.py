@@ -3,14 +3,74 @@ import math
 import pycogaps
 
 
-# contains wrappers for every C++ bound function
-# TODO: getters, setters, input sanitation
+def CoGAPS(path, params=None, nThreads=1, messages=True,
+           outputFrequency=1000, uncertainty=None, checkpointOutFile="gaps_checkpoint.out",
+           checkpointInterval=0, checkpointInFile="", transposeData=None,
+           BPPARAM=None, workerID=1, asynchronousUpdates=None, nSnapshots=0,
+           snapshotPhase='sampling'):
+    """
 
-def CoGAPS(path, params=None):
-    if params is None:
-        return pycogaps.runCogaps(path)
+    @param path: path to data
+    @param params: GapsParameters object
+    @param nThreads:
+    @param messages: whether to print messages
+    @param outputFrequency:
+    @param uncertainty:
+    @param checkpointOutFile: path to where checkpoint info should be written
+    @param checkpointInterval: how often to make a checkpoint
+    @param checkpointInFile:
+    @param transposeData:
+    @param BPPARAM:
+    @param workerID:
+    @param asynchronousUpdates:
+    @param nSnapshots:
+    @param snapshotPhase:
+    @return: a CogapsResult object
+    """
+    # check OpenMP support
+    if isCompiledWithOpenMPSupport() is False:
+        if asynchronousUpdates is not None and nThreads > 1:
+            print("requesting multi-threaded version of CoGAPS but compiler did not support OpenMP")
+        asynchronousUpdates = False
+        nThreads = 1
+    # convert sampling phase to enum
+    if snapshotPhase == "sampling":
+        snapshotPhase = pycogaps.GAPS_SAMPLING_PHASE
+    elif snapshotPhase == "equilibration":
+        snapshotPhase = pycogaps.GAPS_EQUILIBRATION_PHASE
+    elif snapshotPhase == "all":
+        snapshotPhase = pycogaps.GAPS_ALL_PHASES
     else:
-        return pycogaps.runCogapsWithParams(path, params)
+        print("The snapshot phase you indicated is not recognized.")
+        print("Please choose one of: sampling, equilibration, all")
+        return
+
+    if params is None:
+        # construct a parameters object using whatever was passed in
+        prm = GapsParameters(path)
+        opts = {
+            'maxThreads': nThreads,
+            'printMessages': messages,
+            'outputFrequency': outputFrequency,
+            'checkpointOutFile': checkpointOutFile,
+            'checkpointInterval': checkpointInterval,
+            'checkpointFile': checkpointInFile,
+            'transposeData': transposeData,
+            'workerID': workerID,
+            'asynchronousUpdates': asynchronousUpdates,
+            'snapshotFrequency': nSnapshots,
+            'snapshotPhase': snapshotPhase,
+        }
+        setParams(prm, opts)
+        return pycogaps.runCogaps(path, prm)
+    else:
+        # should we allow them to pass in params?
+        # it's hard because we can't distinguish
+        # between defaults and user-supplied params AFAIK
+        return pycogaps.runCogaps(path, params)
+
+
+# TODO: should we pass uncertainty into runCogaps?
 
 
 def GapsParameters(path):
@@ -37,14 +97,27 @@ def current_milli_time():
     return round(time.time() * 1000)
 
 
+def setParams(paramobj, list):
+    """
+
+    @param paramobj: a GapsParameters object
+    @param list: key:value pairings for each parameter you wish to set
+    """
+    for (k, v) in list.items():
+        setParam(paramobj, k, v)
+
+
 # class CogapsParams
 # constructor has default values for each parameter
 def setParam(paramobj, whichParam, value):
-    if whichParam == "nPatterns":
-        paramobj.nPatterns = value
-    elif whichParam == "nIterations":
-        paramobj.nIterations = value
-    elif whichParam == "alpha":
+    """
+
+    @param paramobj:
+    @param whichParam:
+    @param value:
+    @return:
+    """
+    if whichParam == "alpha":
         paramobj.alphaA = value
         paramobj.alphaP = value
     elif whichParam == "maxGibbsMass":
@@ -59,14 +132,6 @@ def setParam(paramobj, whichParam, value):
     elif whichParam in ("fixedPatterns", "whichMatrixFixed"):
         print("please set \'", whichParam, "\' with setFixedPatterns")
         return
-    # elif whichParam == "nPatterns":
-    #     paramobj.nPatterns = value
-    #     paramobj.cut = min(paramobj.cut, paramobj.nPatterns)
-    # elif whichParam == "distributed":
-    #     if value == "none":
-    #         paramobj.distributed = None
-    #     else:
-    #         paramobj.distributed = value
     elif whichParam in "singleCell":
         print(whichParam, " has been deprecated, this parameter will be ignored")
         return

@@ -24,26 +24,18 @@
 namespace py = pybind11;
 
 
-GapsResult runCogapsNoParams(const std::string &path)
-{
-    GapsParameters params(path);
-    GapsRandomState randState(params.seed);
-    GapsResult result(gaps::run(path, params, std::string(), &randState));
-    return result;
-}
-
 // overload, with given params
-GapsResult runCogapsWithParams(const std::string &path, GapsParameters params)
+GapsResult runCogaps(const std::string &path, GapsParameters params)
 {
     GapsRandomState randState(params.seed);
     GapsResult result(gaps::run(path, params, std::string(), &randState));
     return result;
 }
 
-GapsResult runCogapsFromMatWithParams(Matrix mat, GapsParameters params)
-{
-    // TODO: implement
-}
+//GapsResult runCogapsFromMatrix(Matrix mat, GapsParameters params)
+//{
+//    // TODO: implement
+//}
 
 std::string getBuildReport()
 {
@@ -88,10 +80,13 @@ PYBIND11_MODULE(pycogaps, m)
 // for now I'm just giving the functions unique names and then deciding which to call in PyCoGAPS.py... not the prettiest solution
 //    m.def("runCogaps", py::overload_cast<const std::string &>(&runCogaps), "Run CoGAPS Algorithm");
 //    m.def("runCogaps", py::overload_cast<const std::string &, GapsParameters>(&runCogaps), "Run CoGAPS Algorithm");
-    m.def("runCogaps", &runCogapsNoParams, "Run CoGAPS Algorithm with only a path supplied");
-    m.def("runCogapsWithParams", &runCogapsWithParams, "Run CoGAPS Algorithm with user supplied GapsParameters object");
-    m.def("runCogapsFromMatWithParams", &runCogapsFromMatWithParams, "Run CoGAPS Algorithm with user-supplied GapsParameters and a Matrix object");
+    m.def("runCogaps", &runCogaps, "Run CoGAPS Algorithm");
     m.def("runCPPTests", &runCPPTests, "Run CoGAPS C++ Tests");
+    py::enum_<GapsAlgorithmPhase>(m, "GapsAlgorithmPhase")
+        .value("GAPS_EQUILIBRATION_PHASE", GAPS_EQUILIBRATION_PHASE)
+        .value("GAPS_SAMPLING_PHASE", GAPS_SAMPLING_PHASE)
+        .value("GAPS_ALL_PHASES", GAPS_ALL_PHASES)
+        .export_values();
     py::class_<GapsParameters>(m, "GapsParameters")
         .def(py::init<const std::string &>())
         .def("print", &GapsParameters::print)
