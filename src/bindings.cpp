@@ -76,10 +76,6 @@ void runCPPTests()
 PYBIND11_MODULE(pycogaps, m)
 {
     m.doc() = "CoGAPS Python Package";
-// having issues with this overloading method, pretty much as described here: https://github.com/pybind/pybind11/issues/3035
-// for now I'm just giving the functions unique names and then deciding which to call in PyCoGAPS.py... not the prettiest solution
-//    m.def("runCogaps", py::overload_cast<const std::string &>(&runCogaps), "Run CoGAPS Algorithm");
-//    m.def("runCogaps", py::overload_cast<const std::string &, GapsParameters>(&runCogaps), "Run CoGAPS Algorithm");
     m.def("runCogaps", &runCogaps, "Run CoGAPS Algorithm");
     m.def("runCPPTests", &runCPPTests, "Run CoGAPS C++ Tests");
     py::enum_<GapsAlgorithmPhase>(m, "GapsAlgorithmPhase")
