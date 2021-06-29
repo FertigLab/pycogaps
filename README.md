@@ -2,7 +2,9 @@
 ```
 git clone https://github.com/FertigLab/pycogaps --recursive
 cd pycogaps
-pip3 install .
+pip3 install . 
+OR
+python3 setup.py install
 ```
 # Usage
 
