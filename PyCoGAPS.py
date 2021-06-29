@@ -140,5 +140,9 @@ def setParam(paramobj, whichParam, value):
     return paramobj
 
 
+def getParam(paramobj, whichParam):
+    return getattr(paramobj, whichParam)
+
+
 def show(paramobj):
     paramobj.print()
