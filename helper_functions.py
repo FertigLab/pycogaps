@@ -1,5 +1,50 @@
 import pycogaps
+import numpy as np
+import pandas as pd
+import scipy.io
 
+def supported(file):
+    return file.lower().endswith(".tsv", ".csv", ".mtx", ".gct")
+
+# convert file types to pandas dataframe
+def dataToDF(file):
+    if file.lower().endswith(".csv"):
+        df = pd.read_csv(file, index_col=0)
+    elif file.lower().endswith(".tsv"):
+        df = pd.read_csv(file, sep='\t', index_col=0)
+    elif file.lower().endswith(".mtx"):
+        data = scipy.io.mmread(file)
+        if not isinstance(data, np.ndarray):
+            df = pd.DataFrame.sparse.from_spmatrix(data)
+        else:
+            df = pd.DataFrame(data)
+    elif file.lower().endswith(".gct"):
+        df = pd.read_csv(file, sep='\t',skiprows=2, index_col=0)
+    return df
+
+def checkDataMatrix(file, uncertainty=None, params=None):
+    if supported:
+        data = dataToDF(file).to_numpy()
+    else:
+        raise Exception("unsupported data type")
+
+    if np.isnan(data).any():
+        raise Exception('NA values in data')
+    if not np.issubdtype(data.dtype, np.number):
+        raise Exception('data is not numeric')
+    if np.any((data < 0)):
+        raise Exception('negative values in data matrix')
+    if uncertainty != None:
+        if np.any((uncertainty < 0)):
+            raise Exception('negative values in uncertainty matrix')
+        if np.any(uncertainty < 1e-5):
+            raise Warning('small values in uncertainty matrix detected')
+    if data.shape[0] <= params.nPatterns | data.shape[1] <= params.nPatterns:
+        raise Exception('nPatterns must be less than dimensions of data')    
+
+# TODO: add support for reading AnnData, HDF5, and R data (?)
+
+# not implemented yet - reads HDF5 file
 # we can use this for testing later 
 def getRetinaSubset(n=1):
     if not (1 <= n <= 4):
@@ -18,33 +63,38 @@ def ncolHelper(data):
 def getGeneNames(data, transpose):
     if transpose:
         return getSampleNames(data, False)
-    if isinstance(data, str):
-        names = pycogaps.getFileInfo(data)["rowNames"]
-    else:
-        names = list(data.head().index) # assuming data is pandas dataframe
-    if names == None or len(names) == 0:
+    # names = pycogaps.getFileInfo(data)["rowNames"]
+    data = dataToDF(data)
+    names = data.index.values
+    
+    if names.all() == None or len(names) == 0:
         return ["Gene" + str(i) for i in range(1, nrowHelper(data))]
     return names
 
 def getSampleNames(data, transpose):
     if transpose:
         return getGeneNames(data, transpose)
-    if isinstance(data, str):
-        names = pycogaps.getFileInfo(data)["colNames"]
-    else:
-        names = list(data.columns) # assuming data is pandas dataframe
-    if names == None or len(names) == 0:
+    # names = pycogaps.getFileInfo(data)["colNames"]
+    data = dataToDF(data)
+    names = data.columns.values
+
+    if names.all() == None or len(names) == 0:
         return ["Sample" + str(i) for i in range(1, ncolHelper(data))]
     return names
 
+# allParams doesn't have geneNames & sampleNames yet
+# currently doesn't support user-supplied param inputs
 def getDimNames(data, allParams):
-    geneNames = allParams.gaps.geneNames
-    sampleNames = allParams.gaps.sampleNames
+    # geneNames = allParams.gaps.geneNames
+    # sampleNames = allParams.gaps.sampleNames
 
-    if allParams.gaps.geneNames == None:
-        geneNames = getGeneNames(data, allParams.transposeData)
-    if allParams.gaps.sampleNames == None:
-        sampleNames = getSampleNames(data, allParams.transposeData)
+    # if allParams.gaps.geneNames == None:
+    #     geneNames = getGeneNames(data, allParams.transposeData)
+    # if allParams.gaps.sampleNames == None:
+    #     sampleNames = getSampleNames(data, allParams.transposeData)
+
+    geneNames = getGeneNames(data, allParams.transposeData)
+    sampleNames = getSampleNames(data, allParams.transposeData)
     
     if allParams.transposeData:
         nGenes = ncolHelper(data)
@@ -53,12 +103,12 @@ def getDimNames(data, allParams):
         nGenes = nrowHelper(data)
         nSamples = ncolHelper(data)
 
-    if allParams.gaps.subsetDim == 1:
-        nGenes = len(allParams.gaps.subsetIndices)
-        geneNames = geneNames[allParams.subsetIndices]
-    elif allParams.gaps.subsetDim == 2:
-        nSamples = len(allParams.subsetIndices)
-        sampleNames = sampleNames[allParams.subsetIndices]
+    # if allParams.gaps.subsetDim == 1:
+    #     nGenes = len(allParams.gaps.subsetIndices)
+    #     geneNames = geneNames[allParams.subsetIndices]
+    # elif allParams.gaps.subsetDim == 2:
+    #     nSamples = len(allParams.subsetIndices)
+    #     sampleNames = sampleNames[allParams.subsetIndices]
 
     if len(geneNames) != nGenes:
         raise Exception(len(geneNames), " != ", nGenes, " incorrect number of gene names given")
@@ -73,8 +123,3 @@ def getDimNames(data, allParams):
     allParams.sampleNames <- sampleNames
     return(allParams)
 
-##### testing #####
-
-path = "./data/GIST.csv"
-prm = pycogaps.GapsParameters(path)
-getDimNames(path, prm)
