@@ -23,7 +23,7 @@ def dataToDF(file):
     return df
 
 def checkDataMatrix(file, uncertainty=None, params=None):
-    if supported:
+    if supported(file):
         data = dataToDF(file).to_numpy()
     else:
         raise Exception("unsupported data type")
@@ -123,4 +123,3 @@ def getDimNames(data, allParams):
     allParams.geneNames <- geneNames
     allParams.sampleNames <- sampleNames
     return(allParams)
-
