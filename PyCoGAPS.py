@@ -28,7 +28,6 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
     @param snapshotPhase: one of "sampling", "equilibration", "all"
     @return: a CogapsResult object
     """
-    
 
     # check OpenMP support
     if isCompiledWithOpenMPSupport() is False:

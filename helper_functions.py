@@ -3,8 +3,10 @@ import numpy as np
 import pandas as pd
 import scipy.io
 
+
 def supported(file):
     return file.lower().endswith((".tsv", ".csv", ".mtx", ".gct"))
+
 
 # convert file types to pandas dataframe
 def dataToDF(file):
@@ -19,8 +21,9 @@ def dataToDF(file):
         else:
             df = pd.DataFrame(data)
     elif file.lower().endswith(".gct"):
-        df = pd.read_csv(file, sep='\t',skiprows=2, index_col=0)
+        df = pd.read_csv(file, sep='\t', skiprows=2, index_col=0)
     return df
+
 
 def checkData(file, params, uncertainty=None):
     if supported(file):
@@ -40,9 +43,10 @@ def checkData(file, params, uncertainty=None):
         if np.any(uncertainty < 1e-5):
             raise Warning('small values in uncertainty matrix detected')
     if data.shape[0] <= params.nPatterns | data.shape[1] <= params.nPatterns:
-        raise Exception('nPatterns must be less than dimensions of data')    
+        raise Exception('nPatterns must be less than dimensions of data')
 
-# TODO: add support for reading AnnData, HDF5, and R data (?)
+    # TODO: add support for reading AnnData, HDF5, and R data (?)
+
 
 # not implemented yet - reads HDF5 file
 # we can use this for testing later 
@@ -50,25 +54,29 @@ def getRetinaSubset(n=1):
     if not (1 <= n <= 4):
         raise Exception("invalide number of subsets requested")
 
+
 def nrowHelper(data):
     # if isinstance(data, str):
     #     return int(pycogaps.getFileInfo(data)["dimensions"][0])
-    return data.shape[0] # assuming data is pandas dataframe
+    return data.shape[0]  # assuming data is pandas dataframe
+
 
 def ncolHelper(data):
     # if isinstance(data, str):
     #     return int(pycogaps.getFileInfo(data)["dimensions"][1])
-    return data.shape[1] # assuming data is pandas dataframe
+    return data.shape[1]  # assuming data is pandas dataframe
+
 
 def getGeneNames(data, transpose):
     if transpose:
         return getSampleNames(data, False)
     # names = pycogaps.getFileInfo(data)["rowNames"]
     names = data.index.values
-    
+
     if names.all() == None or len(names) == 0:
         return ["Gene" + str(i) for i in range(1, nrowHelper(data))]
     return names
+
 
 def getSampleNames(data, transpose):
     if transpose:
@@ -79,6 +87,7 @@ def getSampleNames(data, transpose):
     if names.all() == None or len(names) == 0:
         return ["Sample" + str(i) for i in range(1, ncolHelper(data))]
     return names
+
 
 # allParams doesn't have geneNames & sampleNames yet
 # currently doesn't support user-supplied param inputs
@@ -96,7 +105,7 @@ def getDimNames(data, allParams):
 
     geneNames = getGeneNames(data, allParams.transposeData)
     sampleNames = getSampleNames(data, allParams.transposeData)
-    
+
     if allParams.transposeData:
         nGenes = ncolHelper(data)
         nSamples = nrowHelper(data)
@@ -122,4 +131,122 @@ def getDimNames(data, allParams):
     # the procseed gene/sample names to be used when labeling the result
     allParams.geneNames = geneNames
     allParams.sampleNames = sampleNames
-    return(allParams)
+    return (allParams)
+
+
+# TODO: implement CogapsResults helper functions
+
+def show(object):
+    print("Not yet implemented")
+    return
+
+
+def plot(object):
+    print("Not yet implemented")
+    return
+
+
+def getFeatureLoadings(object):
+    print("Not yet implemented")
+    return
+
+
+def getAmplitudeMatrix(object):
+    print("Not yet implemented")
+    return
+
+
+def getSampleFactors(object):
+    print("Not yet implemented")
+    return
+
+def getPatternMatrix(object):
+    print("Not yet implemented")
+    return
+
+
+def getetMeanChiSq(object):
+    print("Not yet implemented")
+    return
+
+
+def getVersion(object):
+    print("Not yet implemented")
+    return
+
+
+def getOriginalParameters(object):
+    print("Not yet implemented")
+    return
+
+
+def getUnmatchedPatterns(object):
+    print("Not yet implemented")
+    return
+
+
+def getClusteredPatterns(object):
+    print("Not yet implemented")
+    return
+
+
+def getCorrelationToMeanPattern(object):
+    print("Not yet implemented")
+    return
+
+
+def getSubsets(object):
+    print("Not yet implemented")
+    return
+
+
+def calcZ(object):
+    print("Not yet implemented")
+    return
+
+
+def reconstructGene(object):
+    print("Not yet implemented")
+    return
+
+
+def binaryA(object):
+    print("Not yet implemented")
+    return
+
+
+def plotResiduals(object):
+    print("Not yet implemented")
+    return
+
+
+def unitVector():
+    print("Not yet implemented")
+    return
+
+
+def patternMarkers(object, threshold, lp, axis):
+    print("Not yet implemented")
+    return
+
+
+def calcCoGAPSStat(object):
+    print("Not yet implemented")
+    return
+
+
+def calcGeneGSStat(object, GStoGenes, numPerm, Pw, nullGenes):
+    print("Not yet implemented")
+    return
+
+
+def computeGeneGSProb(object, GStoGenes, numPerm, Pw, PwNull):
+    print("Not yet implemented")
+    return
+
+
+def plotPatternMarkers(object, data, patternPalette, sampleNames,
+                       samplePalette=None, heatmapCol="bluered",
+                       colDenogram=True, scale="row"):
+    print("Not yet implemented")
+    return
