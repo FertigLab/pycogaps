@@ -1,6 +1,7 @@
 import time
 import math
 import pycogaps
+import helper_functions
 
 
 def CoGAPS(path, params=None, nThreads=1, messages=True,
@@ -27,6 +28,8 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
     @param snapshotPhase: one of "sampling", "equilibration", "all"
     @return: a CogapsResult object
     """
+    
+
     # check OpenMP support
     if isCompiledWithOpenMPSupport() is False:
         if asynchronousUpdates is not None and nThreads > 1:
@@ -62,11 +65,15 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
             'snapshotPhase': snapshotPhase,
         }
         setParams(prm, opts)
+        # check data input
+        helper_functions.checkData(path, prm)
         return pycogaps.runCogaps(path, prm)
     else:
         # should we allow them to pass in params?
         # it's hard because we can't distinguish
         # between defaults and user-supplied params AFAIK
+        # check data input
+        helper_functions.checkData(path, params)
         return pycogaps.runCogaps(path, params)
 
 

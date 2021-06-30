@@ -22,7 +22,7 @@ def dataToDF(file):
         df = pd.read_csv(file, sep='\t',skiprows=2, index_col=0)
     return df
 
-def checkDataMatrix(file, uncertainty=None, params=None):
+def checkData(file, params, uncertainty=None):
     if supported(file):
         data = dataToDF(file).to_numpy()
     else:
