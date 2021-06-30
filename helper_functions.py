@@ -120,6 +120,6 @@ def getDimNames(data, allParams):
     # this is an important distinction - allParams@gaps contains the
     # gene/sample names originally passed by the user, allParams contains
     # the procseed gene/sample names to be used when labeling the result
-    allParams.geneNames <- geneNames
-    allParams.sampleNames <- sampleNames
+    allParams.geneNames = geneNames
+    allParams.sampleNames = sampleNames
     return(allParams)
