@@ -1,4 +1,4 @@
-import pycogaps
+from pycogaps import *
 import numpy as np
 import pandas as pd
 import scipy.io
@@ -136,8 +136,18 @@ def getDimNames(data, allParams):
 
 # TODO: implement CogapsResults helper functions
 
-def show(object):
+def createCogapsResult(object:GapsResult, params:GapsParameters):
     print("Not yet implemented")
+    return
+
+
+def show(obj:GapsResult):
+    print("Not yet implemented")
+    nfeatures = obj.Amean.nRow()
+    nsamples = obj.Pmean.nRow()
+    npatterns = obj.Pmean.nCol()
+    print("GapsResult result object with ", nfeatures, " features and ", nsamples, " samples")
+    print(npatterns, " patterns were learned")
     return
 
 
@@ -159,6 +169,7 @@ def getAmplitudeMatrix(object):
 def getSampleFactors(object):
     print("Not yet implemented")
     return
+
 
 def getPatternMatrix(object):
     print("Not yet implemented")

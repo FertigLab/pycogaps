@@ -150,5 +150,7 @@ PYBIND11_MODULE(pycogaps, m)
         .def(py::init<const Matrix &, bool &, bool &,
         std::vector<unsigned> &>())
         .def(py::init<const std::string &, bool &, bool &,
-        std::vector<unsigned> &>());
+        std::vector<unsigned> &>())
+        .def("nCol", &Matrix::nCol)
+        .def("nRow", &Matrix::nRow);
 }
