@@ -23,4 +23,5 @@ print(getFileInfo(path))
 print("--Testing CogapsResult Object\n")
 print("calling show(result)\n")
 show(result)
+plot(result)
 

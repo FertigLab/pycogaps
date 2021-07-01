@@ -144,6 +144,9 @@ PYBIND11_MODULE(pycogaps, m)
         .def_readwrite("averageQueueLengthA", &GapsResult::averageQueueLengthA)
         .def_readwrite("averageQueueLengthP", &GapsResult::averageQueueLengthP);
 
+    py::class_<Vector>(m, "Vector")
+        .def(py::init<unsigned &>());
+
     py::class_<Matrix>(m, "Matrix")
         .def(py::init<>())
         .def(py::init<unsigned &, unsigned &>())
@@ -152,5 +155,12 @@ PYBIND11_MODULE(pycogaps, m)
         .def(py::init<const std::string &, bool &, bool &,
         std::vector<unsigned> &>())
         .def("nCol", &Matrix::nCol)
-        .def("nRow", &Matrix::nRow);
+        .def("nRow", &Matrix::nRow)
+        // .def_property("mCols", &Matrix<unsigned>::getCol);
+        .def("getCol", static_cast<Vector& (Matrix::*)(unsigned)>(&Matrix::getCol), "Get a column of the matrix");
+       // .def("getCol", static_cast<const Vector& (Matrix::*)(unsigned)>(&Matrix::getCol), "Get a column of the matrix");
+
+       // .def_readwrite("mCols", &Matrix::mCols);
+      //  .def("getCol", &Matrix<int>::getCol)
+       // .def("getCol", static_cast<&Vector (Matrix::*)() const>(&Matrix::getCol));
 }
