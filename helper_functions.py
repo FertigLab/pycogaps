@@ -2,6 +2,12 @@ from pycogaps import *
 import numpy as np
 import pandas as pd
 import scipy.io
+import matplotlib as mpl
+from matplotlib import cm
+import matplotlib.pyplot as plt
+import colorspacious
+from colorspacious import cspace_converter
+from collections import OrderedDict
 
 
 def supported(file):
@@ -142,7 +148,6 @@ def createCogapsResult(object:GapsResult, params:GapsParameters):
 
 
 def show(obj:GapsResult):
-    print("Not yet implemented")
     nfeatures = obj.Amean.nRow()
     nsamples = obj.Pmean.nRow()
     npatterns = obj.Pmean.nCol()
@@ -151,8 +156,19 @@ def show(obj:GapsResult):
     return
 
 
-def plot(object):
+def plot(obj:GapsResult):
     print("Not yet implemented")
+    nsamples = obj.Pmean.nRow()
+    nfactors = obj.Pmean.nCol()
+    cmaps = OrderedDict()
+    # plt.plot([1, 2, 3, 4])
+    # plt.ylabel("some numbers")
+    # plt.show()
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    for i in range(nfactors + 1):
+        ax.plot(range(1, nsamples + 1), obj.Pmean[:i], label="Data " + str(i), color=next("Sequential"))
+
     return
 
 
