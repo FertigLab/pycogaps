@@ -161,15 +161,19 @@ def plot(obj:GapsResult):
     nsamples = obj.Pmean.nRow()
     nfactors = obj.Pmean.nCol()
     cmaps = OrderedDict()
+    mtx = obj.Pmean
     # plt.plot([1, 2, 3, 4])
     # plt.ylabel("some numbers")
     # plt.show()
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    for i in range(nfactors + 1):
-        ax.plot(range(1, nsamples + 1), obj.Pmean[:i], label="Data " + str(i), color=next("Sequential"))
-
-    return
+    for i in range(nfactors):
+        vector = mtx.getCol(i)
+        vecdata = []
+        for i in range(vector.size()):
+            vecdata.append(getElement(vector, i))
+        ax.plot(np.array(range(1, nsamples+1)), np.array(vecdata), label="Data " + str(i))
+    plt.show()
 
 
 def getFeatureLoadings(object):
