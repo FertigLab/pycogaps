@@ -8,11 +8,13 @@
 #include "CoGAPS/src/include/boost/algorithm/string/join.hpp"
 #include "CoGAPS/src/GapsStatistics.h"
 #include "CoGAPS/src/data_structures/Matrix.h"
+#include "CoGAPS/src/data_structures/Vector.h"
 
 #include <pybind11/pybind11.h>
 #include <pybind11/complex.h>
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
+#include <pybind11/operators.h>
 
 
 #include <iostream>
@@ -73,11 +75,16 @@ void runCPPTests()
     std::cout << "running CPPTests";
 }
 
+float getElement(Vector v, unsigned i) {
+    return v[i];
+}
+
 PYBIND11_MODULE(pycogaps, m)
 {
     m.doc() = "CoGAPS Python Package";
     m.def("runCogaps", &runCogaps, "Run CoGAPS Algorithm");
     m.def("runCPPTests", &runCPPTests, "Run CoGAPS C++ Tests");
+    m.def("getElement", &getElement, "Get an element of a Vector");
     py::enum_<GapsAlgorithmPhase>(m, "GapsAlgorithmPhase")
         .value("GAPS_EQUILIBRATION_PHASE", GAPS_EQUILIBRATION_PHASE)
         .value("GAPS_SAMPLING_PHASE", GAPS_SAMPLING_PHASE)
@@ -145,7 +152,11 @@ PYBIND11_MODULE(pycogaps, m)
         .def_readwrite("averageQueueLengthP", &GapsResult::averageQueueLengthP);
 
     py::class_<Vector>(m, "Vector")
-        .def(py::init<unsigned &>());
+        .def(py::init<unsigned &>())
+        .def("size", &Vector::size);
+      //  .def(py::self [] float())
+       // .def("__getitem__", &Vector::operator[])
+       // .def("__getitem__", py::self);
 
     py::class_<Matrix>(m, "Matrix")
         .def(py::init<>())
