@@ -154,9 +154,9 @@ PYBIND11_MODULE(pycogaps, m)
     py::class_<Vector>(m, "Vector")
         .def(py::init<unsigned &>())
         .def("size", &Vector::size);
-      //  .def(py::self [] float())
-       // .def("__getitem__", &Vector::operator[])
-       // .def("__getitem__", py::self);
+        // from pybind github
+        // .def("__setitem__", [](Vector* vec, unsigned index, float val) { (*vec)[index] = val; })
+        // .def("__getitem__", &Vector::operator[]);
 
     py::class_<Matrix>(m, "Matrix")
         .def(py::init<>())
