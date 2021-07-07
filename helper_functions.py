@@ -160,19 +160,18 @@ def plot(obj:GapsResult):
     print("Not yet implemented")
     nsamples = obj.Pmean.nRow()
     nfactors = obj.Pmean.nCol()
-    cmaps = OrderedDict()
     mtx = obj.Pmean
-    # plt.plot([1, 2, 3, 4])
-    # plt.ylabel("some numbers")
-    # plt.show()
     fig = plt.figure()
     ax = fig.add_subplot(111)
     for i in range(nfactors):
         vector = mtx.getCol(i)
         vecdata = []
-        for i in range(vector.size()):
-            vecdata.append(getElement(vector, i))
-        ax.plot(np.array(range(1, nsamples+1)), np.array(vecdata), label="Data " + str(i))
+        for j in range(vector.size()):
+            vecdata.append(getElement(vector, j))
+        ax.plot(np.array(range(1, nsamples+1)), np.array(vecdata), label="Pattern " + str(i + 1))
+    ax.legend()
+    plt.xlabel("Samples")
+    plt.ylabel("Relative Amplitude")
     plt.show()
 
 
