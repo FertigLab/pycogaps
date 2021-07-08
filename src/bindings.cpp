@@ -79,12 +79,56 @@ float getElement(Vector v, unsigned i) {
     return v[i];
 }
 
+int containsZeros(Matrix m) {
+    for(int i=0; i < m.nCol(); i++) {
+        Vector vec = m.getCol(i);
+        for(int j=0; j<vec.size(); j++){
+            if (vec[i] == 0){
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+Matrix replaceZeros(Matrix m) {
+    for(int i=0; i < m.nCol(); i++) {
+        Vector vec = m.getCol(i);
+        for(int j=0; j<vec.size(); j++){
+            if (vec[i] == 0){
+                vec[i] = 1e-6;
+            }
+        }
+    }
+    return m;
+}
+
+Matrix divideMatrices(Matrix m1, Matrix m2){
+    int nrow = m1.nRow();
+    int ncol = m1.nCol();
+    Matrix *mat = new Matrix(nrow, ncol);
+    Matrix retmat = *mat;
+    if (m1.nCol() != m2.nCol() || m1.nRow() != m2.nRow()){
+        std::cout<<"Dimensions are not equal! Aborting.";
+        return retmat;
+    }
+    for (int i = 0; i < nrow; i++) {
+        for(int j = 0; j < ncol; j++) {
+            retmat.getCol(j)[i] = m1.getCol(j)[i] / m2.getCol(j)[i];
+        }
+    }
+    return retmat;
+}
+
 PYBIND11_MODULE(pycogaps, m)
 {
     m.doc() = "CoGAPS Python Package";
     m.def("runCogaps", &runCogaps, "Run CoGAPS Algorithm");
     m.def("runCPPTests", &runCPPTests, "Run CoGAPS C++ Tests");
     m.def("getElement", &getElement, "Get an element of a Vector");
+    m.def("containsZeros", &containsZeros, "Check whether a Matrix contains zeros");
+    m.def("replaceZeros", &replaceZeros, "Replace a Matrix's zeros with small values");
+    m.def("divideMatrices", &divideMatrices, "Divide m1 / m2; return result");
     py::enum_<GapsAlgorithmPhase>(m, "GapsAlgorithmPhase")
         .value("GAPS_EQUILIBRATION_PHASE", GAPS_EQUILIBRATION_PHASE)
         .value("GAPS_SAMPLING_PHASE", GAPS_SAMPLING_PHASE)
@@ -154,9 +198,6 @@ PYBIND11_MODULE(pycogaps, m)
     py::class_<Vector>(m, "Vector")
         .def(py::init<unsigned &>())
         .def("size", &Vector::size);
-        // from pybind github
-        // .def("__setitem__", [](Vector* vec, unsigned index, float val) { (*vec)[index] = val; })
-        // .def("__getitem__", &Vector::operator[]);
 
     py::class_<Matrix>(m, "Matrix")
         .def(py::init<>())
@@ -167,11 +208,5 @@ PYBIND11_MODULE(pycogaps, m)
         std::vector<unsigned> &>())
         .def("nCol", &Matrix::nCol)
         .def("nRow", &Matrix::nRow)
-        // .def_property("mCols", &Matrix<unsigned>::getCol);
         .def("getCol", static_cast<Vector& (Matrix::*)(unsigned)>(&Matrix::getCol), "Get a column of the matrix");
-       // .def("getCol", static_cast<const Vector& (Matrix::*)(unsigned)>(&Matrix::getCol), "Get a column of the matrix");
-
-       // .def_readwrite("mCols", &Matrix::mCols);
-      //  .def("getCol", &Matrix<int>::getCol)
-       // .def("getCol", static_cast<&Vector (Matrix::*)() const>(&Matrix::getCol));
 }

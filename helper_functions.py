@@ -142,12 +142,12 @@ def getDimNames(data, allParams):
 
 # TODO: implement CogapsResults helper functions
 
-def createCogapsResult(object:GapsResult, params:GapsParameters):
+def createCogapsResult(object: GapsResult, params: GapsParameters):
     print("Not yet implemented")
     return
 
 
-def show(obj:GapsResult):
+def show(obj: GapsResult):
     nfeatures = obj.Amean.nRow()
     nsamples = obj.Pmean.nRow()
     npatterns = obj.Pmean.nCol()
@@ -156,8 +156,7 @@ def show(obj:GapsResult):
     return
 
 
-def plot(obj:GapsResult):
-    print("Not yet implemented")
+def plot(obj: GapsResult):
     nsamples = obj.Pmean.nRow()
     nfactors = obj.Pmean.nCol()
     mtx = obj.Pmean
@@ -168,36 +167,31 @@ def plot(obj:GapsResult):
         vecdata = []
         for j in range(vector.size()):
             vecdata.append(getElement(vector, j))
-        ax.plot(np.array(range(1, nsamples+1)), np.array(vecdata), label="Pattern " + str(i + 1))
+        ax.plot(np.array(range(1, nsamples + 1)), np.array(vecdata), label="Pattern " + str(i + 1))
     ax.legend()
     plt.xlabel("Samples")
     plt.ylabel("Relative Amplitude")
     plt.show()
 
 
-def getFeatureLoadings(object):
-    print("Not yet implemented")
-    return
+def getFeatureLoadings(object: GapsResult):
+    return object.Amean
 
 
 def getAmplitudeMatrix(object):
-    print("Not yet implemented")
-    return
+    return object.Amean
 
 
 def getSampleFactors(object):
-    print("Not yet implemented")
-    return
+    return object.Pmean
 
 
 def getPatternMatrix(object):
-    print("Not yet implemented")
-    return
+    return object.Pmean
 
 
-def getetMeanChiSq(object):
-    print("Not yet implemented")
-    return
+def getetMeanChiSq(object: GapsResult):
+    return object.meanChiSq
 
 
 def getVersion(object):
@@ -205,7 +199,7 @@ def getVersion(object):
     return
 
 
-def getOriginalParameters(object):
+def getOriginalParameters(object: GapsResult):
     print("Not yet implemented")
     return
 
@@ -230,9 +224,23 @@ def getSubsets(object):
     return
 
 
-def calcZ(object):
+def calcZ(object: GapsResult, whichMatrix):
     print("Not yet implemented")
-    return
+    if whichMatrix in "sampleFactors":
+        mean = object.Pmean
+        stddev = object.Psd
+    elif whichMatrix in "featureLoadings":
+        mean = object.Amean
+        stddev = object.Asd
+    else:
+        print('whichMatrix must be either \'featureLoadings\' or \'sampleFactors\'')
+        return
+    nonzero = containsZeros(stddev)
+    print("nonzero count", nonzero)
+    if nonzero > 0:
+        print("zeros detected in the standard deviation matrix; they have been replaced by small values")
+        stddev = replaceZeros(stddev)
+    return divideMatrices(mean, stddev)
 
 
 def reconstructGene(object):
