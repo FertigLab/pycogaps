@@ -120,6 +120,41 @@ Matrix divideMatrices(Matrix m1, Matrix m2){
     return retmat;
 }
 
+Matrix multiplyMatrices(Matrix m1, Matrix m2) {
+    int m1rows = m1.nRow();
+    int m1cols = m1.nCol();
+    int m2cols = m2.nCol();
+    int m2rows = m2.nRow();
+    Matrix *mat = new Matrix(m1rows, m2cols);
+    Matrix retmat = *mat;
+    if (m1cols != m2rows) {
+        std::cout<<"Matrices are not of proper dimensions. Please make sure m1 has the same number of rows as m2 has columns.";
+        return retmat;
+    }
+    for (int i=0; i<m1rows; i++) {
+        for (int j=0; j< m1cols; j++) {
+            retmat(i,j) += m1(i,j) * m2(j,i);
+        }
+    }
+    return retmat;
+}
+
+Matrix transposeMatrix(Matrix mat) {
+    int rows = mat.nRow();
+    int cols = mat.nCol();
+    Matrix * pmat = new Matrix(cols, rows);
+    Matrix retmat = *pmat;
+
+    for(int i=0; i<rows; i++) {
+        for(int j=0; j<cols; j++) {
+            retmat(i,j) = mat(j,i);
+        }
+    }
+    return retmat;
+}
+
+
+
 PYBIND11_MODULE(pycogaps, m)
 {
     m.doc() = "CoGAPS Python Package";
@@ -128,7 +163,9 @@ PYBIND11_MODULE(pycogaps, m)
     m.def("getElement", &getElement, "Get an element of a Vector");
     m.def("containsZeros", &containsZeros, "Check whether a Matrix contains zeros");
     m.def("replaceZeros", &replaceZeros, "Replace a Matrix's zeros with small values");
-    m.def("divideMatrices", &divideMatrices, "Divide m1 / m2; return result");
+    m.def("divideMatrices", &divideMatrices, "Divide m1 / m2 element-wise; return result");
+    m.def("multiplyMatrices", &multiplyMatrices, "Multiply m1*m2, return result");
+    m.def("transposeMatrix", &transposeMatrix, "Transpose a matrix");
     py::enum_<GapsAlgorithmPhase>(m, "GapsAlgorithmPhase")
         .value("GAPS_EQUILIBRATION_PHASE", GAPS_EQUILIBRATION_PHASE)
         .value("GAPS_SAMPLING_PHASE", GAPS_SAMPLING_PHASE)
@@ -208,5 +245,6 @@ PYBIND11_MODULE(pycogaps, m)
         std::vector<unsigned> &>())
         .def("nCol", &Matrix::nCol)
         .def("nRow", &Matrix::nRow)
+        .def("getRow", &getRow, "Get a row of the matrix");
         .def("getCol", static_cast<Vector& (Matrix::*)(unsigned)>(&Matrix::getCol), "Get a column of the matrix");
 }
