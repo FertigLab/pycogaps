@@ -165,7 +165,8 @@ PYBIND11_MODULE(pycogaps, m)
 
         .def_buffer([](Matrix &m) -> py::buffer_info {
             return py::buffer_info(
-                &m(0,0),
+                // &m(0,0),
+                &(m.getMatrix().operator()(0,0)),
                 sizeof(float),
                 py::format_descriptor<float>::format(),
                 2,
@@ -176,25 +177,24 @@ PYBIND11_MODULE(pycogaps, m)
 
 
         // Matrix constructed from numpy array
-        .def(py::init([](py::array b) {
+        .def(py::init([](py::array_t<float> b) {
             py::buffer_info info = b.request();
-            auto ptr = static_cast<Matrix *>(info.ptr);
-            // auto ptr = (info.ptr);
+            float *x = (float *)info.ptr;
+
             if (info.ndim != 2)
             {
                 throw std::runtime_error("Incompatible buffer dimension");
             }
-            if (info.shape[0] != 5)
-            {
-                throw std::runtime_error("Incompatible buffer length dimension");
-            }
-            if (ptr->nRow() != 5)
-            {
-                throw std::runtime_error("Incompatible buffer nRow dimension");
-            }
-            return info;
-            // std::vector<unsigned> v = {};
-            // return Matrix(*ptr, false , false, v);
+
+            Matrix mat = Matrix(info.shape[0], info.shape[1]);
+            mat.operator()(0,0) = *(static_cast<float *>(info.ptr));
+
+            std::cout << "entries: \n";
+            std::cout << mat(0,0);
+            std::cout << "first pointer value: ";
+            std::cout << *(static_cast<float *>(info.ptr));
+            
+            return mat;
         }))
         .def("nRow", &Matrix::nRow);
 }
