@@ -225,7 +225,6 @@ def getSubsets(object):
 
 
 def calcZ(object: GapsResult, whichMatrix):
-    print("Not yet implemented")
     if whichMatrix in "sampleFactors":
         mean = object.Pmean
         stddev = object.Psd
@@ -243,13 +242,22 @@ def calcZ(object: GapsResult, whichMatrix):
     return divideMatrices(mean, stddev)
 
 
-def reconstructGene(object):
-    print("Not yet implemented")
-    return
+def reconstructGene(object:GapsResult, genes):
+    D = multiplyMatrices(object.Amean, transposeMatrix(object.Pmean))
+    if genes is not None:
+        # TODO: subset genes... i'm confused as to what's supposed to be happening here
+        return D
 
+#TODO: figure out what this one actully does lol
+def binaryA(object:GapsResult, threshold):
+    if calcZ(object) > threshold:
+        binA=1
+    else:
+        binA = 0;
 
-def binaryA(object):
-    print("Not yet implemented")
+    a = np.random.random((16, 16))
+    plt.imshow(a, cmap='hot', interpolation='nearest')
+    plt.show()
     return
 
 
