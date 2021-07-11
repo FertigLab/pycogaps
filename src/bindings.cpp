@@ -165,7 +165,6 @@ PYBIND11_MODULE(pycogaps, m)
 
         .def_buffer([](Matrix &m) -> py::buffer_info {
             return py::buffer_info(
-                // &m(0,0),
                 &(m.getMatrix().operator()(0,0)),
                 sizeof(float),
                 py::format_descriptor<float>::format(),
@@ -179,7 +178,6 @@ PYBIND11_MODULE(pycogaps, m)
         // Matrix constructed from numpy array
         .def(py::init([](py::array_t<float> b) {
             py::buffer_info info = b.request();
-            float *x = (float *)info.ptr;
 
             if (info.ndim != 2)
             {
@@ -188,13 +186,16 @@ PYBIND11_MODULE(pycogaps, m)
 
             Matrix mat = Matrix(info.shape[0], info.shape[1]);
             mat.operator()(0,0) = *(static_cast<float *>(info.ptr));
-
-            std::cout << "entries: \n";
-            std::cout << mat(0,0);
-            std::cout << "first pointer value: ";
-            std::cout << *(static_cast<float *>(info.ptr));
+    
+            for(int i = 0; i < info.shape[0]; i++)
+            {
+                for (int j = 0; j < info.shape[1]; j++)
+                {
+                    mat.operator()(i,j) = *(static_cast<float *>(info.ptr));
+                }
+            }
             
-            return mat;
+            return mat.getMatrix();
         }))
         .def("nRow", &Matrix::nRow);
 }
