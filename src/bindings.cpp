@@ -8,11 +8,13 @@
 #include "CoGAPS/src/include/boost/algorithm/string/join.hpp"
 #include "CoGAPS/src/GapsStatistics.h"
 #include "CoGAPS/src/data_structures/Matrix.h"
+#include "CoGAPS/src/data_structures/Vector.h"
 
 #include <pybind11/pybind11.h>
 #include <pybind11/complex.h>
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
+#include <pybind11/operators.h>
 
 
 #include <iostream>
@@ -75,12 +77,98 @@ void runCPPTests()
     std::cout << "running CPPTests";
 }
 
+float getElement(Vector v, unsigned i) {
+    return v[i];
+}
+
+int containsZeros(Matrix m) {
+    for(int i=0; i < m.nCol(); i++) {
+        Vector vec = m.getCol(i);
+        for(int j=0; j<vec.size(); j++){
+            if (vec[i] == 0){
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+Matrix replaceZeros(Matrix m) {
+    for(int i=0; i < m.nCol(); i++) {
+        Vector vec = m.getCol(i);
+        for(int j=0; j<vec.size(); j++){
+            if (vec[i] == 0){
+                vec[i] = 1e-6;
+            }
+        }
+    }
+    return m;
+}
+
+Matrix divideMatrices(Matrix m1, Matrix m2){
+    int nrow = m1.nRow();
+    int ncol = m1.nCol();
+    Matrix *mat = new Matrix(nrow, ncol);
+    Matrix retmat = *mat;
+    if (m1.nCol() != m2.nCol() || m1.nRow() != m2.nRow()){
+        std::cout<<"Dimensions are not equal! Aborting.";
+        return retmat;
+    }
+    for (int i = 0; i < nrow; i++) {
+        for(int j = 0; j < ncol; j++) {
+            retmat.getCol(j)[i] = m1.getCol(j)[i] / m2.getCol(j)[i];
+        }
+    }
+    return retmat;
+}
+
+Matrix multiplyMatrices(Matrix m1, Matrix m2) {
+    int m1rows = m1.nRow();
+    int m1cols = m1.nCol();
+    int m2cols = m2.nCol();
+    int m2rows = m2.nRow();
+    Matrix *mat = new Matrix(m1rows, m2cols);
+    Matrix retmat = *mat;
+    if (m1cols != m2rows) {
+        std::cout<<"Matrices are not of proper dimensions. Please make sure m1 has the same number of rows as m2 has columns.";
+        return retmat;
+    }
+    for (int i=0; i<m1rows; i++) {
+        for (int j=0; j< m1cols; j++) {
+            retmat(i,j) += m1(i,j) * m2(j,i);
+        }
+    }
+    return retmat;
+}
+
+Matrix transposeMatrix(Matrix mat) {
+    int rows = mat.nRow();
+    int cols = mat.nCol();
+    Matrix * pmat = new Matrix(cols, rows);
+    Matrix retmat = *pmat;
+
+    for(int i=0; i<rows; i++) {
+        for(int j=0; j<cols; j++) {
+            retmat(i,j) = mat(j,i);
+        }
+    }
+    return retmat;
+}
+
+
+
 PYBIND11_MODULE(pycogaps, m)
 {
     m.doc() = "CoGAPS Python Package";
     m.def("runCogaps", &runCogaps, "Run CoGAPS Algorithm");
     m.def("runCogapsFromMatrix", &runCogapsFromMatrix, "Run CoGAPS Algorithm");
     m.def("runCPPTests", &runCPPTests, "Run CoGAPS C++ Tests");
+    m.def("getElement", &getElement, "Get an element of a Vector");
+    m.def("containsZeros", &containsZeros, "Check whether a Matrix contains zeros");
+    m.def("replaceZeros", &replaceZeros, "Replace a Matrix's zeros with small values");
+    m.def("divideMatrices", &divideMatrices, "Divide m1 / m2 element-wise; return result");
+    m.def("multiplyMatrices", &multiplyMatrices, "Multiply m1*m2, return result");
+    m.def("transposeMatrix", &transposeMatrix, "Transpose a matrix");
     py::enum_<GapsAlgorithmPhase>(m, "GapsAlgorithmPhase")
         .value("GAPS_EQUILIBRATION_PHASE", GAPS_EQUILIBRATION_PHASE)
         .value("GAPS_SAMPLING_PHASE", GAPS_SAMPLING_PHASE)
@@ -146,6 +234,11 @@ PYBIND11_MODULE(pycogaps, m)
         .def_readwrite("meanChiSq", &GapsResult::meanChiSq)
         .def_readwrite("averageQueueLengthA", &GapsResult::averageQueueLengthA)
         .def_readwrite("averageQueueLengthP", &GapsResult::averageQueueLengthP);
+  
+    py::class_<Vector>(m, "Vector")
+        .def(py::init<unsigned &>())
+        .def("size", &Vector::size);
+
 
     py::class_<Matrix>(m, "Matrix", py::buffer_protocol())
         .def(py::init<>())
@@ -154,6 +247,11 @@ PYBIND11_MODULE(pycogaps, m)
         std::vector<unsigned> &>())
         .def(py::init<const std::string &, bool &, bool &,
         std::vector<unsigned> &>())
+  
+        .def("nCol", &Matrix::nCol)
+        .def("nRow", &Matrix::nRow)
+        .def("getRow", &getRow, "Get a row of the matrix");
+        .def("getCol", static_cast<Vector& (Matrix::*)(unsigned)>(&Matrix::getCol), "Get a column of the matrix");
 
         .def_buffer([](Matrix &m) -> py::buffer_info {
             return py::buffer_info(
