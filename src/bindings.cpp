@@ -174,7 +174,6 @@ PYBIND11_MODULE(pycogaps, m)
             );
         })
 
-
         // Matrix constructed from numpy array
         .def(py::init([](py::array_t<float> b) {
             py::buffer_info info = b.request();
@@ -185,17 +184,17 @@ PYBIND11_MODULE(pycogaps, m)
             }
 
             Matrix mat = Matrix(info.shape[0], info.shape[1]);
-            mat.operator()(0,0) = *(static_cast<float *>(info.ptr));
-    
+
+            float *ptr = static_cast<float *>(info.ptr);
+
             for(int i = 0; i < info.shape[0]; i++)
             {
                 for (int j = 0; j < info.shape[1]; j++)
                 {
-                    mat.operator()(i,j) = *(static_cast<float *>(info.ptr));
+                    mat.operator()(i,j) = ptr[i*info.shape[1] + j];
                 }
             }
             
             return mat.getMatrix();
         }))
-        .def("nRow", &Matrix::nRow);
 }
