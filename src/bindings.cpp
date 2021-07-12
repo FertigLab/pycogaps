@@ -32,10 +32,12 @@ GapsResult runCogaps(const std::string &path, GapsParameters params)
     return result;
 }
 
-//GapsResult runCogapsFromMatrix(Matrix mat, GapsParameters params)
-//{
-//    // TODO: implement
-//}
+GapsResult runCogapsFromMatrix(Matrix mat, GapsParameters params)
+{
+    GapsRandomState randState(params.seed);
+    GapsResult result(gaps::run(mat, params, Matrix(), &randState));
+    return result;
+}
 
 std::string getBuildReport()
 {
@@ -77,6 +79,7 @@ PYBIND11_MODULE(pycogaps, m)
 {
     m.doc() = "CoGAPS Python Package";
     m.def("runCogaps", &runCogaps, "Run CoGAPS Algorithm");
+    m.def("runCogapsFromMatrix", &runCogapsFromMatrix, "Run CoGAPS Algorithm");
     m.def("runCPPTests", &runCPPTests, "Run CoGAPS C++ Tests");
     py::enum_<GapsAlgorithmPhase>(m, "GapsAlgorithmPhase")
         .value("GAPS_EQUILIBRATION_PHASE", GAPS_EQUILIBRATION_PHASE)
@@ -144,11 +147,45 @@ PYBIND11_MODULE(pycogaps, m)
         .def_readwrite("averageQueueLengthA", &GapsResult::averageQueueLengthA)
         .def_readwrite("averageQueueLengthP", &GapsResult::averageQueueLengthP);
 
-    py::class_<Matrix>(m, "Matrix")
+    py::class_<Matrix>(m, "Matrix", py::buffer_protocol())
         .def(py::init<>())
         .def(py::init<unsigned &, unsigned &>())
         .def(py::init<const Matrix &, bool &, bool &,
         std::vector<unsigned> &>())
         .def(py::init<const std::string &, bool &, bool &,
-        std::vector<unsigned> &>());
+        std::vector<unsigned> &>())
+
+        .def_buffer([](Matrix &m) -> py::buffer_info {
+            return py::buffer_info(
+                &(m.getMatrix().operator()(0,0)),
+                sizeof(float),
+                py::format_descriptor<float>::format(),
+                2,
+                {m.nRow(), m.nCol()},
+                {sizeof(float) * m.nCol(), sizeof(float)}
+            );
+        })
+
+        // Matrix constructed from numpy array
+        .def(py::init([](py::array_t<float> b) {
+            py::buffer_info info = b.request();
+
+            if (info.ndim != 2)
+            {
+                throw std::runtime_error("Incompatible buffer dimension");
+            }
+
+            Matrix mat = Matrix(info.shape[0], info.shape[1]);
+            float *ptr = static_cast<float *>(info.ptr);
+
+            for(int i = 0; i < info.shape[0]; i++)
+            {
+                for (int j = 0; j < info.shape[1]; j++)
+                {
+                    mat.operator()(i,j) = ptr[i*info.shape[1] + j];
+                }
+            }
+            
+            return mat.getMatrix();
+        }))
 }
