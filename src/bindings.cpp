@@ -147,14 +147,6 @@ PYBIND11_MODULE(pycogaps, m)
         .def_readwrite("averageQueueLengthA", &GapsResult::averageQueueLengthA)
         .def_readwrite("averageQueueLengthP", &GapsResult::averageQueueLengthP);
 
-    // py::class_<Matrix>(m, "Matrix")
-    //     .def(py::init<>())
-    //     .def(py::init<unsigned &, unsigned &>())
-    //     .def(py::init<const Matrix &, bool &, bool &,
-    //     std::vector<unsigned> &>())
-    //     .def(py::init<const std::string &, bool &, bool &,
-    //     std::vector<unsigned> &>());
-
     py::class_<Matrix>(m, "Matrix", py::buffer_protocol())
         .def(py::init<>())
         .def(py::init<unsigned &, unsigned &>())
@@ -184,7 +176,6 @@ PYBIND11_MODULE(pycogaps, m)
             }
 
             Matrix mat = Matrix(info.shape[0], info.shape[1]);
-
             float *ptr = static_cast<float *>(info.ptr);
 
             for(int i = 0; i < info.shape[0]; i++)
