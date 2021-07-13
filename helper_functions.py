@@ -226,32 +226,40 @@ def getSubsets(object):
 
 def calcZ(object: GapsResult, whichMatrix):
     if whichMatrix in "sampleFactors":
-        mean = object.Pmean
-        stddev = object.Psd
+        mean = np.array(object.Pmean)
+        stddev = np.array(object.Psd)
     elif whichMatrix in "featureLoadings":
-        mean = object.Amean
-        stddev = object.Asd
+        mean = np.array(object.Amean)
+        stddev = np.array(object.Asd)
     else:
         print('whichMatrix must be either \'featureLoadings\' or \'sampleFactors\'')
         return
-    nonzero = containsZeros(stddev)
-    print("nonzero count", nonzero)
-    if nonzero > 0:
+    if np.count_nonzero(stddev == 0) > 0:
         print("zeros detected in the standard deviation matrix; they have been replaced by small values")
-        stddev = replaceZeros(stddev)
-    return divideMatrices(mean, stddev)
+    if np.count_nonzero(mean == 0) > 0:
+        print("zeros detected in the data matrix; they have been replaced by small values")
+    stddev[stddev == 0] = 1 ** -6
+    mean[mean == 0] = 1 ** -6
+    mean[mean == 0] = 1 ** -6
+    if np.count_nonzero(np.isnan(mean)) > 0 | np.count_nonzero(np.isnan(stddev)) > 0:
+        print("NaN; replacing with zeroes")
+        mean[np.isnan(mean)] = 0
+        stddev[np.isnan(stddev)] = 0
+    return mean/stddev
 
 
-def reconstructGene(object:GapsResult, genes):
-    D = multiplyMatrices(object.Amean, transposeMatrix(object.Pmean))
-    if genes is not None:
-        # TODO: subset genes... i'm confused as to what's supposed to be happening here
-        return D
+def reconstructGene(object: GapsResult, genes):
+    # D = multiplyMatrices(object.Amean, transposeMatrix(object.Pmean))
+    # if genes is not None:
+    #     # TODO: subset genes... i'm confused as to what's supposed to be happening here
+    #     return D
+    return
 
-#TODO: figure out what this one actully does lol
-def binaryA(object:GapsResult, threshold):
+
+# TODO: figure out what this one actully does lol
+def binaryA(object: GapsResult, threshold):
     if calcZ(object) > threshold:
-        binA=1
+        binA = 1
     else:
         binA = 0;
 

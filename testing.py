@@ -11,8 +11,7 @@ path = "./data/GIST.csv"
 print("-- Passing params object into runCogaps function --\n")
 prm = GapsParameters(path)
 prm.print()  # c++ method to display all parameter values
-CoGAPS(path, prm)
-result = CoGAPS(path)
+result = CoGAPS(path, prm)
 print("AMEAN: ", result.Amean)
 print("chisqHistory: ", result.chisqHistory)
 print(getBuildReport())

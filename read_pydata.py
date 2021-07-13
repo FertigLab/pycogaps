@@ -14,8 +14,7 @@ adata = adata.X
 
 if scipy.sparse.issparse(adata):
     adata = adata.toarray()
-
-matrix = pycogaps.Matrix(adata)
+matrix = pycogaps.Matrix(np.array(adata))
 
 print("\n~~~~~~~~~~~~ pycogaps run from path: ~~~~~~~~~~~~~~~\n")
 path_result = pycogaps.runCogaps(path, prm)
