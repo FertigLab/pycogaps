@@ -247,23 +247,6 @@ PYBIND11_MODULE(pycogaps, m)
         std::vector<unsigned> &>())
         .def(py::init<const std::string &, bool &, bool &,
         std::vector<unsigned> &>())
-  
-        .def("nCol", &Matrix::nCol)
-        .def("nRow", &Matrix::nRow)
-        // .def("getRow", &getRow, "Get a row of the matrix")
-        .def("getCol", static_cast<Vector& (Matrix::*)(unsigned)>(&Matrix::getCol), "Get a column of the matrix")
-
-        .def_buffer([](Matrix &m) -> py::buffer_info {
-            return py::buffer_info(
-                &(m.getMatrix().operator()(0,0)),
-                sizeof(float),
-                py::format_descriptor<float>::format(),
-                2,
-                {m.nRow(), m.nCol()},
-                {sizeof(float) * m.nCol(), sizeof(float)}
-            );
-        })
-
         // Matrix constructed from numpy array
         .def(py::init([](py::array_t<float> b) {
             py::buffer_info info = b.request();
@@ -283,7 +266,22 @@ PYBIND11_MODULE(pycogaps, m)
                     mat.operator()(i,j) = ptr[i*info.shape[1] + j];
                 }
             }
-            
+
             return mat.getMatrix();
-        }));
+         }))
+
+        .def("nCol", &Matrix::nCol)
+        .def("nRow", &Matrix::nRow)
+        .def("getCol", static_cast<Vector& (Matrix::*)(unsigned)>(&Matrix::getCol), "Get a column of the matrix")
+
+        .def_buffer([](Matrix &m) -> py::buffer_info {
+            return py::buffer_info(
+                &(m.getMatrix().operator()(0,0)),
+                sizeof(float),
+                py::format_descriptor<float>::format(),
+                2,
+                {m.nRow(), m.nCol()},
+                {sizeof(float) * m.nCol(), sizeof(float)}
+            );
+        });
 }
