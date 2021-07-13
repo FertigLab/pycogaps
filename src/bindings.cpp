@@ -250,8 +250,8 @@ PYBIND11_MODULE(pycogaps, m)
   
         .def("nCol", &Matrix::nCol)
         .def("nRow", &Matrix::nRow)
-        .def("getRow", &getRow, "Get a row of the matrix");
-        .def("getCol", static_cast<Vector& (Matrix::*)(unsigned)>(&Matrix::getCol), "Get a column of the matrix");
+        // .def("getRow", &getRow, "Get a row of the matrix")
+        .def("getCol", static_cast<Vector& (Matrix::*)(unsigned)>(&Matrix::getCol), "Get a column of the matrix")
 
         .def_buffer([](Matrix &m) -> py::buffer_info {
             return py::buffer_info(
@@ -285,5 +285,5 @@ PYBIND11_MODULE(pycogaps, m)
             }
             
             return mat.getMatrix();
-        }))
+        }));
 }
