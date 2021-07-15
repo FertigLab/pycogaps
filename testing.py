@@ -31,3 +31,5 @@ print(calcZP)
 calcZA = calcZ(result, "featureLoadings")
 print(calcZA)
 
+print("~~~~ testing CoGAPS Pattern Markers ~~~~~~")
+print(patternMarkers(result))
