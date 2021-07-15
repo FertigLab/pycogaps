@@ -20,10 +20,8 @@ print(isCompiledWithOpenMPSupport())
 print(getFileInfo(path))
 
 print("--Testing CogapsResult Object\n")
-print("calling show(result)\n")
 show(result)
-print("calling plot(result)\n")
-#plot(result)
+plot(result)
 
 calcZP = calcZ(result, "sampleFactors")
 print(calcZP)

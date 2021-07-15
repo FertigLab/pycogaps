@@ -157,6 +157,20 @@ def show(obj: GapsResult):
 
 
 def plot(obj: GapsResult):
+    samples = np.array(obj.Pmean, copy = False)
+    nsamples = np.shape(samples)[0]
+    nfactors = np.shape(samples)[1]
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    for i in range(nfactors):
+        ax.plot(range(nsamples), samples[:, i], label="Pattern " + str(i + 1))
+    ax.legend()
+    plt.xlabel("Samples")
+    plt.ylabel("Relative Amplitude")
+    plt.show()
+
+
+def oldplot(obj: GapsResult):
     nsamples = obj.Pmean.nRow()
     nfactors = obj.Pmean.nCol()
     mtx = obj.Pmean
@@ -172,7 +186,6 @@ def plot(obj: GapsResult):
     plt.xlabel("Samples")
     plt.ylabel("Relative Amplitude")
     plt.show()
-
 
 def getFeatureLoadings(object: GapsResult):
     return object.Amean
@@ -225,6 +238,11 @@ def getSubsets(object):
 
 
 def calcZ(object: GapsResult, whichMatrix):
+    """
+    @param object: a GapsResult object
+    @param whichMatrix: must be either "sampleFactors" (P) or "featureLoadings" (A)
+    @return: mean/stddev for the matrix of choice (I think this is a zscore?)
+    """
     if whichMatrix in "sampleFactors":
         mean = np.array(object.Pmean)
         stddev = np.array(object.Psd)
@@ -245,7 +263,7 @@ def calcZ(object: GapsResult, whichMatrix):
         print("NaN; replacing with zeroes")
         mean[np.isnan(mean)] = 0
         stddev[np.isnan(stddev)] = 0
-    return mean/stddev
+    return mean / stddev
 
 
 def reconstructGene(object: GapsResult, genes):
@@ -261,7 +279,7 @@ def binaryA(object: GapsResult, threshold):
     if calcZ(object) > threshold:
         binA = 1
     else:
-        binA = 0;
+        binA = 0
 
     a = np.random.random((16, 16))
     plt.imshow(a, cmap='hot', interpolation='nearest')
