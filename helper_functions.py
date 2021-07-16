@@ -260,14 +260,60 @@ def plotResiduals(object):
     return
 
 
-def unitVector():
-    print("Not yet implemented")
-    return
+def unitVector(n, length):
+    vec = np.repeat(0, length)
+    vec[n] = 1
+    return vec
 
 
-def patternMarkers(object, threshold, lp, axis):
-    print("Not yet implemented")
-    return
+def patternMarkers(adata, threshold='all', lp=None, axis=1):
+    if threshold.lower() not in ["cut", "all"]:
+        raise Exception("threshold must be either 'cut' or 'all'")
+    if lp is not None  and (np.size(lp) != adata.obs.shape[1]):
+            raise Exception("lp length must equal the number of patterns")
+    if axis not in [1,2]:
+        raise Exception("axis must be either 1 or 2")
+
+    if axis == 1:
+        resultMatrix = adata.obs
+    else:
+        resultMatrix = adata.var
+
+    row_max = np.nanmax(resultMatrix.values, axis=1, keepdims=True)
+    row_max = np.where(row_max == 0, 1, row_max)
+
+    normedMatrix = resultMatrix / row_max 
+
+    if lp is not None:
+        markerScores = pd.DataFrame(np.sqrt(np.sum((normedMatrix.values - lp)**2, axis=1)), index=normedMatrix.index)
+        markersByPattern = markerScores.sort_values(0).index.values
+        dict = {"PatternMarkers": markersByPattern, "PatternMarkerRanks": np.argsort(markerScores, axis=0), "PatternMarkerScores": markerScores}
+        return dict
+
+    markerScores_arr = np.empty_like(normedMatrix)
+    for i in range(normedMatrix.shape[1]):
+        lp = unitVector(i, normedMatrix.shape[1])
+        markerScores_arr[:,i] = np.sqrt(np.sum((normedMatrix.values - lp)**2, axis = 1))
+
+    markerScores = pd.DataFrame(markerScores_arr, index=normedMatrix.index, columns=normedMatrix.columns)
+
+    markerRanks = pd.DataFrame(np.argsort(markerScores.values, axis=0), index=markerScores.index, columns=markerScores.columns)
+    
+    rankCutoff = np.empty(markerRanks.shape[1])
+    markersByPattern = {}
+    if threshold == "cut":
+        for i in range(markerRanks.shape[1]):
+            patternRank = markerRanks.values[:,i]
+            rankCutoff[i] = np.max(patternRank[patternRank == np.amin(markerRanks, axis=1)])
+            markersByPattern['Pattern' + str(i+1)] = (markerRanks[markerRanks.values[:,i] <= rankCutoff[i]]).index.values
+    
+    elif threshold == "all":
+        patternsByMarker = markerScores.columns[np.argmin(markerScores.values, axis=1)]
+        for i in range(markerScores.shape[1]):
+            markersByPattern['Pattern' + str(i+1)] = markerScores[markerScores.columns[i] == patternsByMarker].index.values
+
+    dict = {"PatternMarkers": markersByPattern, "PatternMarkerRanks": np.argsort(markerScores, axis=0), "PatternMarkerScores": markerScores}
+    return dict
 
 
 def calcCoGAPSStat(object):
