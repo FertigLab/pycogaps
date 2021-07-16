@@ -142,26 +142,22 @@ def createCogapsResult(object: GapsResult, params: GapsParameters):
 
 
 def show(obj: GapsResult):
-    nfeatures = obj.Amean.nRow()
-    nsamples = obj.Pmean.nRow()
-    npatterns = obj.Pmean.nCol()
+    nfeatures = np.shape(toNumpy(obj.Amean))[0]
+    nsamples = np.shape(toNumpy(obj.Pmean))[0]
+    npatterns = np.shape(toNumpy(obj.Pmean))[1]
     print("GapsResult result object with ", nfeatures, " features and ", nsamples, " samples")
     print(npatterns, " patterns were learned")
     return
 
 
 def plot(obj: GapsResult):
-    nsamples = obj.Pmean.nRow()
-    nfactors = obj.Pmean.nCol()
-    mtx = obj.Pmean
+    samples = toNumpy(obj.Pmean)
+    nsamples = np.shape(samples)[0]
+    nfactors = np.shape(samples)[1]
     fig = plt.figure()
     ax = fig.add_subplot(111)
     for i in range(nfactors):
-        vector = mtx.getCol(i)
-        vecdata = []
-        for j in range(vector.size()):
-            vecdata.append(getElement(vector, j))
-        ax.plot(np.array(range(1, nsamples + 1)), np.array(vecdata), label="Pattern " + str(i + 1))
+        ax.plot(np.array(range(1, nsamples + 1)), samples[:, i], label="Pattern " + str(i + 1))
     ax.legend()
     plt.xlabel("Samples")
     plt.ylabel("Relative Amplitude")
@@ -220,32 +216,31 @@ def getSubsets(object):
 
 def calcZ(object: GapsResult, whichMatrix):
     if whichMatrix in "sampleFactors":
-        mean = object.Pmean
-        stddev = object.Psd
+        mean = toNumpy(object.Pmean)
+        stddev = toNumpy(object.Psd)
     elif whichMatrix in "featureLoadings":
-        mean = object.Amean
-        stddev = object.Asd
+        mean = toNumpy(object.Amean)
+        stddev = toNumpy(object.Asd)
     else:
         print('whichMatrix must be either \'featureLoadings\' or \'sampleFactors\'')
         return
-    nonzero = containsZeros(stddev)
-    print("nonzero count", nonzero)
-    if nonzero > 0:
+    if 0 in stddev:
         print("zeros detected in the standard deviation matrix; they have been replaced by small values")
-        stddev = replaceZeros(stddev)
-    return divideMatrices(mean, stddev)
+        stddev[stddev == 0] = 1 ** -6
+    return mean / stddev
 
 
-def reconstructGene(object:GapsResult, genes):
-    D = multiplyMatrices(object.Amean, transposeMatrix(object.Pmean))
+def reconstructGene(object: GapsResult, genes):
+    D = toNumpy(object.Amean) * np.transpose(object.Pmean)
     if genes is not None:
         # TODO: subset genes... i'm confused as to what's supposed to be happening here
         return D
 
-#TODO: figure out what this one actully does lol
-def binaryA(object:GapsResult, threshold):
+
+# TODO: figure out what this one actully does lol
+def binaryA(object: GapsResult, threshold):
     if calcZ(object) > threshold:
-        binA=1
+        binA = 1
     else:
         binA = 0;
 
@@ -269,9 +264,9 @@ def unitVector(n, length):
 def patternMarkers(adata, threshold='all', lp=None, axis=1):
     if threshold.lower() not in ["cut", "all"]:
         raise Exception("threshold must be either 'cut' or 'all'")
-    if lp is not None  and (np.size(lp) != adata.obs.shape[1]):
-            raise Exception("lp length must equal the number of patterns")
-    if axis not in [1,2]:
+    if lp is not None and (np.size(lp) != adata.obs.shape[1]):
+        raise Exception("lp length must equal the number of patterns")
+    if axis not in [1, 2]:
         raise Exception("axis must be either 1 or 2")
 
     if axis == 1:
@@ -282,37 +277,42 @@ def patternMarkers(adata, threshold='all', lp=None, axis=1):
     row_max = np.nanmax(resultMatrix.values, axis=1, keepdims=True)
     row_max = np.where(row_max == 0, 1, row_max)
 
-    normedMatrix = resultMatrix / row_max 
+    normedMatrix = resultMatrix / row_max
 
     if lp is not None:
-        markerScores = pd.DataFrame(np.sqrt(np.sum((normedMatrix.values - lp)**2, axis=1)), index=normedMatrix.index)
+        markerScores = pd.DataFrame(np.sqrt(np.sum((normedMatrix.values - lp) ** 2, axis=1)), index=normedMatrix.index)
         markersByPattern = markerScores.sort_values(0).index.values
-        dict = {"PatternMarkers": markersByPattern, "PatternMarkerRanks": np.argsort(markerScores, axis=0), "PatternMarkerScores": markerScores}
+        dict = {"PatternMarkers": markersByPattern, "PatternMarkerRanks": np.argsort(markerScores, axis=0),
+                "PatternMarkerScores": markerScores}
         return dict
 
     markerScores_arr = np.empty_like(normedMatrix)
     for i in range(normedMatrix.shape[1]):
         lp = unitVector(i, normedMatrix.shape[1])
-        markerScores_arr[:,i] = np.sqrt(np.sum((normedMatrix.values - lp)**2, axis = 1))
+        markerScores_arr[:, i] = np.sqrt(np.sum((normedMatrix.values - lp) ** 2, axis=1))
 
     markerScores = pd.DataFrame(markerScores_arr, index=normedMatrix.index, columns=normedMatrix.columns)
 
-    markerRanks = pd.DataFrame(np.argsort(markerScores.values, axis=0), index=markerScores.index, columns=markerScores.columns)
-    
+    markerRanks = pd.DataFrame(np.argsort(markerScores.values, axis=0), index=markerScores.index,
+                               columns=markerScores.columns)
+
     rankCutoff = np.empty(markerRanks.shape[1])
     markersByPattern = {}
     if threshold == "cut":
         for i in range(markerRanks.shape[1]):
-            patternRank = markerRanks.values[:,i]
+            patternRank = markerRanks.values[:, i]
             rankCutoff[i] = np.max(patternRank[patternRank == np.amin(markerRanks, axis=1)])
-            markersByPattern['Pattern' + str(i+1)] = (markerRanks[markerRanks.values[:,i] <= rankCutoff[i]]).index.values
-    
+            markersByPattern['Pattern' + str(i + 1)] = (
+            markerRanks[markerRanks.values[:, i] <= rankCutoff[i]]).index.values
+
     elif threshold == "all":
         patternsByMarker = markerScores.columns[np.argmin(markerScores.values, axis=1)]
         for i in range(markerScores.shape[1]):
-            markersByPattern['Pattern' + str(i+1)] = markerScores[markerScores.columns[i] == patternsByMarker].index.values
+            markersByPattern['Pattern' + str(i + 1)] = markerScores[
+                markerScores.columns[i] == patternsByMarker].index.values
 
-    dict = {"PatternMarkers": markersByPattern, "PatternMarkerRanks": np.argsort(markerScores, axis=0), "PatternMarkerScores": markerScores}
+    dict = {"PatternMarkers": markersByPattern, "PatternMarkerRanks": np.argsort(markerScores, axis=0),
+            "PatternMarkerScores": markerScores}
     return dict
 
 
@@ -337,6 +337,7 @@ def plotPatternMarkers(object, data, patternPalette, sampleNames,
     print("Not yet implemented")
     return
 
+
 # convert matrix object to numpy array
 def toNumpy(matrix):
     all_vecdata = np.empty((matrix.nRow(), matrix.nCol()))
@@ -345,5 +346,5 @@ def toNumpy(matrix):
         vecdata = []
         for j in range(vector.size()):
             vecdata.append(getElement(vector, j))
-        all_vecdata[:,i] = vecdata
+        all_vecdata[:, i] = vecdata
     return all_vecdata
