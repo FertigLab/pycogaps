@@ -5,8 +5,8 @@ import scipy.io
 import matplotlib as mpl
 from matplotlib import cm
 import matplotlib.pyplot as plt
-import colorspacious
-from colorspacious import cspace_converter
+# import colorspacious
+# from colorspacious import cspace_converter
 from collections import OrderedDict
 
 
@@ -62,21 +62,16 @@ def getRetinaSubset(n=1):
 
 
 def nrowHelper(data):
-    # if isinstance(data, str):
-    #     return int(pycogaps.getFileInfo(data)["dimensions"][0])
     return data.shape[0]  # assuming data is pandas dataframe
 
 
 def ncolHelper(data):
-    # if isinstance(data, str):
-    #     return int(pycogaps.getFileInfo(data)["dimensions"][1])
     return data.shape[1]  # assuming data is pandas dataframe
 
 
 def getGeneNames(data, transpose):
     if transpose:
         return getSampleNames(data, False)
-    # names = pycogaps.getFileInfo(data)["rowNames"]
     names = data.index.values
 
     if names.all() == None or len(names) == 0:
@@ -87,7 +82,6 @@ def getGeneNames(data, transpose):
 def getSampleNames(data, transpose):
     if transpose:
         return getGeneNames(data, transpose)
-    # names = pycogaps.getFileInfo(data)["colNames"]
     names = data.columns.values
 
     if names.all() == None or len(names) == 0:
@@ -190,7 +184,7 @@ def getPatternMatrix(object):
     return object.Pmean
 
 
-def getetMeanChiSq(object: GapsResult):
+def getMeanChiSq(object: GapsResult):
     return object.meanChiSq
 
 
@@ -296,3 +290,14 @@ def plotPatternMarkers(object, data, patternPalette, sampleNames,
                        colDenogram=True, scale="row"):
     print("Not yet implemented")
     return
+
+# convert matrix object to numpy array
+def toNumpy(matrix):
+    all_vecdata = np.empty((matrix.nRow(), matrix.nCol()))
+    for i in range(matrix.nCol()):
+        vector = matrix.getCol(i)
+        vecdata = []
+        for j in range(vector.size()):
+            vecdata.append(getElement(vector, j))
+        all_vecdata[:,i] = vecdata
+    return all_vecdata
