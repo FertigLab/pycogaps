@@ -6,8 +6,7 @@ import matplotlib as mpl
 from matplotlib import cm
 import matplotlib.pyplot as plt
 # import colorspacious
-# from colorspacious import cspace_converter
-from collections import OrderedDict
+import pkg_resources  # part of setuptools
 
 
 def supported(file):
@@ -184,9 +183,10 @@ def getMeanChiSq(object: GapsResult):
     return object.meanChiSq
 
 
-def getVersion(object):
-    print("Not yet implemented")
-    return
+def getVersion():
+    version = pkg_resources.require("pycogaps")[0].version
+    print("pycogaps version ", version)
+    return version
 
 
 def getOriginalParameters(object: GapsResult):
