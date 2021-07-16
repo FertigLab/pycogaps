@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 # import colorspacious
 # from colorspacious import cspace_converter
 from collections import OrderedDict
+import scanpy as sc
 
 
 def supported(file):
@@ -271,39 +272,91 @@ def unitVector(n, length):
     vec[n] = 1
     return vec
 
+### object support
+# def patternMarkers(object, threshold='all', lp=None, axis=1):
+#     if threshold.lower() not in ["cut", "all"]:
+#         raise Exception("threshold must be either 'cut' or 'all'")
+#     if lp != None and (np.size(lp) != object.Amean.shape[1]):
+#             raise Exception("lp length must equal the number of patterns")
+#     if axis not in [1,2]:
+#         raise Exception("axis must be either 1 or 2")
 
-def patternMarkers(object, threshold='all', lp=None, axis=1):
+#     if axis == 1:
+#         resultMatrix = np.array(object.Amean)
+#     else:
+#         resultMatrix = np.array(object.Pmean)
+
+#     row_max = np.nanmax(resultMatrix, axis=1, keepdims=True)
+#     row_max = np.where(row_max == 0, 1, row_max)
+
+#     normedMatrix = resultMatrix / row_max    
+
+#     ### TODO: get names from anndata / paths => implement markersByPattern
+
+#     if lp != None:
+#         markerScores = np.sqrt(np.sum((normedMatrix - lp)**2, axis=1)) 
+#         markersByPattern = np.sort(markerScores)
+#         dict = {"PatternMarkers": markersByPattern, "PatternMarkerRanks": np.argsort(markerScores), "PatternMarkerScores": markerScores}
+#         return dict
+
+#     markerScores = np.empty_like(normedMatrix)
+#     for i in range(normedMatrix.shape[1]):
+#         lp = unitVector(i, normedMatrix.shape[1])
+#         markerScores[:,i] = np.sqrt(np.sum((normedMatrix - lp)**2, axis = 1))
+
+#     markerRanks = np.argsort(markerScores, axis=0)
+    
+#     rankCutoff = np.empty(markerRanks.shape[1])
+#     if threshold == "cut":
+#         for i in range(markerRanks.shape[1]):
+#             patternRank = markerRanks[:,i]
+#             rankCutoff[i] = np.max(patternRank[patternRank == np.amin(markerRanks, axis=1)])
+#             # markersByPattern[i] = markerRanks[markerRanks[:,i] <= rankCutoff[i]]
+#             markersByPattern = None
+#     elif threshold == "all":
+#         markersByPattern = None
+
+#     dict = {"PatternMarkers": markersByPattern, "PatternMarkerRanks": np.argsort(markerScores, axis=0), "PatternMarkerScores": markerScores}
+#     return dict
+
+### anndata support
+def patternMarkers(adata, threshold='all', lp=None, axis=1):
     if threshold.lower() not in ["cut", "all"]:
         raise Exception("threshold must be either 'cut' or 'all'")
-    if lp != None and (np.size(lp) != object.Amean.shape[1]):
+    if lp != None and (np.size(lp) != adata.obs.shape[1]):
             raise Exception("lp length must equal the number of patterns")
     if axis not in [1,2]:
         raise Exception("axis must be either 1 or 2")
 
     if axis == 1:
-        resultMatrix = np.array(object.Amean)
+        resultMatrix = adata.obs
     else:
-        resultMatrix = np.array(object.Pmean)
+        resultMatrix = adata.var
 
-    row_max = np.nanmax(resultMatrix, axis=1, keepdims=True)
+    row_max = np.nanmax(resultMatrix.values, axis=1, keepdims=True)
     row_max = np.where(row_max == 0, 1, row_max)
 
-    normedMatrix = resultMatrix / row_max    
+    normedMatrix = resultMatrix / row_max 
 
     ### TODO: get names from anndata / paths => implement markersByPattern
 
     if lp != None:
-        markerScores = np.sqrt(np.sum((normedMatrix - lp)**2, axis=1)) 
+        markerScores = np.sqrt(np.sum((normedMatrix.values - lp)**2, axis=1)) 
         markersByPattern = np.sort(markerScores)
         dict = {"PatternMarkers": markersByPattern, "PatternMarkerRanks": np.argsort(markerScores), "PatternMarkerScores": markerScores}
         return dict
 
-    markerScores = np.empty_like(normedMatrix)
+    markerScores_arr = np.empty_like(normedMatrix)
     for i in range(normedMatrix.shape[1]):
         lp = unitVector(i, normedMatrix.shape[1])
-        markerScores[:,i] = np.sqrt(np.sum((normedMatrix - lp)**2, axis = 1))
+        markerScores_arr[:,i] = np.sqrt(np.sum((normedMatrix.values - lp)**2, axis = 1))
 
-    markerRanks = np.argsort(markerScores, axis=0)
+    markerScores = pd.DataFrame(markerScores_arr, index=normedMatrix.index, columns=normedMatrix.columns)
+
+    markerRanks = pd.DataFrame(np.argsort(markerScores.values, axis=0), index=markerScores.index, columns=markerScores.columns)
+
+    print(markerRanks)
+    assert False
     
     rankCutoff = np.empty(markerRanks.shape[1])
     if threshold == "cut":
@@ -317,6 +370,7 @@ def patternMarkers(object, threshold='all', lp=None, axis=1):
 
     dict = {"PatternMarkers": markersByPattern, "PatternMarkerRanks": np.argsort(markerScores, axis=0), "PatternMarkerScores": markerScores}
     return dict
+
 
 
 def calcCoGAPSStat(object):
