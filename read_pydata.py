@@ -3,30 +3,39 @@ import pycogaps
 import scipy.io
 import scipy.sparse
 import numpy as np
-import PyCoGAPS
+from PyCoGAPS import *
 
 # placeholder until we have anndata samples
+# maybe also read files into an anndata object?
 path = './data/GIST.csv'
 prm = pycogaps.GapsParameters(path)
 
 adata = anndata.read_csv(path)
-adata = adata.X
+adataX = adata.X
 
-if scipy.sparse.issparse(adata):
-    adata = adata.toarray()
+if scipy.sparse.issparse(adataX):
+    adataX = adataX.toarray()
 
-matrix = pycogaps.Matrix(adata)
+# create Matrix object from anndata X
+matrix = pycogaps.Matrix(adataX)
 
-print("\n~~~~~~~~~~~~ pycogaps run from path: ~~~~~~~~~~~~~~~\n")
-path_result = pycogaps.runCogaps(path, prm)
+result = pycogaps.runCogapsFromMatrix(matrix, prm)
 
-# converting Matrix object (GapsResult Amean) to numpy array
-path_Amean = np.array(path_result.Amean, copy = False)
+# convert Amean and Pmean results to numpy arrays
+Amean = toNumpy(result.Amean)
+Pmean = toNumpy(result.Pmean)
 
+# anndata labels
+print('obs names: ', adata.obs_names)
+print('var names: ', adata.var_names)
+pattern_labels = ["Pattern" + str(i) for i in range(1, prm.nPatterns+1)]
 
-print("\n~~~~~~~~~~~~ pycogaps run from Matrix: ~~~~~~~~~~~~~~~~~\n")
-mat_result = pycogaps.runCogapsFromMatrix(matrix, prm)
+# load adata obs and var from Amean and Pmean results
+A_mat = pd.DataFrame(data=Amean, index=adata.obs_names, columns=pattern_labels)
+adata.obs = A_mat
 
-mat_Amean = np.array(mat_result.Amean, copy = False)
+P_mat = pd.DataFrame(data=Pmean, index=adata.var_names, columns=pattern_labels)
+adata.var = P_mat
 
-
+print("~~~~~~~~~~~~~ testing CoGAPS Pattern Markers ~~~~~~~~~~~~~~")
+print(patternMarkers(adata))
