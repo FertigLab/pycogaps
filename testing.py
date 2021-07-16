@@ -30,4 +30,4 @@ calcZP = calcZ(result, "sampleFactors")
 print(calcZP)
 calcZA = calcZ(result, "featureLoadings")
 print(calcZA)
-
+print(toNumpy(calcZA))
