@@ -7,6 +7,7 @@ from matplotlib import cm
 import matplotlib.pyplot as plt
 # import colorspacious
 import pkg_resources  # part of setuptools
+from numpy import random
 
 
 def supported(file):
@@ -316,25 +317,106 @@ def patternMarkers(adata, threshold='all', lp=None, axis=1):
     return dict
 
 
-def calcCoGAPSStat(object):
+def calcCoGAPSStat(object, sets=None, whichMatrix='featureLoadings', numPerm=1000):
+
+    if not isinstance(sets, list):
+        raise Exception("Sets must be a list of either measurements of samples")
+
+    zMatrix = calcZ(object, whichMatrix)
+
+    ### TODO: need names of rows
+
+    zMatrix = pd.DataFrame(zMatrix, index=[], columns=[])
+    pvalUpReg = []
+
+    for thisSet in sets:
+        lessThanCount = np.zeros(zMatrix.shape[1])
+        actualZScore = np.mean(zMatrix.values[zMatrix.index in thisSet,:], axis=0)
+        for n in range(numPerm):
+            permutedIndices = np.random.choice(np.arange(1, zMatrix.shape[0] + 1), size=len(thisSet), replace=False)
+            permutedZScore = np.mean(zMatrix.values[permutedIndices,:], axis=0)
+            lessThanCount = lessThanCount + (actualZScore < permutedZScore)
+        np.append(pvalUpReg, lessThanCount / numPerm)
+
+    pvalDownReg = 1 - pvalUpReg
+    activityEstimate = 1 - 2 * pvalUpReg
+    
+    dict = {'twoSidedPValue': np.maximum(np.minimum(pvalDownReg, pvalUpReg), 1 / numPerm),
+        'GSUpreg': pvalUpReg,
+        'GSDownreg': pvalDownReg,
+        'GSActEst': activityEstimate}
+    
+    return dict
+
+
+def calcGeneGSStat(object, GStoGenes, numPerm, Pw=np.ones(toNumpy(object.Amean).shape[1]), nullGenes=False):
     print("Not yet implemented")
-    return
+
+    gsStat = calcCoGAPSStat(object, GStoGenes, numPerm=numPerm)
+    gsStat =  gsStat['GSUpreg']
+    gsStat = -np.log(gsStat)
+
+    if not np.isnan(Pw).all():
+        if Pw.size() != gsStat.size():
+            raise Exception('Invalid weighting')
+        gsStat = gsStat*Pw
+    
+    featureLoadings = toNumpy(getFeatureLoadings(object))
+    stddev = toNumpy(object.Psd)
+
+    ### TODO: need names of rows - pass in adata obj?? probably
+
+    featureLoadings = pd.DataFrame(featureLoadings, index=[], columns=[])
+
+    if nullGenes:
+        ZD = featureLoadings.values[(featureLoadings.index).difference(GStoGenes),:] / stddev.values[(featureLoadings.index).difference(GStoGenes),:]
+    else:
+        ZD = featureLoadings.values[GStoGenes, :] / stddev[GStoGenes, :]
+
+    ZD_apply = np.multiply(ZD, gsStat, axis=0)
+    ZD_apply = np.sum(ZD_apply, axis=1)
+
+    outStats = ZD_apply / np.sum(gsStat)
+    outStats = outStats / np.sum(ZD, axis=1)
+    outStats[np.argwhere(np.sum(ZD, axis=1) < 1e-6)] = 0
+
+    if np.sum(gsStat) < 1e-6:
+        return 0
+
+    return outStats
 
 
-def calcGeneGSStat(object, GStoGenes, numPerm, Pw, nullGenes):
+def computeGeneGSProb(object, GStoGenes, numPerm=500, Pw=np.ones(toNumpy(object.Amean).shape[1]), PwNull=False):
     print("Not yet implemented")
-    return
+
+    geneGSStat = calcGeneGSStat(object, Pw=Pw, GStoGenes=GStoGenes, numPerm=numPerm)
+
+    if PwNull:
+        permGSStat = calcGeneGSStat(object, GStoGenes=GStoGenes, numPerm=numPerm, Pw=Pw, nullGenes=True)
+    else:
+        permGSStat = calcGeneGSStat(object, GStoGenes=GStoGenes, numPerm=numPerm, nullGenes=True)
+
+    finalStats = []
+    for i in range(len(GStoGenes)):
+        finalStats[i] = (np.argwhere(permGSStat > geneGSStat[i])).size() / permGSStat.size()
+
+    return finalStats
 
 
-def computeGeneGSProb(object, GStoGenes, numPerm, Pw, PwNull):
-    print("Not yet implemented")
-    return
-
-
-def plotPatternMarkers(object, data, patternPalette, sampleNames,
+def plotPatternMarkers(adata, data, patternPalette, sampleNames,
                        samplePalette=None, heatmapCol="bluered",
                        colDenogram=True, scale="row"):
     print("Not yet implemented")
+
+    data = toNumpy(data)
+
+    if samplePalette is None:
+        samplePalette = ['black'] * data.shape[1]
+
+    dict = patternMarkers(adata)
+    
+    # TODO: figure this out later...
+
     return
 
 
