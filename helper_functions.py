@@ -364,6 +364,7 @@ def plotPatternMarkers(object, data, patternPalette, sampleNames,
                        samplePalette=None, heatmapCol="bluered",
                        colDenogram=True, scale="row"):
     print("Not yet implemented")
+
     return
 
 
