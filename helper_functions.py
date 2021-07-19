@@ -7,6 +7,7 @@ from matplotlib import cm
 import matplotlib.pyplot as plt
 # import colorspacious
 import pkg_resources  # part of setuptools
+from numpy import genfromtxt
 
 
 def supported(file):
@@ -232,11 +233,11 @@ def calcZ(object: GapsResult, whichMatrix):
     return mean / stddev
 
 
-def reconstructGene(object: GapsResult, genes):
-    D = toNumpy(object.Amean) * np.transpose(object.Pmean)
+def reconstructGene(object: GapsResult, genes=None):
+    D = np.dot(toNumpy(object.Amean), np.transpose(toNumpy(object.Pmean)))
     if genes is not None:
-        # TODO: subset genes... i'm confused as to what's supposed to be happening here
-        return D
+        D = D[genes, ]
+    return D
 
 
 def binaryA(object: GapsResult, threshold, nrows="all"):
@@ -263,9 +264,24 @@ def binaryA(object: GapsResult, threshold, nrows="all"):
     return plt
 
 
-def plotResiduals(object):
-    print("Not yet implemented")
-    return
+def plotResiduals(object:GapsResult, data, uncertainty):
+    """
+    generate a residual plot
+    @param object: GapsResult object
+    @param data: original data matrix on which GAPS was run
+    @param uncertainty: original SD matrix with which GAPS was run
+    @return: matplotlib plot object
+    """
+    data = np.array(data)
+    if uncertainty is None:
+        uncertainty = np.where(data*0.1 > 0.1, data*0.1, 0.1)
+    uncertainty = np.array(uncertainty)
+
+    M = reconstructGene(object)
+    residual = (data - M)/uncertainty
+    plt.matshow(residual, cmap='hot', interpolation='nearest')
+    plt.show()
+    return plt
 
 
 def unitVector(n, length):
@@ -329,19 +345,16 @@ def patternMarkers(adata, threshold='all', lp=None, axis=1):
     return dict
 
 
-# ashley
 def calcCoGAPSStat(object):
     print("Not yet implemented")
     return
 
 
-# ashley
 def calcGeneGSStat(object, GStoGenes, numPerm, Pw, nullGenes):
     print("Not yet implemented")
     return
 
 
-# ashley
 def computeGeneGSProb(object, GStoGenes, numPerm, Pw, PwNull):
     print("Not yet implemented")
     return
