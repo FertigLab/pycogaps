@@ -237,17 +237,28 @@ def reconstructGene(object: GapsResult, genes):
         return D
 
 
-# TODO: figure out what this one actully does lol
-def binaryA(object: GapsResult, threshold):
-    if calcZ(object) > threshold:
-        binA = 1
-    else:
-        binA = 0;
-
-    a = np.random.random((16, 16))
-    plt.imshow(a, cmap='hot', interpolation='nearest')
+def binaryA(object: GapsResult, threshold, nrows="all"):
+    """
+    plots a binary heatmap with each entry representing whether
+    that position in the A matrix has a value greater than (black)
+    or lesser than (white) the specified threshold * the standard
+    deviation for that element
+    @param object: GapsResult object
+    @param threshold: threshold to compare to A/Asd
+    @param nrows: how many rows should be plotted (for very long
+    and skinny feature matrices)
+    @return: matplotlib plot object
+    """
+    binA = calcZ(object, whichMatrix="featureLoadings")
+    if nrows != "all":
+        binA = binA[1:nrows, :]
+    overthresh = binA > threshold
+    underthresh = binA < threshold
+    binA[overthresh] = 1
+    binA[underthresh] = 0
+    plt.matshow(binA, cmap='hot', interpolation='nearest')
     plt.show()
-    return
+    return plt
 
 
 def plotResiduals(object):
@@ -303,7 +314,7 @@ def patternMarkers(adata, threshold='all', lp=None, axis=1):
             patternRank = markerRanks.values[:, i]
             rankCutoff[i] = np.max(patternRank[patternRank == np.amin(markerRanks, axis=1)])
             markersByPattern['Pattern' + str(i + 1)] = (
-            markerRanks[markerRanks.values[:, i] <= rankCutoff[i]]).index.values
+                markerRanks[markerRanks.values[:, i] <= rankCutoff[i]]).index.values
 
     elif threshold == "all":
         patternsByMarker = markerScores.columns[np.argmin(markerScores.values, axis=1)]
@@ -316,16 +327,19 @@ def patternMarkers(adata, threshold='all', lp=None, axis=1):
     return dict
 
 
+# ashley
 def calcCoGAPSStat(object):
     print("Not yet implemented")
     return
 
 
+# ashley
 def calcGeneGSStat(object, GStoGenes, numPerm, Pw, nullGenes):
     print("Not yet implemented")
     return
 
 
+# ashley
 def computeGeneGSProb(object, GStoGenes, numPerm, Pw, PwNull):
     print("Not yet implemented")
     return
