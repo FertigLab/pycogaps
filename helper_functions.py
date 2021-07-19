@@ -160,6 +160,8 @@ def plot(obj: GapsResult):
     ax.legend()
     plt.xlabel("Samples")
     plt.ylabel("Relative Amplitude")
+    plt.xlim(0, nsamples + 1)
+    plt.ylim(0, np.argmax(samples)*1.1)
     plt.show()
 
 
