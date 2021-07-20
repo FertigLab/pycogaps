@@ -7,6 +7,7 @@ from matplotlib import cm
 import matplotlib.pyplot as plt
 # import colorspacious
 import pkg_resources  # part of setuptools
+from numpy import genfromtxt
 
 
 def supported(file):
@@ -160,6 +161,8 @@ def plot(obj: GapsResult):
     ax.legend()
     plt.xlabel("Samples")
     plt.ylabel("Relative Amplitude")
+    plt.xlim(0, nsamples + 1)
+    plt.ylim(0, np.argmax(samples)*1.1)
     plt.show()
 
 
@@ -230,29 +233,55 @@ def calcZ(object: GapsResult, whichMatrix):
     return mean / stddev
 
 
-def reconstructGene(object: GapsResult, genes):
-    D = toNumpy(object.Amean) * np.transpose(object.Pmean)
+def reconstructGene(object: GapsResult, genes=None):
+    D = np.dot(toNumpy(object.Amean), np.transpose(toNumpy(object.Pmean)))
     if genes is not None:
-        # TODO: subset genes... i'm confused as to what's supposed to be happening here
-        return D
+        D = D[genes, ]
+    return D
 
 
-# TODO: figure out what this one actully does lol
-def binaryA(object: GapsResult, threshold):
-    if calcZ(object) > threshold:
-        binA = 1
-    else:
-        binA = 0;
-
-    a = np.random.random((16, 16))
-    plt.imshow(a, cmap='hot', interpolation='nearest')
+def binaryA(object: GapsResult, threshold, nrows="all"):
+    """
+    plots a binary heatmap with each entry representing whether
+    that position in the A matrix has a value greater than (black)
+    or lesser than (white) the specified threshold * the standard
+    deviation for that element
+    @param object: GapsResult object
+    @param threshold: threshold to compare to A/Asd
+    @param nrows: how many rows should be plotted (for very long
+    and skinny feature matrices)
+    @return: matplotlib plot object
+    """
+    binA = calcZ(object, whichMatrix="featureLoadings")
+    if nrows != "all":
+        binA = binA[1:nrows, :]
+    overthresh = binA > threshold
+    underthresh = binA < threshold
+    binA[overthresh] = 1
+    binA[underthresh] = 0
+    plt.matshow(binA, cmap='hot', interpolation='nearest')
     plt.show()
-    return
+    return plt
 
 
-def plotResiduals(object):
-    print("Not yet implemented")
-    return
+def plotResiduals(object:GapsResult, data, uncertainty):
+    """
+    generate a residual plot
+    @param object: GapsResult object
+    @param data: original data matrix on which GAPS was run
+    @param uncertainty: original SD matrix with which GAPS was run
+    @return: matplotlib plot object
+    """
+    data = np.array(data)
+    if uncertainty is None:
+        uncertainty = np.where(data*0.1 > 0.1, data*0.1, 0.1)
+    uncertainty = np.array(uncertainty)
+
+    M = reconstructGene(object)
+    residual = (data - M)/uncertainty
+    plt.matshow(residual, cmap='hot', interpolation='nearest')
+    plt.show()
+    return plt
 
 
 def unitVector(n, length):
@@ -303,7 +332,7 @@ def patternMarkers(adata, threshold='all', lp=None, axis=1):
             patternRank = markerRanks.values[:, i]
             rankCutoff[i] = np.max(patternRank[patternRank == np.amin(markerRanks, axis=1)])
             markersByPattern['Pattern' + str(i + 1)] = (
-            markerRanks[markerRanks.values[:, i] <= rankCutoff[i]]).index.values
+                markerRanks[markerRanks.values[:, i] <= rankCutoff[i]]).index.values
 
     elif threshold == "all":
         patternsByMarker = markerScores.columns[np.argmin(markerScores.values, axis=1)]
@@ -331,9 +360,22 @@ def computeGeneGSProb(object, GStoGenes, numPerm, Pw, PwNull):
     return
 
 
-def plotPatternMarkers(object, data, patternPalette, sampleNames,
+def plotPatternMarkers(object:GapsResult, data, patternPalette, sampleNames,
                        samplePalette=None, heatmapCol="bluered",
                        colDenogram=True, scale="row"):
+    """
+
+    @param object: GapsResult object
+    @param data: original data in matrix format
+    @param patternPalette: vector indicating which color should be used for each pattern
+    @param sampleNames: names with which samples should be labelled
+    @param samplePalette: vector indicating which color should be used for each sample
+    @param heatmapCol: pallelet giving color scheme for heatmap
+    @param colDenogram: logical indicating whether to display sample dendrogram
+    @param scale: character indicating if the values should be centered and scaled in
+    the row direction, the column direction, or none. the default is "row"
+    @return:
+    """
     print("Not yet implemented")
     return
 
