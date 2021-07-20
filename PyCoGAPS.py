@@ -47,6 +47,7 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
         print("Please choose one of: sampling, equilibration, all")
         return
 
+    gapsresultobj = None
     if params is None:
         # construct a parameters object using whatever was passed in
         prm = GapsParameters(path)
@@ -66,18 +67,26 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
         setParams(prm, opts)
         # check data input
         checkData(path, prm)
-        return pycogaps.runCogaps(path, prm)
+        gapsresultobj = pycogaps.runCogaps(path, prm)
     else:
         # should we allow them to pass in params?
         # it's hard because we can't distinguish
         # between defaults and user-supplied params AFAIK
         # check data input
         checkData(path, params)
-        return pycogaps.runCogaps(path, params)
+        gapsresultobj = pycogaps.runCogaps(path, params)
+    result = {
+        "GapsResult": gapsresultobj,
+        "AnnData": GapsResultToAnnData(gapsresultobj)
+    }
+    return result
 
 
 # TODO: should we pass uncertainty into runCogaps?
 
+
+def GapsResultToAnnData (gapsresult:GapsResult):
+    return
 
 def GapsParameters(path):
     return pycogaps.GapsParameters(path)
