@@ -360,11 +360,23 @@ def computeGeneGSProb(object, GStoGenes, numPerm, Pw, PwNull):
     return
 
 
-def plotPatternMarkers(object, data, patternPalette, sampleNames,
+def plotPatternMarkers(object:GapsResult, data, patternPalette, sampleNames,
                        samplePalette=None, heatmapCol="bluered",
                        colDenogram=True, scale="row"):
-    print("Not yet implemented")
+    """
 
+    @param object: GapsResult object
+    @param data: original data in matrix format
+    @param patternPalette: vector indicating which color should be used for each pattern
+    @param sampleNames: names with which samples should be labelled
+    @param samplePalette: vector indicating which color should be used for each sample
+    @param heatmapCol: pallelet giving color scheme for heatmap
+    @param colDenogram: logical indicating whether to display sample dendrogram
+    @param scale: character indicating if the values should be centered and scaled in
+    the row direction, the column direction, or none. the default is "row"
+    @return:
+    """
+    print("Not yet implemented")
     return
 
 
