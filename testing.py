@@ -12,7 +12,9 @@ print("-- Passing params object into runCogaps function --\n")
 # prm = GapsParameters(path)
 # prm.print()  # c++ method to display all parameter values
 # CoGAPS(path, prm)
-result = CoGAPS(path)
+cogapsrunresult = CoGAPS(path)
+result = cogapsrunresult['GapsResult']
+anndata = cogapsrunresult['anndata']
 # binaryA(result, threshold=3)
 originaldata = genfromtxt(path, delimiter=",")[1:, 1:]  # need to get rid of the first row and column
 # plotResiduals(result, originaldata, None)
