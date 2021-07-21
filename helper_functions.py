@@ -10,8 +10,9 @@ import pkg_resources  # part of setuptools
 from numpy import genfromtxt
 import anndata
 
+
 def supported(file):
-    return file.lower().endswith((".tsv", ".csv", ".mtx", ".h5ad", ".hdf")) # currently gct not supported w/ anndata
+    return file.lower().endswith((".tsv", ".csv", ".mtx", ".h5ad", ".hdf"))  # currently gct not supported w/ anndata
 
 
 def checkData(adata, params, uncertainty=None):
@@ -46,11 +47,12 @@ def toAnndata(file):
     elif file.lower().endswith(".hdf"):
         adata = anndata.read_hdf(file)
     # elif file.lower().endswith(".gct")
-    
+
     if scipy.sparse.issparse(adata.X):
         adata.X = (adata.X).toarray()
-    
+
     return adata
+
 
 # not implemented yet - reads HDF5 file
 # we can use this for testing later 
@@ -162,7 +164,7 @@ def plot(obj: GapsResult):
     plt.xlabel("Samples")
     plt.ylabel("Relative Amplitude")
     plt.xlim(0, nsamples + 1)
-    plt.ylim(0, np.argmax(samples)*1.1)
+    plt.ylim(0, np.argmax(samples) * 1.1)
     plt.show()
 
 
@@ -236,7 +238,7 @@ def calcZ(object: GapsResult, whichMatrix):
 def reconstructGene(object: GapsResult, genes=None):
     D = np.dot(toNumpy(object.Amean), np.transpose(toNumpy(object.Pmean)))
     if genes is not None:
-        D = D[genes, ]
+        D = D[genes,]
     return D
 
 
@@ -264,7 +266,7 @@ def binaryA(object: GapsResult, threshold, nrows="all"):
     return plt
 
 
-def plotResiduals(object:GapsResult, data, uncertainty):
+def plotResiduals(object: GapsResult, data, uncertainty):
     """
     generate a residual plot
     @param object: GapsResult object
@@ -274,11 +276,11 @@ def plotResiduals(object:GapsResult, data, uncertainty):
     """
     data = np.array(data)
     if uncertainty is None:
-        uncertainty = np.where(data*0.1 > 0.1, data*0.1, 0.1)
+        uncertainty = np.where(data * 0.1 > 0.1, data * 0.1, 0.1)
     uncertainty = np.array(uncertainty)
 
     M = reconstructGene(object)
-    residual = (data - M)/uncertainty
+    residual = (data - M) / uncertainty
     plt.matshow(residual, cmap='hot', interpolation='nearest')
     plt.show()
     return plt
@@ -360,7 +362,7 @@ def computeGeneGSProb(object, GStoGenes, numPerm, Pw, PwNull):
     return
 
 
-def plotPatternMarkers(object:GapsResult, data, patternPalette, sampleNames,
+def plotPatternMarkers(object: GapsResult, data, patternmarkers, patternPalette, sampleNames,
                        samplePalette=None, heatmapCol="bluered",
                        colDenogram=True, scale="row"):
     """
@@ -376,7 +378,19 @@ def plotPatternMarkers(object:GapsResult, data, patternPalette, sampleNames,
     the row direction, the column direction, or none. the default is "row"
     @return:
     """
-    print("Not yet implemented")
+    if samplePalette is None:
+        samplePalette = np.repeat("black", np.shape(data)[1])
+    # this is the equivalent of length(unlist(patternmarkers[...])) in the R code
+    nummarkers = len(np.concatenate(list(patternmarkers["PatternMarkers"].values())))
+    patternCols = []
+    i = 0
+    for pattern in patternmarkers["PatternMarkers"]:
+        patternlength = len(patternmarkers["PatternMarkers"][pattern])
+        tmp = np.repeat(patternPalette[i], patternlength)
+        patternCols.append(tmp)
+        i+=1
+
+    
     return
 
 
