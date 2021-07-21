@@ -1,6 +1,7 @@
 import time
 import math
 import pycogaps
+import anndata
 from helper_functions import *
 
 
@@ -47,6 +48,7 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
         print("Please choose one of: sampling, equilibration, all")
         return
 
+    gapsresultobj = None
     if params is None:
         # construct a parameters object using whatever was passed in
         prm = GapsParameters(path)
@@ -66,18 +68,39 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
         setParams(prm, opts)
         # check data input
         checkData(path, prm)
-        return pycogaps.runCogaps(path, prm)
+        gapsresultobj = pycogaps.runCogaps(path, prm)
     else:
         # should we allow them to pass in params?
         # it's hard because we can't distinguish
         # between defaults and user-supplied params AFAIK
         # check data input
         checkData(path, params)
-        return pycogaps.runCogaps(path, params)
+        gapsresultobj = pycogaps.runCogaps(path, params)
+    result = {
+        "GapsResult": gapsresultobj,
+        "anndata": GapsResultToAnnData(gapsresultobj, path, prm)
+    }
+    return result
 
 
 # TODO: should we pass uncertainty into runCogaps?
 
+
+def GapsResultToAnnData (gapsresult:GapsResult, path, prm:GapsParameters):
+    # fetch original data matrix as an anndata object
+    adata = anndata.read_csv(path)
+    # convert Amean and Pmean results to numpy arrays
+    Amean = toNumpy(gapsresult.Amean)
+    Pmean = toNumpy(gapsresult.Pmean)
+    print('obs names: ', adata.obs_names)
+    print('var names: ', adata.var_names)
+    pattern_labels = ["Pattern" + str(i) for i in range(1, prm.nPatterns + 1)]
+    # load adata obs and var from Amean and Pmean results
+    A_mat = pd.DataFrame(data=Amean, index=adata.obs_names, columns=pattern_labels)
+    adata.obs = A_mat
+    P_mat = pd.DataFrame(data=Pmean, index=adata.var_names, columns=pattern_labels)
+    adata.var = P_mat
+    return adata
 
 def GapsParameters(path):
     return pycogaps.GapsParameters(path)
