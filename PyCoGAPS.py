@@ -67,18 +67,23 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
         }
         setParams(prm, opts)
         # check data input
-        checkData(path, prm)
-        gapsresultobj = pycogaps.runCogaps(path, prm)
+        adata = toAnndata(path)
+        checkData(adata, prm, uncertainty)
+        matrix = pycogaps.Matrix(adata.X)
+        gapsresultobj = pycogaps.runCogapsFromMatrix(matrix, prm)
     else:
         # should we allow them to pass in params?
         # it's hard because we can't distinguish
         # between defaults and user-supplied params AFAIK
         # check data input
-        checkData(path, params)
-        gapsresultobj = pycogaps.runCogaps(path, params)
+        adata = toAnndata(path)
+        checkData(adata, params, uncertainty)
+        matrix = pycogaps.Matrix(adata.X)
+        gapsresultobj = pycogaps.runCogapsFromMatrix(matrix, params)
+        prm = params
     result = {
         "GapsResult": gapsresultobj,
-        "anndata": GapsResultToAnnData(gapsresultobj, path, prm)
+        "anndata": GapsResultToAnnData(gapsresultobj, adata, prm)
     }
     return result
 
@@ -86,14 +91,10 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
 # TODO: should we pass uncertainty into runCogaps?
 
 
-def GapsResultToAnnData (gapsresult:GapsResult, path, prm:GapsParameters):
-    # fetch original data matrix as an anndata object
-    adata = anndata.read_csv(path)
+def GapsResultToAnnData (gapsresult:GapsResult, adata, prm:GapsParameters):
     # convert Amean and Pmean results to numpy arrays
     Amean = toNumpy(gapsresult.Amean)
     Pmean = toNumpy(gapsresult.Pmean)
-    print('obs names: ', adata.obs_names)
-    print('var names: ', adata.var_names)
     pattern_labels = ["Pattern" + str(i) for i in range(1, prm.nPatterns + 1)]
     # load adata obs and var from Amean and Pmean results
     A_mat = pd.DataFrame(data=Amean, index=adata.obs_names, columns=pattern_labels)

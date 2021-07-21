@@ -8,34 +8,14 @@ import matplotlib.pyplot as plt
 # import colorspacious
 import pkg_resources  # part of setuptools
 from numpy import genfromtxt
-
+import anndata
 
 def supported(file):
-    return file.lower().endswith((".tsv", ".csv", ".mtx", ".gct"))
+    return file.lower().endswith((".tsv", ".csv", ".mtx", ".h5ad", ".hdf")) # currently gct not supported w/ anndata
 
 
-# convert file types to pandas dataframe
-def dataToDF(file):
-    if file.lower().endswith(".csv"):
-        df = pd.read_csv(file, index_col=0)
-    elif file.lower().endswith(".tsv"):
-        df = pd.read_csv(file, sep='\t', index_col=0)
-    elif file.lower().endswith(".mtx"):
-        data = scipy.io.mmread(file)
-        if not isinstance(data, np.ndarray):
-            df = pd.DataFrame.sparse.from_spmatrix(data)
-        else:
-            df = pd.DataFrame(data)
-    elif file.lower().endswith(".gct"):
-        df = pd.read_csv(file, sep='\t', skiprows=2, index_col=0)
-    return df
-
-
-def checkData(file, params, uncertainty=None):
-    if supported(file):
-        data = dataToDF(file).to_numpy()
-    else:
-        raise Exception("unsupported data type")
+def checkData(adata, params, uncertainty=None):
+    data = adata.X
 
     if np.isnan(data).any():
         raise Exception('NA values in data')
@@ -51,8 +31,26 @@ def checkData(file, params, uncertainty=None):
     if data.shape[0] <= params.nPatterns | data.shape[1] <= params.nPatterns:
         raise Exception('nPatterns must be less than dimensions of data')
 
-    # TODO: add support for reading AnnData, HDF5, and R data (?)
 
+def toAnndata(file):
+    if not supported(file):
+        raise Exception("unsupported data type")
+    if file.lower().endswith(".csv"):
+        adata = anndata.read_csv(file)
+    elif file.lower().endswith(".tsv"):
+        adata = anndata.read_csv(file, delimeter='\t')
+    elif file.lower().endswith(".mtx"):
+        adata = anndata.read_mtx(file)
+    elif file.lower().endswith(".h5ad"):
+        adata = anndata.read_h5ad(file)
+    elif file.lower().endswith(".hdf"):
+        adata = anndata.read_hdf(file)
+    # elif file.lower().endswith(".gct")
+    
+    if scipy.sparse.issparse(adata.X):
+        adata.X = (adata.X).toarray()
+    
+    return adata
 
 # not implemented yet - reads HDF5 file
 # we can use this for testing later 
@@ -100,8 +98,10 @@ def getDimNames(data, allParams):
     # if allParams.gaps.sampleNames == None:
     #     sampleNames = getSampleNames(data, allParams.transposeData)
 
-    if supported(data):
-        data = dataToDF(data)
+    if not supported(data):
+        raise Exception("unsupported data type")
+
+    data = toAnndata(data).X
 
     geneNames = getGeneNames(data, allParams.transposeData)
     sampleNames = getSampleNames(data, allParams.transposeData)
