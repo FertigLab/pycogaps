@@ -38,4 +38,15 @@ P_mat = pd.DataFrame(data=Pmean, index=adata.var_names, columns=pattern_labels)
 adata.var = P_mat
 
 print("~~~~~~~~~~~~~ testing CoGAPS Pattern Markers ~~~~~~~~~~~~~~")
-print(patternMarkers(adata))
+# dict = patternMarkers(adata)
+
+print("~~~~~~~~~~~~~ testing CoGAPS Stat Functions ~~~~~~~~~~~~~~")
+
+dict = calcCoGAPSStat(result, adata, sets=['Hs.101174', 'Hs.1012'])
+print(dict)
+
+outStats = calcGeneGSStat(result, adata, GStoGenes=['Hs.101174', 'Hs.1012'], numPerm=1000)
+print(outStats)
+
+finalStats = computeGeneGSProb(result, adata, GStoGenes=['Hs.101174', 'Hs.1012'])
+print(finalStats)

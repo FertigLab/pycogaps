@@ -317,27 +317,27 @@ def patternMarkers(adata, threshold='all', lp=None, axis=1):
     return dict
 
 
-def calcCoGAPSStat(object, sets=None, whichMatrix='featureLoadings', numPerm=1000):
+def calcCoGAPSStat(object, adata, sets, whichMatrix='featureLoadings', numPerm=1000):
 
     if not isinstance(sets, list):
         raise Exception("Sets must be a list of either measurements of samples")
 
     zMatrix = calcZ(object, whichMatrix)
 
-    ### TODO: need names of rows
+    ### TODO: change columns
 
-    zMatrix = pd.DataFrame(zMatrix, index=[], columns=[])
+    zMatrix = pd.DataFrame(zMatrix, index=adata.obs_names, columns=['P1', 'P2', 'P3'])
     pvalUpReg = []
 
-    for thisSet in sets:
-        lessThanCount = np.zeros(zMatrix.shape[1])
-        actualZScore = np.mean(zMatrix.values[zMatrix.index in thisSet,:], axis=0)
-        for n in range(numPerm):
-            permutedIndices = np.random.choice(np.arange(1, zMatrix.shape[0] + 1), size=len(thisSet), replace=False)
-            permutedZScore = np.mean(zMatrix.values[permutedIndices,:], axis=0)
-            lessThanCount = lessThanCount + (actualZScore < permutedZScore)
-        np.append(pvalUpReg, lessThanCount / numPerm)
+    lessThanCount = np.zeros(zMatrix.shape[1])
+    actualZScore = np.mean(zMatrix.loc[sets,:].values, axis=0)
+    for n in range(numPerm):
+        permutedIndices = np.random.choice(np.arange(1, zMatrix.shape[0]), size=len(sets), replace=False)
+        permutedZScore = np.mean(zMatrix.iloc[permutedIndices,:].values, axis=0)
+        lessThanCount = lessThanCount + (actualZScore < permutedZScore)
+    pvalUpReg.append(lessThanCount / numPerm)
 
+    pvalUpReg = np.array(pvalUpReg)
     pvalDownReg = 1 - pvalUpReg
     activityEstimate = 1 - 2 * pvalUpReg
     
@@ -349,31 +349,36 @@ def calcCoGAPSStat(object, sets=None, whichMatrix='featureLoadings', numPerm=100
     return dict
 
 
-def calcGeneGSStat(object, GStoGenes, numPerm, Pw=np.ones(toNumpy(object.Amean).shape[1]), nullGenes=False):
-    print("Not yet implemented")
-
-    gsStat = calcCoGAPSStat(object, GStoGenes, numPerm=numPerm)
+def calcGeneGSStat(object, adata, GStoGenes, numPerm, Pw=None, nullGenes=False):
+    featureLoadings = toNumpy(getFeatureLoadings(object))
+    
+    if Pw is None:
+        Pw = np.ones(featureLoadings.shape[1])
+    gsStat = calcCoGAPSStat(object, adata, GStoGenes, numPerm=numPerm)
     gsStat =  gsStat['GSUpreg']
     gsStat = -np.log(gsStat)
 
     if not np.isnan(Pw).all():
-        if Pw.size() != gsStat.size():
+        if np.size(Pw) != gsStat.shape[1]:
             raise Exception('Invalid weighting')
         gsStat = gsStat*Pw
     
-    featureLoadings = toNumpy(getFeatureLoadings(object))
-    stddev = toNumpy(object.Psd)
+    stddev = toNumpy(object.Asd)
+    if 0 in stddev:
+        print("zeros detected in the standard deviation matrix; they have been replaced by small values")
+        stddev[stddev == 0] = 1 ** -6
+    stddev = pd.DataFrame(stddev, index=adata.obs_names, columns=['P1', 'P2', 'P3'])
 
     ### TODO: need names of rows - pass in adata obj?? probably
 
-    featureLoadings = pd.DataFrame(featureLoadings, index=[], columns=[])
+    featureLoadings = pd.DataFrame(featureLoadings, index=adata.obs_names, columns=['P1', 'P2', 'P3'])
 
     if nullGenes:
-        ZD = featureLoadings.values[(featureLoadings.index).difference(GStoGenes),:] / stddev.values[(featureLoadings.index).difference(GStoGenes),:]
+        ZD = featureLoadings.loc[(featureLoadings.index).difference(GStoGenes),:].values / stddev.loc[(featureLoadings.index).difference(GStoGenes),:].values
     else:
-        ZD = featureLoadings.values[GStoGenes, :] / stddev[GStoGenes, :]
+        ZD = featureLoadings.loc[GStoGenes,:].values / stddev.loc[GStoGenes,:].values
 
-    ZD_apply = np.multiply(ZD, gsStat, axis=0)
+    ZD_apply = np.multiply(ZD, gsStat)
     ZD_apply = np.sum(ZD_apply, axis=1)
 
     outStats = ZD_apply / np.sum(gsStat)
@@ -386,19 +391,22 @@ def calcGeneGSStat(object, GStoGenes, numPerm, Pw=np.ones(toNumpy(object.Amean).
     return outStats
 
 
-def computeGeneGSProb(object, GStoGenes, numPerm=500, Pw=np.ones(toNumpy(object.Amean).shape[1]), PwNull=False):
-    print("Not yet implemented")
+def computeGeneGSProb(object, adata, GStoGenes, numPerm=500, Pw=None, PwNull=False):
+    featureLoadings = toNumpy(getFeatureLoadings(object))
+    
+    if Pw is None:
+        Pw = np.ones(featureLoadings.shape[1])
 
-    geneGSStat = calcGeneGSStat(object, Pw=Pw, GStoGenes=GStoGenes, numPerm=numPerm)
+    geneGSStat = calcGeneGSStat(object, adata, Pw=Pw, GStoGenes=GStoGenes, numPerm=numPerm)
 
     if PwNull:
-        permGSStat = calcGeneGSStat(object, GStoGenes=GStoGenes, numPerm=numPerm, Pw=Pw, nullGenes=True)
+        permGSStat = calcGeneGSStat(object, adata, GStoGenes=GStoGenes, numPerm=numPerm, Pw=Pw, nullGenes=True)
     else:
-        permGSStat = calcGeneGSStat(object, GStoGenes=GStoGenes, numPerm=numPerm, nullGenes=True)
+        permGSStat = calcGeneGSStat(object, adata, GStoGenes=GStoGenes, numPerm=numPerm, nullGenes=True)
 
-    finalStats = []
+    finalStats = np.empty(len(GStoGenes))
     for i in range(len(GStoGenes)):
-        finalStats[i] = (np.argwhere(permGSStat > geneGSStat[i])).size() / permGSStat.size()
+        finalStats[i] = np.size(np.argwhere(permGSStat > geneGSStat[i])) / np.size(permGSStat)
 
     return finalStats
 
