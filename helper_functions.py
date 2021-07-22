@@ -10,6 +10,7 @@ import pkg_resources  # part of setuptools
 from numpy import genfromtxt
 import anndata
 import seaborn as sns
+from scipy.stats import zscore
 
 
 def supported(file):
@@ -392,10 +393,10 @@ def plotPatternMarkers(object:GapsResult, data:anndata, patternmarkers, patternP
         patternCols.append(tmp)
         i += 1
     plotdata = data[markers].X
-    plotdata_n = pd.DataFrame(plotdata).div(plotdata.max(axis=1), axis=0)
-    sns.heatmap(plotdata_n)
-   # plt.axes().set_aspect(1)
-    plt.show()
+    t = np.transpose(pd.DataFrame(plotdata))
+    z = zscore(t)
+    plotdata_z = np.transpose(z)
+    sns.heatmap(plotdata_z, cmap="coolwarm")
     return
 
 
