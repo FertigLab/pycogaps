@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import pkg_resources  # part of setuptools
 from numpy import genfromtxt
 import anndata
+import seaborn as sns
 
 
 def supported(file):
@@ -362,7 +363,7 @@ def computeGeneGSProb(object, GStoGenes, numPerm, Pw, PwNull):
     return
 
 
-def plotPatternMarkers(object: GapsResult, data, patternmarkers, patternPalette, sampleNames,
+def plotPatternMarkers(object:GapsResult, data:anndata, patternmarkers, patternPalette, sampleNames,
                        samplePalette=None, heatmapCol="bluered",
                        colDenogram=True, scale="row"):
     """
@@ -382,15 +383,19 @@ def plotPatternMarkers(object: GapsResult, data, patternmarkers, patternPalette,
         samplePalette = np.repeat("black", np.shape(data)[1])
     # this is the equivalent of length(unlist(patternmarkers[...])) in the R code
     nummarkers = len(np.concatenate(list(patternmarkers["PatternMarkers"].values())))
+    markers = np.concatenate(list(patternmarkers["PatternMarkers"].values()))
     patternCols = []
     i = 0
     for pattern in patternmarkers["PatternMarkers"]:
         patternlength = len(patternmarkers["PatternMarkers"][pattern])
         tmp = np.repeat(patternPalette[i], patternlength)
         patternCols.append(tmp)
-        i+=1
-
-    
+        i += 1
+    plotdata = data[markers].X
+    plotdata_n = pd.DataFrame(plotdata).div(plotdata.max(axis=1), axis=0)
+    sns.heatmap(plotdata_n)
+   # plt.axes().set_aspect(1)
+    plt.show()
     return
 
 
