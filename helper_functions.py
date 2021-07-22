@@ -324,9 +324,7 @@ def calcCoGAPSStat(object, adata, sets, whichMatrix='featureLoadings', numPerm=1
 
     zMatrix = calcZ(object, whichMatrix)
 
-    ### TODO: change columns
-
-    zMatrix = pd.DataFrame(zMatrix, index=adata.obs_names, columns=['P1', 'P2', 'P3'])
+    zMatrix = pd.DataFrame(zMatrix, index=adata.obs_names, columns=(adata.obs).columns)
     pvalUpReg = []
 
     lessThanCount = np.zeros(zMatrix.shape[1])
@@ -367,11 +365,9 @@ def calcGeneGSStat(object, adata, GStoGenes, numPerm, Pw=None, nullGenes=False):
     if 0 in stddev:
         print("zeros detected in the standard deviation matrix; they have been replaced by small values")
         stddev[stddev == 0] = 1 ** -6
-    stddev = pd.DataFrame(stddev, index=adata.obs_names, columns=['P1', 'P2', 'P3'])
+    stddev = pd.DataFrame(stddev, index=adata.obs_names, columns=(adata.obs).columns)
 
-    ### TODO: need names of rows - pass in adata obj?? probably
-
-    featureLoadings = pd.DataFrame(featureLoadings, index=adata.obs_names, columns=['P1', 'P2', 'P3'])
+    featureLoadings = pd.DataFrame(featureLoadings, index=adata.obs_names, columns=(adata.obs).columns)
 
     if nullGenes:
         ZD = featureLoadings.loc[(featureLoadings.index).difference(GStoGenes),:].values / stddev.loc[(featureLoadings.index).difference(GStoGenes),:].values
