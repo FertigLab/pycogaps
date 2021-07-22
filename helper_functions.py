@@ -324,7 +324,9 @@ def calcCoGAPSStat(object, adata, sets, whichMatrix='featureLoadings', numPerm=1
 
     zMatrix = calcZ(object, whichMatrix)
 
-    zMatrix = pd.DataFrame(zMatrix, index=adata.obs_names, columns=(adata.obs).columns)
+    pattern_labels = (adata.obs).columns
+
+    zMatrix = pd.DataFrame(zMatrix, index=adata.obs_names, columns=pattern_labels)
     pvalUpReg = []
 
     lessThanCount = np.zeros(zMatrix.shape[1])
@@ -339,10 +341,10 @@ def calcCoGAPSStat(object, adata, sets, whichMatrix='featureLoadings', numPerm=1
     pvalDownReg = 1 - pvalUpReg
     activityEstimate = 1 - 2 * pvalUpReg
     
-    dict = {'twoSidedPValue': np.maximum(np.minimum(pvalDownReg, pvalUpReg), 1 / numPerm),
-        'GSUpreg': pvalUpReg,
-        'GSDownreg': pvalDownReg,
-        'GSActEst': activityEstimate}
+    dict = {'twoSidedPValue': pd.DataFrame((np.maximum(np.minimum(pvalDownReg, pvalUpReg), 1 / numPerm)).T, index=pattern_labels),
+        'GSUpreg': pd.DataFrame(pvalUpReg.T, index=pattern_labels),
+        'GSDownreg': pd.DataFrame(pvalDownReg.T, index=pattern_labels),
+        'GSActEst': pd.DataFrame(activityEstimate.T, index=pattern_labels)}
     
     return dict
 
@@ -353,7 +355,7 @@ def calcGeneGSStat(object, adata, GStoGenes, numPerm, Pw=None, nullGenes=False):
     if Pw is None:
         Pw = np.ones(featureLoadings.shape[1])
     gsStat = calcCoGAPSStat(object, adata, GStoGenes, numPerm=numPerm)
-    gsStat =  gsStat['GSUpreg']
+    gsStat =  gsStat['GSUpreg'].values.T
     gsStat = -np.log(gsStat)
 
     if not np.isnan(Pw).all():
@@ -384,6 +386,11 @@ def calcGeneGSStat(object, adata, GStoGenes, numPerm, Pw=None, nullGenes=False):
     if np.sum(gsStat) < 1e-6:
         return 0
 
+    if nullGenes:
+        outStats = pd.DataFrame(outStats, index=(featureLoadings.index).difference(GStoGenes))
+    else:
+        outStats = pd.DataFrame(outStats, index=GStoGenes)
+
     return outStats
 
 
@@ -393,16 +400,18 @@ def computeGeneGSProb(object, adata, GStoGenes, numPerm=500, Pw=None, PwNull=Fal
     if Pw is None:
         Pw = np.ones(featureLoadings.shape[1])
 
-    geneGSStat = calcGeneGSStat(object, adata, Pw=Pw, GStoGenes=GStoGenes, numPerm=numPerm)
+    geneGSStat = calcGeneGSStat(object, adata, Pw=Pw, GStoGenes=GStoGenes, numPerm=numPerm).values
 
     if PwNull:
-        permGSStat = calcGeneGSStat(object, adata, GStoGenes=GStoGenes, numPerm=numPerm, Pw=Pw, nullGenes=True)
+        permGSStat = calcGeneGSStat(object, adata, GStoGenes=GStoGenes, numPerm=numPerm, Pw=Pw, nullGenes=True).values
     else:
-        permGSStat = calcGeneGSStat(object, adata, GStoGenes=GStoGenes, numPerm=numPerm, nullGenes=True)
+        permGSStat = calcGeneGSStat(object, adata, GStoGenes=GStoGenes, numPerm=numPerm, nullGenes=True).values
 
     finalStats = np.empty(len(GStoGenes))
     for i in range(len(GStoGenes)):
         finalStats[i] = np.size(np.argwhere(permGSStat > geneGSStat[i])) / np.size(permGSStat)
+
+    finalStats = pd.DataFrame(finalStats, index=GStoGenes)
 
     return finalStats
 
