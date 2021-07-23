@@ -345,19 +345,108 @@ def patternMarkers(adata, threshold='all', lp=None, axis=1):
     return dict
 
 
-def calcCoGAPSStat(object):
-    print("Not yet implemented")
-    return
+def calcCoGAPSStat(object, sets, whichMatrix='featureLoadings', numPerm=1000):
+
+    if not isinstance(sets, list):
+        raise Exception("Sets must be a list of either measurements of samples")
+
+    zMatrix = calcZ(object['GapsResult'], whichMatrix)
+
+    pattern_labels = (object['anndata'].obs).columns
+
+    zMatrix = pd.DataFrame(zMatrix, index=object['anndata'].obs_names, columns=pattern_labels)
+    pvalUpReg = []
+
+    lessThanCount = np.zeros(zMatrix.shape[1])
+    actualZScore = np.mean(zMatrix.loc[sets,:].values, axis=0)
+    for n in range(numPerm):
+        permutedIndices = np.random.choice(np.arange(1, zMatrix.shape[0]), size=len(sets), replace=False)
+        permutedZScore = np.mean(zMatrix.iloc[permutedIndices,:].values, axis=0)
+        lessThanCount = lessThanCount + (actualZScore < permutedZScore)
+    pvalUpReg.append(lessThanCount / numPerm)
+
+    pvalUpReg = np.array(pvalUpReg)
+    pvalDownReg = 1 - pvalUpReg
+    activityEstimate = 1 - 2 * pvalUpReg
+    
+    dict = {'twoSidedPValue': pd.DataFrame((np.maximum(np.minimum(pvalDownReg, pvalUpReg), 1 / numPerm)).T, index=pattern_labels),
+        'GSUpreg': pd.DataFrame(pvalUpReg.T, index=pattern_labels),
+        'GSDownreg': pd.DataFrame(pvalDownReg.T, index=pattern_labels),
+        'GSActEst': pd.DataFrame(activityEstimate.T, index=pattern_labels)}
+    
+    return dict
 
 
-def calcGeneGSStat(object, GStoGenes, numPerm, Pw, nullGenes):
-    print("Not yet implemented")
-    return
+def calcGeneGSStat(object, GStoGenes, numPerm, Pw=None, nullGenes=False):
+    featureLoadings = toNumpy(object['GapsResult'].Amean)
+    
+    adata = object['anndata']
+
+    if Pw is None:
+        Pw = np.ones(featureLoadings.shape[1])
+    gsStat = calcCoGAPSStat(object, GStoGenes, numPerm=numPerm)
+    gsStat =  gsStat['GSUpreg'].values.T
+    gsStat = -np.log(gsStat)
+
+    if not np.isnan(Pw).all():
+        if np.size(Pw) != gsStat.shape[1]:
+            raise Exception('Invalid weighting')
+        gsStat = gsStat*Pw
+    
+    stddev = toNumpy(object['GapsResult'].Asd)
+    if 0 in stddev:
+        print("zeros detected in the standard deviation matrix; they have been replaced by small values")
+        stddev[stddev == 0] = 1 ** -6
+    stddev = pd.DataFrame(stddev, index=adata.obs_names, columns=(adata.obs).columns)
+
+    featureLoadings = pd.DataFrame(featureLoadings, index=adata.obs_names, columns=(adata.obs).columns)
+
+    if nullGenes:
+        ZD = featureLoadings.loc[(featureLoadings.index).difference(GStoGenes),:].values / stddev.loc[(featureLoadings.index).difference(GStoGenes),:].values
+    else:
+        ZD = featureLoadings.loc[GStoGenes,:].values / stddev.loc[GStoGenes,:].values
+
+    ZD_apply = np.multiply(ZD, gsStat)
+    ZD_apply = np.sum(ZD_apply, axis=1)
+
+    outStats = ZD_apply / np.sum(gsStat)
+    outStats = outStats / np.sum(ZD, axis=1)
+    outStats[np.argwhere(np.sum(ZD, axis=1) < 1e-6)] = 0
+
+    if np.sum(gsStat) < 1e-6:
+        return 0
+
+    if nullGenes:
+        outStats = pd.DataFrame(outStats, index=(featureLoadings.index).difference(GStoGenes))
+    else:
+        outStats = pd.DataFrame(outStats, index=GStoGenes)
+
+    return outStats
 
 
-def computeGeneGSProb(object, GStoGenes, numPerm, Pw, PwNull):
-    print("Not yet implemented")
-    return
+def computeGeneGSProb(object, GStoGenes, numPerm=500, Pw=None, PwNull=False):
+
+    featureLoadings = toNumpy(getFeatureLoadings(object['GapsResult']))
+    adata = object['anndata']
+    
+    if Pw is None:
+        Pw = np.ones(featureLoadings.shape[1])
+
+    geneGSStat = calcGeneGSStat(object, Pw=Pw, GStoGenes=GStoGenes, numPerm=numPerm).values
+
+    if PwNull:
+        permGSStat = calcGeneGSStat(object, GStoGenes=GStoGenes, numPerm=numPerm, Pw=Pw, nullGenes=True).values
+    else:
+        permGSStat = calcGeneGSStat(object, GStoGenes=GStoGenes, numPerm=numPerm, nullGenes=True).values
+
+    finalStats = np.empty(len(GStoGenes))
+    for i in range(len(GStoGenes)):
+        finalStats[i] = np.size(np.argwhere(permGSStat > geneGSStat[i])) / np.size(permGSStat)
+
+    finalStats = pd.DataFrame(finalStats, index=GStoGenes)
+
+    return finalStats
+
 
 
 def plotPatternMarkers(object:GapsResult, data, patternPalette, sampleNames,
