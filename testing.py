@@ -36,3 +36,14 @@ print(calcZP)
 calcZA = calcZ(result, "featureLoadings")
 print(calcZA)
 getVersion()
+
+print("~~~~~~~~~~~~~ testing CoGAPS Stat Functions ~~~~~~~~~~~~~~")
+
+dict = calcCoGAPSStat(cogapsrunresult, sets=['Hs.101174', 'Hs.1012'])
+print(dict)
+
+outStats = calcGeneGSStat(cogapsrunresult, GStoGenes=['Hs.101174', 'Hs.1012'], numPerm=1000)
+print(outStats)
+
+finalStats = computeGeneGSProb(cogapsrunresult, GStoGenes=['Hs.101174', 'Hs.1012'])
+print(finalStats)
