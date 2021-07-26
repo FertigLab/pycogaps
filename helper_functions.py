@@ -11,6 +11,7 @@ from numpy import genfromtxt
 import anndata
 import seaborn as sns
 from scipy.stats import zscore
+from colormap import rgb2hex
 
 
 def supported(file):
@@ -364,39 +365,33 @@ def computeGeneGSProb(object, GStoGenes, numPerm, Pw, PwNull):
     return
 
 
-def plotPatternMarkers(object:GapsResult, data:anndata, patternmarkers, patternPalette, sampleNames,
-                       samplePalette=None, heatmapCol="bluered",
-                       colDenogram=True, scale="row"):
-    """
+def plotPatternMarkers(data: anndata, patternmarkers=None, patternPalette=None,
+                       samplePalette=None, colorscheme="coolwarm",
+                       colDendrogram=True, rowDendrogram=False, scale="row"):
 
-    @param object: GapsResult object
-    @param data: original data in matrix format
-    @param patternPalette: vector indicating which color should be used for each pattern
-    @param sampleNames: names with which samples should be labelled
-    @param samplePalette: vector indicating which color should be used for each sample
-    @param heatmapCol: pallelet giving color scheme for heatmap
-    @param colDenogram: logical indicating whether to display sample dendrogram
-    @param scale: character indicating if the values should be centered and scaled in
-    the row direction, the column direction, or none. the default is "row"
-    @return:
-    """
+    if patternmarkers is None:
+        patternmarkers=patternMarkers(data)
     if samplePalette is None:
-        samplePalette = np.repeat("black", np.shape(data)[1])
-    # this is the equivalent of length(unlist(patternmarkers[...])) in the R code
-    nummarkers = len(np.concatenate(list(patternmarkers["PatternMarkers"].values())))
+        samplePalette=sns.color_palette("hls", np.shape(data)[1])
+    if patternPalette is None:
+        thiscmap = sns.color_palette("hls")
+        palette = []
+        patternkeys = list(patternmarkers["PatternMarkers"].keys())
+        for i in range(len(patternkeys)):
+            palette = np.concatenate((palette, np.repeat(mpl.colors.to_hex(thiscmap[i]), len(patternmarkers["PatternMarkers"][patternkeys[i]]))))
+        patternPalette = palette
+
     markers = np.concatenate(list(patternmarkers["PatternMarkers"].values()))
-    patternCols = []
-    i = 0
-    for pattern in patternmarkers["PatternMarkers"]:
-        patternlength = len(patternmarkers["PatternMarkers"][pattern])
-        tmp = np.repeat(patternPalette[i], patternlength)
-        patternCols.append(tmp)
-        i += 1
     plotdata = data[markers].X
+    markerlabels = data[markers].obs_names
+    samplelabels = data[markers].var_names
     t = np.transpose(pd.DataFrame(plotdata))
     z = zscore(t)
     plotdata_z = np.transpose(z)
-    sns.heatmap(plotdata_z, cmap="coolwarm")
+    plotdata_z = pd.DataFrame(plotdata_z, columns=samplelabels, index=markerlabels)
+
+    sns.clustermap(plotdata_z, cmap=colorscheme, row_cluster=rowDendrogram, col_cluster=colDendrogram, row_colors=patternPalette, col_colors=samplePalette)
+    plt.show()
     return
 
 
