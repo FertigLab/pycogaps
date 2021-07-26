@@ -3,15 +3,17 @@ import numpy as np
 import pandas as pd
 import scipy.io
 import matplotlib as mpl
-from matplotlib import cm
 import matplotlib.pyplot as plt
-# import colorspacious
 import pkg_resources  # part of setuptools
-from numpy import genfromtxt
 import anndata
+import seaborn as sns
+from scipy.stats import zscore
+import sys
+import warnings
+
 
 def supported(file):
-    return file.lower().endswith((".tsv", ".csv", ".mtx", ".h5ad", ".hdf")) # currently gct not supported w/ anndata
+    return file.lower().endswith((".tsv", ".csv", ".mtx", ".h5ad", ".hdf"))  # currently gct not supported w/ anndata
 
 
 def checkData(adata, params, uncertainty=None):
@@ -46,11 +48,12 @@ def toAnndata(file):
     elif file.lower().endswith(".hdf"):
         adata = anndata.read_hdf(file)
     # elif file.lower().endswith(".gct")
-    
+
     if scipy.sparse.issparse(adata.X):
         adata.X = (adata.X).toarray()
-    
+
     return adata
+
 
 # not implemented yet - reads HDF5 file
 # we can use this for testing later 
@@ -162,7 +165,7 @@ def plot(obj: GapsResult):
     plt.xlabel("Samples")
     plt.ylabel("Relative Amplitude")
     plt.xlim(0, nsamples + 1)
-    plt.ylim(0, np.argmax(samples)*1.1)
+    plt.ylim(0, np.argmax(samples) * 1.1)
     plt.show()
 
 
@@ -236,7 +239,7 @@ def calcZ(object: GapsResult, whichMatrix):
 def reconstructGene(object: GapsResult, genes=None):
     D = np.dot(toNumpy(object.Amean), np.transpose(toNumpy(object.Pmean)))
     if genes is not None:
-        D = D[genes, ]
+        D = D[genes,]
     return D
 
 
@@ -264,7 +267,7 @@ def binaryA(object: GapsResult, threshold, nrows="all"):
     return plt
 
 
-def plotResiduals(object:GapsResult, data, uncertainty):
+def plotResiduals(object: GapsResult, data, uncertainty):
     """
     generate a residual plot
     @param object: GapsResult object
@@ -274,11 +277,11 @@ def plotResiduals(object:GapsResult, data, uncertainty):
     """
     data = np.array(data)
     if uncertainty is None:
-        uncertainty = np.where(data*0.1 > 0.1, data*0.1, 0.1)
+        uncertainty = np.where(data * 0.1 > 0.1, data * 0.1, 0.1)
     uncertainty = np.array(uncertainty)
 
     M = reconstructGene(object)
-    residual = (data - M)/uncertainty
+    residual = (data - M) / uncertainty
     plt.matshow(residual, cmap='hot', interpolation='nearest')
     plt.show()
     return plt
@@ -449,24 +452,61 @@ def computeGeneGSProb(object, GStoGenes, numPerm=500, Pw=None, PwNull=False):
 
 
 
-def plotPatternMarkers(object:GapsResult, data, patternPalette, sampleNames,
-                       samplePalette=None, heatmapCol="bluered",
-                       colDenogram=True, scale="row"):
+def plotPatternMarkers(data: anndata, patternmarkers=None, patternPalette=None,
+                       samplePalette=None, colorscheme="coolwarm",
+                       colDendrogram=True, rowDendrogram=False, scale="row", legend_pos=None):
     """
+    @param data: an anndata object, which should be your original data annotated with CoGAPS results
+    @param patternmarkers: list of markers for each pattern, as determined by the "patternMarkers(data)" function
+    @param patternPalette: a list of colors to be used for each pattern. if None, colors will be set automatically
+    @param samplePalette: a list of colors to be used for each sample. if None, colors will be set automatically
+    @param colorscheme: string indicating which color scheme should be used within the heatmap. more options at https://seaborn.pydata.org/tutorial/color_palettes.html
+    @param colDendrogram: Whether or not to draw a column dendrogram, default true
+    @param rowDendrogram: Whether or not to draw a row dendrogram, default false
+    @param scale: whether you want data to be scaled by row, column, or none. default is row
+    @param legend_pos: string indicating legend position, or none (no legend). default is none
+)    @return: a clustergrid instance
+    """
+    if patternmarkers is None:
+        patternmarkers=patternMarkers(data)
+    if samplePalette is None:
+        samplePalette=sns.color_palette("Spectral", np.shape(data)[1])
+    if patternPalette is None:
+        thiscmap = sns.color_palette("Spectral")
+        palette = []
+        patternkeys = list(patternmarkers["PatternMarkers"].keys())
+        for i in range(len(patternkeys)):
+            palette = np.concatenate((palette, np.repeat(mpl.colors.to_hex(thiscmap[i]), len(patternmarkers["PatternMarkers"][patternkeys[i]]))))
+        patternPalette = palette
+    elif patternPalette is not None:
+        palette = []
+        patternkeys = list(patternmarkers["PatternMarkers"].keys())
+        for i in range(len(patternkeys)):
+            palette = np.concatenate((palette, np.repeat(patternPalette[i], len(patternmarkers["PatternMarkers"][patternkeys[i]]))))
+        patternPalette = palette
 
-    @param object: GapsResult object
-    @param data: original data in matrix format
-    @param patternPalette: vector indicating which color should be used for each pattern
-    @param sampleNames: names with which samples should be labelled
-    @param samplePalette: vector indicating which color should be used for each sample
-    @param heatmapCol: pallelet giving color scheme for heatmap
-    @param colDenogram: logical indicating whether to display sample dendrogram
-    @param scale: character indicating if the values should be centered and scaled in
-    the row direction, the column direction, or none. the default is "row"
-    @return:
-    """
-    print("Not yet implemented")
-    return
+    markers = np.concatenate(list(patternmarkers["PatternMarkers"].values()))
+    plotdata = data[markers].X
+    markerlabels = data[markers].obs_names
+    samplelabels = data[markers].var_names
+
+    if scale not in ["row", "column", "none"]:
+        warnings.warn("warning: scale must be one of \"row\", \"column\", or \"none\". data will not be scaled in "
+                      "this plot")
+    if scale == "row":
+        t = np.transpose(pd.DataFrame(plotdata))
+        z = zscore(t)
+        plotdata_z = np.transpose(z)
+    elif scale == "column":
+        plotdata_z = zscore(pd.DataFrame(plotdata))
+    else:
+        plotdata_z = pd.DataFrame(plotdata)
+
+    plotdata_z = pd.DataFrame(plotdata_z, columns=samplelabels, index=markerlabels)
+
+    hm = sns.clustermap(plotdata_z, cmap=colorscheme, row_cluster=rowDendrogram, col_cluster=colDendrogram, row_colors=patternPalette, col_colors=samplePalette, cbar_pos=legend_pos)
+    plt.show()
+    return hm
 
 
 # convert matrix object to numpy array
