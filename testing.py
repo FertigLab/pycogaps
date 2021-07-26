@@ -9,13 +9,15 @@ from PyCoGAPS import *  # gonna try to only use things from this module
 path = "./data/GIST.csv"
 
 print("-- Passing params object into runCogaps function --\n")
-# prm = GapsParameters(path)
-# prm.print()  # c++ method to display all parameter values
-# CoGAPS(path, prm)
+prm = GapsParameters(path)
+prm.print()  # c++ method to display all parameter values
+CoGAPS(path, prm)
 cogapsrunresult = CoGAPS(path)
 result = cogapsrunresult['GapsResult']
 anndata = cogapsrunresult['anndata']
 plotPatternMarkers(anndata, legend_pos=None)
+plotPatternMarkers(anndata, samplePalette=["green", "teal", "red", "violet", "crimson", "antiquewhite", "lightblue", "hotpink", "orange"], patternPalette=["pink", "teal", "gold"],
+                   legend_pos=None)
 binaryA(result, threshold=3)
 print("AMEAN: ", result.Amean)
 print("chisqHistory: ", result.chisqHistory)
