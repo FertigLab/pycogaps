@@ -1,5 +1,7 @@
 import time
 import math
+
+import pandas as pd
 import pycogaps
 import anndata
 from helper_functions import *
@@ -95,12 +97,16 @@ def GapsResultToAnnData (gapsresult:GapsResult, adata, prm:GapsParameters):
     # convert Amean and Pmean results to numpy arrays
     Amean = toNumpy(gapsresult.Amean)
     Pmean = toNumpy(gapsresult.Pmean)
+    Asd = toNumpy(gapsresult.Asd)
+    Psd = toNumpy(gapsresult.Psd)
     pattern_labels = ["Pattern" + str(i) for i in range(1, prm.nPatterns + 1)]
     # load adata obs and var from Amean and Pmean results
     A_mat = pd.DataFrame(data=Amean, index=adata.obs_names, columns=pattern_labels)
     adata.obs = A_mat
     P_mat = pd.DataFrame(data=Pmean, index=adata.var_names, columns=pattern_labels)
     adata.var = P_mat
+    adata.uns["asd"] = pd.DataFrame(data=Asd, index=adata.obs_names, columns=pattern_labels)
+    adata.uns["psd"] = pd.DataFrame(data=Psd, index=adata.var_names, columns=pattern_labels)
     return adata
 
 def GapsParameters(path):

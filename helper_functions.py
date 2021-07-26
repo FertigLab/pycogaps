@@ -219,13 +219,13 @@ def getSubsets(object):
     return
 
 
-def calcZ(object: GapsResult, whichMatrix):
+def calcZ(object: anndata, whichMatrix):
     if whichMatrix in "sampleFactors":
-        mean = toNumpy(object.Pmean)
-        stddev = toNumpy(object.Psd)
+        mean = object.var
+        stddev = object.uns["psd"]
     elif whichMatrix in "featureLoadings":
-        mean = toNumpy(object.Amean)
-        stddev = toNumpy(object.Asd)
+        mean = object.obs
+        stddev = object.uns["asd"]
     else:
         print('whichMatrix must be either \'featureLoadings\' or \'sampleFactors\'')
         return
@@ -242,7 +242,7 @@ def reconstructGene(object: GapsResult, genes=None):
     return D
 
 
-def binaryA(object: GapsResult, threshold, nrows="all"):
+def binaryA(object: anndata, threshold, nrows="all"):
     """
     plots a binary heatmap with each entry representing whether
     that position in the A matrix has a value greater than (black)
@@ -261,9 +261,10 @@ def binaryA(object: GapsResult, threshold, nrows="all"):
     underthresh = binA < threshold
     binA[overthresh] = 1
     binA[underthresh] = 0
-    plt.matshow(binA, cmap='hot', interpolation='nearest')
+    cm = sns.clustermap(binA, cbar_pos=None)
+    hm = sns.heatmap(binA, cbar=False)
     plt.show()
-    return plt
+    return
 
 
 def plotResiduals(object: GapsResult, data, uncertainty):
