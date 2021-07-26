@@ -153,14 +153,13 @@ def show(obj: GapsResult):
     return
 
 
-def plot(obj: GapsResult):
-    samples = toNumpy(obj.Pmean)
+def plot(obj: anndata):
+    samples = obj.var
     nsamples = np.shape(samples)[0]
-    nfactors = np.shape(samples)[1]
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    for i in range(nfactors):
-        ax.plot(np.array(range(1, nsamples + 1)), samples[:, i], label="Pattern " + str(i + 1))
+    for factor in list(samples):
+        ax.plot(np.array(range(1, nsamples + 1)), samples[factor], label=factor)
     ax.legend()
     plt.xlabel("Samples")
     plt.ylabel("Relative Amplitude")
