@@ -3,15 +3,13 @@ import numpy as np
 import pandas as pd
 import scipy.io
 import matplotlib as mpl
-from matplotlib import cm
 import matplotlib.pyplot as plt
-# import colorspacious
 import pkg_resources  # part of setuptools
-from numpy import genfromtxt
 import anndata
 import seaborn as sns
 from scipy.stats import zscore
-from colormap import rgb2hex
+import sys
+import warnings
 
 
 def supported(file):
@@ -367,32 +365,59 @@ def computeGeneGSProb(object, GStoGenes, numPerm, Pw, PwNull):
 
 def plotPatternMarkers(data: anndata, patternmarkers=None, patternPalette=None,
                        samplePalette=None, colorscheme="coolwarm",
-                       colDendrogram=True, rowDendrogram=False, scale="row"):
-
+                       colDendrogram=True, rowDendrogram=False, scale="row", legend_pos=None):
+    """
+    @param data: an anndata object, which should be your original data annotated with CoGAPS results
+    @param patternmarkers: list of markers for each pattern, as determined by the "patternMarkers(data)" function
+    @param patternPalette: a list of colors to be used for each pattern. if None, colors will be set automatically
+    @param samplePalette: a list of colors to be used for each sample. if None, colors will be set automatically
+    @param colorscheme: string indicating which color scheme should be used within the heatmap. more options at https://seaborn.pydata.org/tutorial/color_palettes.html
+    @param colDendrogram: Whether or not to draw a column dendrogram, default true
+    @param rowDendrogram: Whether or not to draw a row dendrogram, default false
+    @param scale: whether you want data to be scaled by row, column, or none. default is row
+    @param legend_pos: string indicating legend position, or none (no legend). default is none
+)    @return: a clustergrid instance
+    """
     if patternmarkers is None:
         patternmarkers=patternMarkers(data)
     if samplePalette is None:
-        samplePalette=sns.color_palette("hls", np.shape(data)[1])
+        samplePalette=sns.color_palette("Spectral", np.shape(data)[1])
     if patternPalette is None:
-        thiscmap = sns.color_palette("hls")
+        thiscmap = sns.color_palette("Spectral")
         palette = []
         patternkeys = list(patternmarkers["PatternMarkers"].keys())
         for i in range(len(patternkeys)):
             palette = np.concatenate((palette, np.repeat(mpl.colors.to_hex(thiscmap[i]), len(patternmarkers["PatternMarkers"][patternkeys[i]]))))
+        patternPalette = palette
+    elif patternPalette is not None:
+        palette = []
+        patternkeys = list(patternmarkers["PatternMarkers"].keys())
+        for i in range(len(patternkeys)):
+            palette = np.concatenate((palette, np.repeat(patternPalette[i], len(patternmarkers["PatternMarkers"][patternkeys[i]]))))
         patternPalette = palette
 
     markers = np.concatenate(list(patternmarkers["PatternMarkers"].values()))
     plotdata = data[markers].X
     markerlabels = data[markers].obs_names
     samplelabels = data[markers].var_names
-    t = np.transpose(pd.DataFrame(plotdata))
-    z = zscore(t)
-    plotdata_z = np.transpose(z)
+
+    if scale not in ["row", "column", "none"]:
+        warnings.warn("warning: scale must be one of \"row\", \"column\", or \"none\". data will not be scaled in "
+                      "this plot")
+    if scale == "row":
+        t = np.transpose(pd.DataFrame(plotdata))
+        z = zscore(t)
+        plotdata_z = np.transpose(z)
+    elif scale == "column":
+        plotdata_z = zscore(pd.DataFrame(plotdata))
+    else:
+        plotdata_z = pd.DataFrame(plotdata)
+
     plotdata_z = pd.DataFrame(plotdata_z, columns=samplelabels, index=markerlabels)
 
-    sns.clustermap(plotdata_z, cmap=colorscheme, row_cluster=rowDendrogram, col_cluster=colDendrogram, row_colors=patternPalette, col_colors=samplePalette)
+    hm = sns.clustermap(plotdata_z, cmap=colorscheme, row_cluster=rowDendrogram, col_cluster=colDendrogram, row_colors=patternPalette, col_colors=samplePalette, cbar_pos=legend_pos)
     plt.show()
-    return
+    return hm
 
 
 # convert matrix object to numpy array
