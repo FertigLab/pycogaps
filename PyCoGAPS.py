@@ -48,10 +48,14 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
         print("Please choose one of: sampling, equilibration, all")
         return
 
+    # convert data to anndata and matrix obj
+    adata = toAnndata(path)
+    matrix = pycogaps.Matrix(adata.X)
+
     gapsresultobj = None
     if params is None:
         # construct a parameters object using whatever was passed in
-        prm = GapsParameters(path)
+        prm = GapsParameters(matrix)
         opts = {
             'maxThreads': nThreads,
             'printMessages': messages,
@@ -67,18 +71,14 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
         }
         setParams(prm, opts)
         # check data input
-        adata = toAnndata(path)
-        checkData(adata, prm, uncertainty)
-        matrix = pycogaps.Matrix(adata.X)
+        checkData(adata, prm, uncertainty)  
         gapsresultobj = pycogaps.runCogapsFromMatrix(matrix, prm)
     else:
         # should we allow them to pass in params?
         # it's hard because we can't distinguish
         # between defaults and user-supplied params AFAIK
         # check data input
-        adata = toAnndata(path)
         checkData(adata, params, uncertainty)
-        matrix = pycogaps.Matrix(adata.X)
         gapsresultobj = pycogaps.runCogapsFromMatrix(matrix, params)
         prm = params
     result = {

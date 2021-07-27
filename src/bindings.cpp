@@ -89,11 +89,11 @@ PYBIND11_MODULE(pycogaps, m)
     m.def("runCogapsFromMatrix", &runCogapsFromMatrix, "Run CoGAPS Algorithm");
     m.def("runCPPTests", &runCPPTests, "Run CoGAPS C++ Tests");
     m.def("getElement", &getElement, "Get an element of a Vector");
-    m.def("containsZeros", &containsZeros, "Check whether a Matrix contains zeros");
-    m.def("replaceZeros", &replaceZeros, "Replace a Matrix's zeros with small values");
-    m.def("divideMatrices", &divideMatrices, "Divide m1 / m2 element-wise; return result");
-    m.def("multiplyMatrices", &multiplyMatrices, "Multiply m1*m2, return result");
-    m.def("transposeMatrix", &transposeMatrix, "Transpose a matrix");
+    // m.def("containsZeros", &containsZeros, "Check whether a Matrix contains zeros");
+    // m.def("replaceZeros", &replaceZeros, "Replace a Matrix's zeros with small values");
+    // m.def("divideMatrices", &divideMatrices, "Divide m1 / m2 element-wise; return result");
+    // m.def("multiplyMatrices", &multiplyMatrices, "Multiply m1*m2, return result");
+    // m.def("transposeMatrix", &transposeMatrix, "Transpose a matrix");
     py::enum_<GapsAlgorithmPhase>(m, "GapsAlgorithmPhase")
         .value("GAPS_EQUILIBRATION_PHASE", GAPS_EQUILIBRATION_PHASE)
         .value("GAPS_SAMPLING_PHASE", GAPS_SAMPLING_PHASE)
@@ -101,6 +101,7 @@ PYBIND11_MODULE(pycogaps, m)
         .export_values();
     py::class_<GapsParameters>(m, "GapsParameters")
         .def(py::init<const std::string &>())
+        .def(py::init<const Matrix&>())
         .def("print", &GapsParameters::print)
         .def_readwrite("checkpointOutFile", &GapsParameters::checkpointOutFile)
         .def_readwrite("checkpointFile", &GapsParameters::checkpointFile)

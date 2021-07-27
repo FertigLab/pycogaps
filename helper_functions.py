@@ -13,7 +13,7 @@ import warnings
 
 
 def supported(file):
-    return file.lower().endswith((".tsv", ".csv", ".mtx", ".h5ad", ".hdf"))  # currently gct not supported w/ anndata
+    return file.lower().endswith((".tsv", ".csv", ".mtx", ".h5ad", ".h5"))  # currently gct not supported w/ anndata
 
 
 def checkData(adata, params, uncertainty=None):
@@ -45,8 +45,8 @@ def toAnndata(file):
         adata = anndata.read_mtx(file)
     elif file.lower().endswith(".h5ad"):
         adata = anndata.read_h5ad(file)
-    elif file.lower().endswith(".hdf"):
-        adata = anndata.read_hdf(file)
+    elif file.lower().endswith(".h5"):
+        adata = anndata.read_hdf(file, "counts") # change to user supplied key
     # elif file.lower().endswith(".gct")
 
     if scipy.sparse.issparse(adata.X):
