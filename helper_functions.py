@@ -153,14 +153,13 @@ def show(obj: GapsResult):
     return
 
 
-def plot(obj: GapsResult):
-    samples = toNumpy(obj.Pmean)
+def plot(obj: anndata):
+    samples = obj.var
     nsamples = np.shape(samples)[0]
-    nfactors = np.shape(samples)[1]
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    for i in range(nfactors):
-        ax.plot(np.array(range(1, nsamples + 1)), samples[:, i], label="Pattern " + str(i + 1))
+    for factor in list(samples):
+        ax.plot(np.array(range(1, nsamples + 1)), samples[factor], label=factor)
     ax.legend()
     plt.xlabel("Samples")
     plt.ylabel("Relative Amplitude")
@@ -220,13 +219,13 @@ def getSubsets(object):
     return
 
 
-def calcZ(object: GapsResult, whichMatrix):
+def calcZ(object: anndata, whichMatrix):
     if whichMatrix in "sampleFactors":
-        mean = toNumpy(object.Pmean)
-        stddev = toNumpy(object.Psd)
+        mean = object.var
+        stddev = object.uns["psd"]
     elif whichMatrix in "featureLoadings":
-        mean = toNumpy(object.Amean)
-        stddev = toNumpy(object.Asd)
+        mean = object.obs
+        stddev = object.uns["asd"]
     else:
         print('whichMatrix must be either \'featureLoadings\' or \'sampleFactors\'')
         return
@@ -236,19 +235,21 @@ def calcZ(object: GapsResult, whichMatrix):
     return mean / stddev
 
 
-def reconstructGene(object: GapsResult, genes=None):
-    D = np.dot(toNumpy(object.Amean), np.transpose(toNumpy(object.Pmean)))
+def reconstructGene(object: anndata, genes=None):
+    D = np.dot(object.obs, np.transpose(object.var))
     if genes is not None:
-        D = D[genes,]
+        D = D[genes, ]
     return D
 
 
-def binaryA(object: GapsResult, threshold, nrows="all"):
+def binaryA(object: anndata, threshold, nrows="all", cluster=False):
     """
     plots a binary heatmap with each entry representing whether
     that position in the A matrix has a value greater than (black)
     or lesser than (white) the specified threshold * the standard
     deviation for that element
+    @param cluster: True or False, whether rows should be clustered
+    (results in huge black and white blocks)
     @param object: GapsResult object
     @param threshold: threshold to compare to A/Asd
     @param nrows: how many rows should be plotted (for very long
@@ -262,29 +263,34 @@ def binaryA(object: GapsResult, threshold, nrows="all"):
     underthresh = binA < threshold
     binA[overthresh] = 1
     binA[underthresh] = 0
-    plt.matshow(binA, cmap='hot', interpolation='nearest')
+    if cluster:
+        hm = sns.clustermap(binA, cbar_pos=None)
+    else:
+        hm = sns.heatmap(binA, cbar=False)
     plt.show()
-    return plt
+    return hm
 
 
-def plotResiduals(object: GapsResult, data, uncertainty):
+def plotResiduals(object: anndata, uncertainty=None):
     """
     generate a residual plot
-    @param object: GapsResult object
-    @param data: original data matrix on which GAPS was run
+    @param object: AnnData object
     @param uncertainty: original SD matrix with which GAPS was run
     @return: matplotlib plot object
     """
-    data = np.array(data)
+    rawdata = object.X
     if uncertainty is None:
-        uncertainty = np.where(data * 0.1 > 0.1, data * 0.1, 0.1)
+        uncertainty = np.where(rawdata * 0.1 > 0.1, rawdata * 0.1, 0.1)
     uncertainty = np.array(uncertainty)
 
+    markerlabels = object.obs_names
+    samplelabels = object.var_names
     M = reconstructGene(object)
-    residual = (data - M) / uncertainty
-    plt.matshow(residual, cmap='hot', interpolation='nearest')
+    residual = (rawdata - M) / uncertainty
+    residual = pd.DataFrame(residual, columns=samplelabels, index=markerlabels)
+    hm = sns.heatmap(residual, cmap="Spectral")
     plt.show()
-    return plt
+    return hm
 
 
 def unitVector(n, length):
