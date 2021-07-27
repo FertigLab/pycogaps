@@ -242,12 +242,14 @@ def reconstructGene(object: GapsResult, genes=None):
     return D
 
 
-def binaryA(object: anndata, threshold, nrows="all"):
+def binaryA(object: anndata, threshold, nrows="all", cluster=False):
     """
     plots a binary heatmap with each entry representing whether
     that position in the A matrix has a value greater than (black)
     or lesser than (white) the specified threshold * the standard
     deviation for that element
+    @param cluster: True or False, whether rows should be clustered
+    (results in huge black and white blocks)
     @param object: GapsResult object
     @param threshold: threshold to compare to A/Asd
     @param nrows: how many rows should be plotted (for very long
@@ -261,10 +263,12 @@ def binaryA(object: anndata, threshold, nrows="all"):
     underthresh = binA < threshold
     binA[overthresh] = 1
     binA[underthresh] = 0
-    cm = sns.clustermap(binA, cbar_pos=None)
-    hm = sns.heatmap(binA, cbar=False)
+    if cluster:
+        hm = sns.clustermap(binA, cbar_pos=None)
+    else:
+        hm = sns.heatmap(binA, cbar=False)
     plt.show()
-    return
+    return hm
 
 
 def plotResiduals(object: GapsResult, data, uncertainty):
