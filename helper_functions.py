@@ -8,7 +8,6 @@ import pkg_resources  # part of setuptools
 import anndata
 import seaborn as sns
 from scipy.stats import zscore
-import sys
 import warnings
 
 
@@ -59,21 +58,21 @@ def toAnndata(file):
 # we can use this for testing later 
 def getRetinaSubset(n=1):
     if not (1 <= n <= 4):
-        raise Exception("invalide number of subsets requested")
+        raise Exception("invalid number of subsets requested")
 
 
 def nrowHelper(data):
-    return data.shape[0]  # assuming data is pandas dataframe
+    return data.shape[0]
 
 
 def ncolHelper(data):
-    return data.shape[1]  # assuming data is pandas dataframe
+    return data.shape[1]
 
 
 def getGeneNames(data, transpose):
     if transpose:
         return getSampleNames(data, False)
-    names = data.index.values
+    names = data.obs_names
 
     if names.all() == None or len(names) == 0:
         return ["Gene" + str(i) for i in range(1, nrowHelper(data))]
@@ -82,8 +81,8 @@ def getGeneNames(data, transpose):
 
 def getSampleNames(data, transpose):
     if transpose:
-        return getGeneNames(data, transpose)
-    names = data.columns.values
+        return getGeneNames(data, False)
+    names = data.var_names
 
     if names.all() == None or len(names) == 0:
         return ["Sample" + str(i) for i in range(1, ncolHelper(data))]
@@ -93,18 +92,12 @@ def getSampleNames(data, transpose):
 # allParams doesn't have geneNames & sampleNames yet
 # currently doesn't support user-supplied param inputs
 def getDimNames(data, allParams):
-    # geneNames = allParams.gaps.geneNames
-    # sampleNames = allParams.gaps.sampleNames
-
-    # if allParams.gaps.geneNames == None:
-    #     geneNames = getGeneNames(data, allParams.transposeData)
-    # if allParams.gaps.sampleNames == None:
-    #     sampleNames = getSampleNames(data, allParams.transposeData)
-
-    if not supported(data):
-        raise Exception("unsupported data type")
-
-    data = toAnndata(data).X
+    # support both path and anndata object as data input
+    if isinstance(data, str):
+        if not supported(data):
+            raise Exception("unsupported data type")
+        else:
+            data = toAnndata(data).X
 
     geneNames = getGeneNames(data, allParams.transposeData)
     sampleNames = getSampleNames(data, allParams.transposeData)
@@ -132,22 +125,16 @@ def getDimNames(data, allParams):
     # this is an important distinction - allParams@gaps contains the
     # gene/sample names originally passed by the user, allParams contains
     # the procseed gene/sample names to be used when labeling the result
+    # TODO: can fix this after arbitrary parameters are implemented
     allParams.geneNames = geneNames
     allParams.sampleNames = sampleNames
     return (allParams)
 
 
-# TODO: implement CogapsResults helper functions
-
-def createCogapsResult(object: GapsResult, params: GapsParameters):
-    print("Not yet implemented")
-    return
-
-
-def show(obj: GapsResult):
-    nfeatures = np.shape(toNumpy(obj.Amean))[0]
-    nsamples = np.shape(toNumpy(obj.Pmean))[0]
-    npatterns = np.shape(toNumpy(obj.Pmean))[1]
+def show(obj: anndata):
+    nfeatures = obj.n_obs
+    nsamples = obj.n_var
+    npatterns = len(obj.obs_keys())
     print("GapsResult result object with ", nfeatures, " features and ", nsamples, " samples")
     print(npatterns, " patterns were learned")
     return
@@ -168,22 +155,22 @@ def plot(obj: anndata):
     plt.show()
 
 
-def getFeatureLoadings(object: GapsResult):
-    return object.Amean
+def getFeatureLoadings(object: anndata):
+    return object.obs
 
 
 def getAmplitudeMatrix(object):
-    return object.Amean
+    return object.obs
 
 
 def getSampleFactors(object):
-    return object.Pmean
+    return object.var
 
 
 def getPatternMatrix(object):
-    return object.Pmean
+    return object.var
 
-
+# TODO need to access chisq through anndata
 def getMeanChiSq(object: GapsResult):
     return object.meanChiSq
 
@@ -193,7 +180,7 @@ def getVersion():
     print("pycogaps version ", version)
     return version
 
-
+# TODO need to access original params through anndata
 def getOriginalParameters(object: GapsResult):
     print("Not yet implemented")
     return
@@ -271,7 +258,7 @@ def binaryA(object: anndata, threshold, nrows="all", cluster=False):
     return hm
 
 
-def plotResiduals(object: anndata, uncertainty=None):
+def plotResiduals(object: anndata, uncertainty=None, legend=False):
     """
     generate a residual plot
     @param object: AnnData object
@@ -288,7 +275,7 @@ def plotResiduals(object: anndata, uncertainty=None):
     M = reconstructGene(object)
     residual = (rawdata - M) / uncertainty
     residual = pd.DataFrame(residual, columns=samplelabels, index=markerlabels)
-    hm = sns.heatmap(residual, cmap="Spectral")
+    hm = sns.heatmap(residual, cmap="Spectral", cbar=legend)
     plt.show()
     return hm
 
