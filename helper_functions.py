@@ -235,10 +235,10 @@ def calcZ(object: anndata, whichMatrix):
     return mean / stddev
 
 
-def reconstructGene(object: GapsResult, genes=None):
-    D = np.dot(toNumpy(object.Amean), np.transpose(toNumpy(object.Pmean)))
+def reconstructGene(object: anndata, genes=None):
+    D = np.dot(object.obs, np.transpose(object.var))
     if genes is not None:
-        D = D[genes,]
+        D = D[genes, ]
     return D
 
 
@@ -271,24 +271,26 @@ def binaryA(object: anndata, threshold, nrows="all", cluster=False):
     return hm
 
 
-def plotResiduals(object: GapsResult, data, uncertainty):
+def plotResiduals(object: anndata, uncertainty=None):
     """
     generate a residual plot
-    @param object: GapsResult object
-    @param data: original data matrix on which GAPS was run
+    @param object: AnnData object
     @param uncertainty: original SD matrix with which GAPS was run
     @return: matplotlib plot object
     """
-    data = np.array(data)
+    rawdata = object.X
     if uncertainty is None:
-        uncertainty = np.where(data * 0.1 > 0.1, data * 0.1, 0.1)
+        uncertainty = np.where(rawdata * 0.1 > 0.1, rawdata * 0.1, 0.1)
     uncertainty = np.array(uncertainty)
 
+    markerlabels = object.obs_names
+    samplelabels = object.var_names
     M = reconstructGene(object)
-    residual = (data - M) / uncertainty
-    plt.matshow(residual, cmap='hot', interpolation='nearest')
+    residual = (rawdata - M) / uncertainty
+    residual = pd.DataFrame(residual, columns=samplelabels, index=markerlabels)
+    hm = sns.heatmap(residual, cmap="Spectral")
     plt.show()
-    return plt
+    return hm
 
 
 def unitVector(n, length):
