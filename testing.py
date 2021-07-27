@@ -15,10 +15,12 @@ CoGAPS(path, prm)
 cogapsrunresult = CoGAPS(path)
 result = cogapsrunresult['GapsResult']
 anndata = cogapsrunresult['anndata']
+plotResiduals(anndata)
 plotPatternMarkers(anndata, legend_pos=None)
 plotPatternMarkers(anndata, samplePalette=["green", "teal", "red", "violet", "crimson", "antiquewhite", "lightblue", "hotpink", "orange"], patternPalette=["pink", "teal", "gold"],
                    legend_pos=None)
-binaryA(result, threshold=3)
+binaryA(anndata, threshold=3)
+binaryA(anndata, threshold=3, cluster=True)
 print("AMEAN: ", result.Amean)
 print("chisqHistory: ", result.chisqHistory)
 print(getBuildReport())
