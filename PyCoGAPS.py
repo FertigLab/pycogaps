@@ -6,6 +6,37 @@ import pycogaps
 import anndata
 from helper_functions import *
 
+class CoParams:
+    '''
+    self.gaps : GapsParameters object
+    self.cogaps : dictionary of additional parameters (not in GapsParameters)
+    '''
+    def __init__(self, path=None, matrix=None, params=None):
+        if matrix is not None:
+            self.gaps = GapsParameters(matrix)
+        if path is not None:
+            adata = toAnndata(path)
+            matrix = pycogaps.Matrix(adata.X)
+            self.gaps = GapsParameters(path)
+        if params is not None:
+            self.gaps = params
+
+        self.coparams = {'cut': self.gaps.nPatterns,
+                            'nSets': 4,
+                            'minNS': None,
+                            'maxNS': None,
+                            'explicitSets': None,
+                            'samplingAnnotation': None,
+                            'samplingWeight': None,
+                            'subsetIndices': None,
+                            'subsetDim': 0,
+                            'geneNames': None,
+                            'sampleNames': None,
+                            'fixedPatterns': None,
+                        }
+        self.coparams['minNS'] = math.ceil(self.coparams['cut'] / 2)
+        self.coparams['maxNS'] = self.coparams['minNS'] + self.coparams['nSets']
+
 
 def CoGAPS(path, params=None, nThreads=1, messages=True,
            outputFrequency=1000, uncertainty=None, checkpointOutFile="gaps_checkpoint.out",
@@ -15,7 +46,7 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
     """
     Python wrapper to run CoGAPS via bindings
     @param path: path to data
-    @param params: GapsParameters object
+    @param params: GapsParameters object 
     @param nThreads: number of threads to use
     @param messages: whether to print messages
     @param outputFrequency:
@@ -57,7 +88,7 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
     gapsresultobj = None
     if params is None:
         # construct a parameters object using whatever was passed in
-        prm = GapsParameters(matrix)
+        prm = CoParams(matrix=matrix)
         opts = {
             'maxThreads': nThreads,
             'printMessages': messages,
@@ -72,20 +103,20 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
             'snapshotPhase': snapshotPhase,
         }
         setParams(prm, opts)
-        # check data input
-        checkData(adata, prm, uncertainty)  
-        gapsresultobj = pycogaps.runCogapsFromMatrix(matrix, prm)
     else:
-        # should we allow them to pass in params?
-        # it's hard because we can't distinguish
-        # between defaults and user-supplied params AFAIK
-        # check data input
-        checkData(adata, params, uncertainty)
-        gapsresultobj = pycogaps.runCogapsFromMatrix(matrix, params)
-        prm = params
+        # params passed in should probably be type CoParams, but just in case
+        if isinstance(params, CoParams):
+            prm = params
+        else:
+            prm = CoParams(params=params)
+
+    # check data input
+    checkData(adata, prm.gaps, uncertainty)  
+    gapsresultobj = pycogaps.runCogapsFromMatrix(matrix, prm.gaps)
+
     result = {
         "GapsResult": gapsresultobj,
-        "anndata": GapsResultToAnnData(gapsresultobj, adata, prm)
+        "anndata": GapsResultToAnnData(gapsresultobj, adata, prm.gaps)
     }
     return result
 
@@ -133,7 +164,7 @@ def current_milli_time():
     return round(time.time() * 1000)
 
 
-def setParams(paramobj, list):
+def setParams(paramobj: CoParams, list):
     """
 
     @param paramobj: a GapsParameters object
@@ -145,7 +176,7 @@ def setParams(paramobj, list):
 
 # class CogapsParams
 # constructor has default values for each parameter
-def setParam(paramobj, whichParam, value):
+def setParam(paramobj: CoParams, whichParam, value):
     """
 
     @param paramobj: a GapsParameters object
@@ -153,21 +184,24 @@ def setParam(paramobj, whichParam, value):
     @param value: the value to set whichParam as
     @return: nothing; paramobj will be modified
     """
+
+    coparams = paramobj.coparams
+
     if whichParam == "alpha":
-        paramobj.alphaA = value
-        paramobj.alphaP = value
+        paramobj.gaps.alphaA = value
+        paramobj.gaps.alphaP = value
     elif whichParam == "maxGibbsMass":
-        paramobj.maxGibbsMassA = value
-        paramobj.maxGibbsMassP = value
+        paramobj.gaps.maxGibbsMassA = value
+        paramobj.gaps.maxGibbsMassP = value
     elif whichParam in ("nSets", "cut", "minNS", "maxNS"):
-        print("please set \'", whichParam, "\' with setDistributedParams")
-        return
+        print("setting distributed parameters - call this again if you change nPatterns")
+        coparams[whichParam] = value
+        ### TODO: update the rest
     elif whichParam in ("samplingAnnotation", "samplingWeight"):
-        print("please set \'", whichParam, "\' with setAnnotationWeights")
-        return
+        coparams[whichParam] = value
     elif whichParam in ("fixedPatterns", "whichMatrixFixed"):
-        print("please set \'", whichParam, "\' with setFixedPatterns")
-        return
+        coparams[whichParam] = value
+
     elif whichParam in "singleCell":
         print(whichParam, " has been deprecated, this parameter will be ignored")
         return
