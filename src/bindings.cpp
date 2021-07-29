@@ -132,7 +132,9 @@ PYBIND11_MODULE(pycogaps, m)
         .def_readwrite("asynchronousUpdates", &GapsParameters::asynchronousUpdates)
         .def_readwrite("whichMatrixFixed", &GapsParameters::whichMatrixFixed)
         .def_readwrite("workerID", &GapsParameters::workerID)
-        .def_readwrite("runningDistributed", &GapsParameters::runningDistributed);
+        .def_readwrite("runningDistributed", &GapsParameters::runningDistributed)
+        .def_readwrite("dataIndicesSubset", &GapsParameters::dataIndicesSubset)
+        .def_readwrite("fixedPatterns", &GapsParameters::fixedPatterns);
     m.def("getBuildReport", &getBuildReport, "Return build report.");
     m.def("isCheckpointsEnabled", &isCheckpointsEnabled, "Return whether checkpoints enabled.");
     m.def("isCompiledWithOpenMPSupport", &isCompiledWithOpenMPSupport, "Return whether compiled with Open MP Support.");

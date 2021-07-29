@@ -7,17 +7,7 @@ path = "./data/GIST.csv"
 # run CoGAPS on your dataset
 result = CoGAPS(path)
 
-# create a GapsParameters object and set desired parameters
-# params = GapsParameters(path)
-# setParam(params, "maxThreads", 4) 
-# # and/or:
-# setParams(params, {
-#             'printMessages': True,
-#             'maxThreads': 4
-#         })
-
-# result = CoGAPS(path, params)
-
+# create a CoParams object and set desired parameters
 params = CoParams(path)
 setParam(params, "maxThreads", 4) 
 # and/or:
@@ -26,8 +16,7 @@ setParams(params, {
             'maxThreads': 4
         })
 
-
-setParam(params, "nSets", 5)
-
+# set distributed params, annotation weights, fixed patterns by calling specific methods
+params.setDistributedParams(nSets=5)
 
 result = CoGAPS(path, params)
