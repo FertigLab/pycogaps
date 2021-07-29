@@ -6,6 +6,129 @@ import pycogaps
 import anndata
 from helper_functions import *
 
+class CoParams:
+    '''
+    self.gaps : GapsParameters object
+    self.cogaps : dictionary of additional parameters (not in GapsParameters)
+    '''
+    def __init__(self, path=None, matrix=None, params=None):
+        if matrix is not None:
+            self.gaps = GapsParameters(matrix)
+        elif path is not None:
+            adata = toAnndata(path)
+            matrix = pycogaps.Matrix(adata.X)
+            self.gaps = GapsParameters(path)
+        elif params is not None:
+            self.gaps = params
+        else:
+            raise Exception('initialize with path= or params=')
+
+        self.coparams = {'cut': self.gaps.nPatterns,
+                            'nSets': 4,
+                            'minNS': None,
+                            'maxNS': None,
+                            'explicitSets': None,
+                            'samplingAnnotation': None,
+                            'samplingWeight': None,
+                            'subsetIndices': None,
+                            'subsetDim': 0,
+                            'geneNames': None,
+                            'sampleNames': None,
+                            'fixedPatterns': None,
+                        }
+        self.coparams['minNS'] = math.ceil(self.coparams['cut'] / 2)
+        self.coparams['maxNS'] = self.coparams['minNS'] + self.coparams['nSets']
+
+    def setDistributedParams(self, nSets=None, cut=None, minNS=None, maxNS=None):
+        print("setting distributed parameters - call this again if you change nPatterns")
+        if nSets is None:
+            self.coparams['nSets'] = self.coparams['nSets']
+        else:
+            self.coparams['nSets'] = nSets
+        if cut is None:
+            self.coparams['cut'] = self.gaps.nPatterns
+        else:
+            self.coparams['cut'] = cut
+        if minNS is None:
+            self.coparams['minNS'] = math.ceil(self.coparams['cut'] / 2)
+        else:
+            self.coparams['minNS'] = minNS
+        if maxNS is None:
+            self.coparams['maxNS'] = self.coparams['minNS'] + self.coparams['nSets']
+        else:
+            self.coparams['maxNS'] = minNS
+
+    def setAnnotationWeights(self, annotation, weights):
+        self.coparams['samplingAnnotation'] = annotation
+        self.coparams['samplingWeight'] = weights
+
+    def setFixedPatterns(self, fixedPatterns, whichMatrixFixed):
+        self.coparams['fixedPatterns'] = fixedPatterns
+        self.coparams['whichMatrixFixed'] = whichMatrixFixed
+
+    # print standard and sparsity parameters
+    def print(self):
+        print('\n-- Standard Parameters --')
+        print('nPatterns: ', self.gaps.nPatterns)
+        print('nIterations: ', self.gaps.nIterations)
+        print('seed: ', self.gaps.seed)
+        print('sparseOptimization: ', self.gaps.useSparseOptimization)
+        print('\n')
+        print('-- Sparsity Parameters --')
+        print('alpha: {:0.2f}'.format(self.gaps.alphaA))
+        print('maxGibbsMass: ', self.gaps.maxGibbsMassA)
+        print('\n')
+        if self.gaps.runningDistributed:
+            print('-- Distributed Parameters --')
+            print('cut: ', self.coparams['cut'])
+            print('nSets: ', self.coparams['nSets'])
+            print('minNS: ', self.coparams['minNS'])
+            print('maxNS: ', self.coparams['maxNS'])
+            print('\n')
+        
+    # print all GapsParameters 
+    def print_all(self):
+        print("\n----------- Parameters -----------\n")
+        print('transposeData: ', self.gaps.transposeData)
+        print('nGenes: ', self.gaps.nGenes)
+        print('nSamples: ', self.gaps.nSamples)
+        print('nPatterns: ', self.gaps.nPatterns)
+        print('nIterations: ', self.gaps.nIterations)
+        print('seed: ', self.gaps.seed)
+        print('\n')
+        print('maxThreads: ', self.gaps.maxThreads)
+        print('printMessages: ', self.gaps.printMessages)
+        print('outputFrequency: ', self.gaps.outputFrequency)
+        print('snapshotFrequency: ', self.gaps.snapshotFrequency)
+        print('\n')
+        print("useSparseOptimization: ", self.gaps.useSparseOptimization)
+        print("asynchronousUpdates: ", self.gaps.asynchronousUpdates)
+        print("takePumpSamples: ", self.gaps.takePumpSamples)
+        print("\n")
+        print("runningDistributed: ", self.gaps.runningDistributed)
+        print("printThreadUsage: ", self.gaps.printThreadUsage)
+        print("workerID: ", self.gaps.workerID)
+        print("\n")
+        print("alphaA: ", self.gaps.alphaA)
+        print("alphaP: ", self.gaps.alphaP)
+        print("maxGibbsMassA: ", self.gaps.maxGibbsMassA)
+        print("maxGibbsMassP: ", self.gaps.maxGibbsMassP)
+        print("\n")
+        print("useCheckPoint: ", self.gaps.useCheckPoint)
+        print("checkpointInterval: ", self.gaps.checkpointInterval)
+        print("checkpointFile: ", self.gaps.checkpointFile)
+        print("checkpointOutFile: ", self.gaps.checkpointOutFile)
+        print("\n")
+        print("subsetData: ", self.gaps.subsetData)
+        print("subsetGenes: ", self.gaps.subsetGenes)
+        print("dataIndicesSubset.size(): ", self.gaps.dataIndicesSubset.size())
+        print("\n")
+        print("useFixedPatterns: ", self.gaps.useFixedPatterns)
+        print("whichMatrixFixed: ", self.gaps.whichMatrixFixed)
+        print("fixedPatterns.nRow(): ", self.gaps.fixedPatterns.nRow())
+        print("fixedPatterns.nCol(): ", self.gaps.fixedPatterns.nCol())
+        print("\n------------------------\n\n")
+
 
 def CoGAPS(path, params=None, nThreads=1, messages=True,
            outputFrequency=1000, uncertainty=None, checkpointOutFile="gaps_checkpoint.out",
@@ -15,7 +138,7 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
     """
     Python wrapper to run CoGAPS via bindings
     @param path: path to data
-    @param params: GapsParameters object
+    @param params: GapsParameters object 
     @param nThreads: number of threads to use
     @param messages: whether to print messages
     @param outputFrequency:
@@ -57,7 +180,7 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
     gapsresultobj = None
     if params is None:
         # construct a parameters object using whatever was passed in
-        prm = GapsParameters(matrix)
+        prm = CoParams(matrix=matrix)
         opts = {
             'maxThreads': nThreads,
             'printMessages': messages,
@@ -72,20 +195,20 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
             'snapshotPhase': snapshotPhase,
         }
         setParams(prm, opts)
-        # check data input
-        checkData(adata, prm, uncertainty)  
-        gapsresultobj = pycogaps.runCogapsFromMatrix(matrix, prm)
     else:
-        # should we allow them to pass in params?
-        # it's hard because we can't distinguish
-        # between defaults and user-supplied params AFAIK
-        # check data input
-        checkData(adata, params, uncertainty)
-        gapsresultobj = pycogaps.runCogapsFromMatrix(matrix, params)
-        prm = params
+        # params passed in should probably be type CoParams, but just in case
+        if isinstance(params, CoParams):
+            prm = params
+        else:
+            prm = CoParams(params=params)
+
+    # check data input
+    checkData(adata, prm.gaps, uncertainty)  
+    gapsresultobj = pycogaps.runCogapsFromMatrix(matrix, prm.gaps)
+
     result = {
         "GapsResult": gapsresultobj,
-        "anndata": GapsResultToAnnData(gapsresultobj, adata, prm)
+        "anndata": GapsResultToAnnData(gapsresultobj, adata, prm.gaps)
     }
     return result
 
@@ -133,7 +256,7 @@ def current_milli_time():
     return round(time.time() * 1000)
 
 
-def setParams(paramobj, list):
+def setParams(paramobj: CoParams, list):
     """
 
     @param paramobj: a GapsParameters object
@@ -145,20 +268,23 @@ def setParams(paramobj, list):
 
 # class CogapsParams
 # constructor has default values for each parameter
-def setParam(paramobj, whichParam, value):
+def setParam(paramobj: CoParams, whichParam, value):
     """
 
     @param paramobj: a GapsParameters object
     @param whichParam: the name of the parameter you wish to change
     @param value: the value to set whichParam as
-    @return: nothing; paramobj will be modified
+    @return: nothing paramobj will be modified
     """
+
+    coparams = paramobj.coparams
+
     if whichParam == "alpha":
-        paramobj.alphaA = value
-        paramobj.alphaP = value
+        paramobj.gaps.alphaA = value
+        paramobj.gaps.alphaP = value
     elif whichParam == "maxGibbsMass":
-        paramobj.maxGibbsMassA = value
-        paramobj.maxGibbsMassP = value
+        paramobj.gaps.maxGibbsMassA = value
+        paramobj.gaps.maxGibbsMassP = value
     elif whichParam in ("nSets", "cut", "minNS", "maxNS"):
         print("please set \'", whichParam, "\' with setDistributedParams")
         return
