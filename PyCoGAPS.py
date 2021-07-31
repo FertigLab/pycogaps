@@ -35,6 +35,7 @@ class CoParams:
                             'geneNames': None,
                             'sampleNames': None,
                             'fixedPatterns': None,
+                            'distributed': None,
                         }
         self.coparams['minNS'] = math.ceil(self.coparams['cut'] / 2)
         self.coparams['maxNS'] = self.coparams['minNS'] + self.coparams['nSets']
@@ -58,9 +59,11 @@ class CoParams:
         else:
             self.coparams['maxNS'] = minNS
 
-    def setAnnotationWeights(self, annotation, weights):
+    # samplingWeight is a dictionary
+    # can use: dict(zip(names, weights))
+    def setAnnotationWeights(self, annotation, weight):
         self.coparams['samplingAnnotation'] = annotation
-        self.coparams['samplingWeight'] = weights
+        self.coparams['samplingWeight'] = weight
 
     def setFixedPatterns(self, fixedPatterns, whichMatrixFixed):
         self.coparams['fixedPatterns'] = fixedPatterns
@@ -202,6 +205,7 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
         else:
             prm = CoParams(params=params)
 
+    getDimNames(adata, prm)
     # check data input
     checkData(adata, prm.gaps, uncertainty)  
     gapsresultobj = pycogaps.runCogapsFromMatrix(matrix, prm.gaps)
@@ -285,6 +289,8 @@ def setParam(paramobj: CoParams, whichParam, value):
     elif whichParam == "maxGibbsMass":
         paramobj.gaps.maxGibbsMassA = value
         paramobj.gaps.maxGibbsMassP = value
+    elif whichParam in ("explicitSets"):
+        coparams['explicitSets'] = value
     elif whichParam in ("nSets", "cut", "minNS", "maxNS"):
         print("please set \'", whichParam, "\' with setDistributedParams")
         return
