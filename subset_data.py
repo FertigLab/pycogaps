@@ -100,5 +100,3 @@ def createSets(data, allParams: CoParams):
     #     max(len(sets)), ')\n')
 
     return sets
-
-
