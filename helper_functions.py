@@ -34,7 +34,7 @@ def checkData(adata, params, uncertainty=None):
         raise Exception('nPatterns must be less than dimensions of data')
 
 
-def toAnndata(file):
+def toAnndata(file, hdf_key=None):
     if not supported(file):
         raise Exception("unsupported data type")
     if file.lower().endswith(".csv"):
@@ -46,7 +46,9 @@ def toAnndata(file):
     elif file.lower().endswith(".h5ad"):
         adata = anndata.read_h5ad(file)
     elif file.lower().endswith(".h5"):
-        adata = anndata.read_hdf(file, "counts") # change to user supplied key
+        if hdf_key is None:
+            raise Exception("set dataset name to use with setParam(params, 'hdfKey', name)")
+        adata = anndata.read_hdf(file, hdf_key) # change to user supplied key
     # elif file.lower().endswith(".gct")
 
     if scipy.sparse.issparse(adata.X):

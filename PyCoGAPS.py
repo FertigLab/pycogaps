@@ -36,6 +36,7 @@ class CoParams:
                             'sampleNames': None,
                             'fixedPatterns': None,
                             'distributed': None,
+                            'hdfKey': None,
                         }
         self.coparams['minNS'] = math.ceil(self.coparams['cut'] / 2)
         self.coparams['maxNS'] = self.coparams['minNS'] + self.coparams['nSets']
@@ -176,12 +177,13 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
         print("Please choose one of: sampling, equilibration, all")
         return
 
-    # convert data to anndata and matrix obj
-    adata = toAnndata(path)
-    matrix = pycogaps.Matrix(adata.X)
-
     gapsresultobj = None
     if params is None:
+
+        # convert data to anndata and matrix obj
+        adata = toAnndata(path)
+        matrix = pycogaps.Matrix(adata.X)
+
         # construct a parameters object using whatever was passed in
         prm = CoParams(matrix=matrix)
         opts = {
@@ -204,6 +206,9 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
             prm = params
         else:
             prm = CoParams(params=params)
+
+        adata = toAnndata(path, prm.coparams['hdfKey'])
+        matrix = pycogaps.Matrix(adata.X)
 
     getDimNames(adata, prm)
     # check data input
