@@ -9,6 +9,7 @@ import anndata
 import seaborn as sns
 from scipy.stats import zscore
 import warnings
+from PyCoGAPS import *
 
 
 def supported(file):
@@ -89,8 +90,7 @@ def getSampleNames(data, transpose):
     return names
 
 
-# allParams doesn't have geneNames & sampleNames yet
-# currently doesn't support user-supplied param inputs
+
 def getDimNames(data, allParams):
     # support both path and anndata object as data input
     if isinstance(data, str):
@@ -99,22 +99,22 @@ def getDimNames(data, allParams):
         else:
             data = toAnndata(data).X
 
-    geneNames = getGeneNames(data, allParams.transposeData)
-    sampleNames = getSampleNames(data, allParams.transposeData)
+    geneNames = getGeneNames(data, allParams.gaps.transposeData)
+    sampleNames = getSampleNames(data, allParams.gaps.transposeData)
 
-    if allParams.transposeData:
+    if allParams.gaps.transposeData:
         nGenes = ncolHelper(data)
         nSamples = nrowHelper(data)
     else:
         nGenes = nrowHelper(data)
         nSamples = ncolHelper(data)
 
-    # if allParams.gaps.subsetDim == 1:
-    #     nGenes = len(allParams.gaps.subsetIndices)
-    #     geneNames = geneNames[allParams.subsetIndices]
-    # elif allParams.gaps.subsetDim == 2:
-    #     nSamples = len(allParams.subsetIndices)
-    #     sampleNames = sampleNames[allParams.subsetIndices]
+    if allParams.coparams['subsetDim'] == 1:
+        nGenes = len(allParams.coparams['subsetIndices'])
+        geneNames = geneNames[allParams.coparams['subsetIndices']]
+    elif allParams.coparams['subsetDim'] == 2:
+        nSamples = len(allParams.coparams['subsetIndices'])
+        sampleNames = sampleNames[allParams.coparams['subsetIndices']]
 
     if len(geneNames) != nGenes:
         raise Exception(len(geneNames), " != ", nGenes, " incorrect number of gene names given")
@@ -125,9 +125,9 @@ def getDimNames(data, allParams):
     # this is an important distinction - allParams@gaps contains the
     # gene/sample names originally passed by the user, allParams contains
     # the procseed gene/sample names to be used when labeling the result
-    # TODO: can fix this after arbitrary parameters are implemented
-    allParams.geneNames = geneNames
-    allParams.sampleNames = sampleNames
+
+    allParams.coparams['geneNames'] = geneNames
+    allParams.coparams['sampleNames'] = sampleNames
     return (allParams)
 
 
