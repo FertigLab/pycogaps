@@ -11,13 +11,16 @@ class CoParams:
     self.gaps : GapsParameters object
     self.cogaps : dictionary of additional parameters (not in GapsParameters)
     '''
-    def __init__(self, path=None, matrix=None, params=None):
+    def __init__(self, path=None, matrix=None, params=None, hdfKey=None):
         if matrix is not None:
             self.gaps = GapsParameters(matrix)
         elif path is not None:
-            adata = toAnndata(path)
+            if not path.lower().endswith(".h5"):
+                adata = toAnndata(path)
+            else:
+                adata = toAnndata(path, hdfKey)
             matrix = pycogaps.Matrix(adata.X)
-            self.gaps = GapsParameters(path)
+            self.gaps = GapsParameters(matrix)
         elif params is not None:
             self.gaps = params
         else:
@@ -36,7 +39,7 @@ class CoParams:
                             'sampleNames': None,
                             'fixedPatterns': None,
                             'distributed': None,
-                            'hdfKey': None,
+                            'hdfKey': hdfKey,
                         }
         self.coparams['minNS'] = math.ceil(self.coparams['cut'] / 2)
         self.coparams['maxNS'] = self.coparams['minNS'] + self.coparams['nSets']
@@ -294,6 +297,9 @@ def setParam(paramobj: CoParams, whichParam, value):
     elif whichParam == "maxGibbsMass":
         paramobj.gaps.maxGibbsMassA = value
         paramobj.gaps.maxGibbsMassP = value
+    elif whichParam == 'hdfKey':
+        print('setting')
+        coparams['hdfKey'] = value
     elif whichParam in ("explicitSets"):
         coparams['explicitSets'] = value
     elif whichParam in ("nSets", "cut", "minNS", "maxNS"):

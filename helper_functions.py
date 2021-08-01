@@ -47,7 +47,7 @@ def toAnndata(file, hdf_key=None):
         adata = anndata.read_h5ad(file)
     elif file.lower().endswith(".h5"):
         if hdf_key is None:
-            raise Exception("set dataset name to use with setParam(params, 'hdfKey', name)")
+            raise Exception("set dataset name from hdf file to use with params = CoParams(path=filename, hdfKey=key")
         adata = anndata.read_hdf(file, hdf_key) # change to user supplied key
     # elif file.lower().endswith(".gct")
 
