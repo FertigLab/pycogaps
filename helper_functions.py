@@ -10,6 +10,7 @@ import seaborn as sns
 from scipy.stats import zscore
 import warnings
 from PyCoGAPS import *
+import os
 
 
 def supported(file):
@@ -40,7 +41,9 @@ def toAnndata(file, hdf_key=None):
     if file.lower().endswith(".csv"):
         adata = anndata.read_csv(file)
     elif file.lower().endswith(".tsv"):
-        adata = anndata.read_csv(file, delimeter='\t')
+        csv_table = pd.read_table(file,sep='\t')
+        csv_table.to_csv('file.csv', index=False)
+        adata = anndata.read_csv('{}.csv'.format(os.path.splitext(file)[0]))
     elif file.lower().endswith(".mtx"):
         adata = anndata.read_mtx(file)
     elif file.lower().endswith(".h5ad"):

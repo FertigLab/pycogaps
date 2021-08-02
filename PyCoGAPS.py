@@ -116,8 +116,8 @@ class CoParams:
         print("printThreadUsage: ", self.gaps.printThreadUsage)
         print("workerID: ", self.gaps.workerID)
         print("\n")
-        print("alphaA: ", self.gaps.alphaA)
-        print("alphaP: ", self.gaps.alphaP)
+        print("alphaA: {:0.2f}".format(self.gaps.alphaA))
+        print("alphaP: {:0.2f}".format(self.gaps.alphaP))
         print("maxGibbsMassA: ", self.gaps.maxGibbsMassA)
         print("maxGibbsMassP: ", self.gaps.maxGibbsMassP)
         print("\n")
@@ -128,7 +128,7 @@ class CoParams:
         print("\n")
         print("subsetData: ", self.gaps.subsetData)
         print("subsetGenes: ", self.gaps.subsetGenes)
-        print("dataIndicesSubset.size(): ", self.gaps.dataIndicesSubset.size())
+        print("dataIndicesSubset.size(): ", len(self.gaps.dataIndicesSubset))
         print("\n")
         print("useFixedPatterns: ", self.gaps.useFixedPatterns)
         print("whichMatrixFixed: ", self.gaps.whichMatrixFixed)
@@ -289,8 +289,6 @@ def setParam(paramobj: CoParams, whichParam, value):
     @return: nothing paramobj will be modified
     """
 
-    coparams = paramobj.coparams
-
     if whichParam == "alpha":
         paramobj.gaps.alphaA = value
         paramobj.gaps.alphaP = value
@@ -299,9 +297,9 @@ def setParam(paramobj: CoParams, whichParam, value):
         paramobj.gaps.maxGibbsMassP = value
     elif whichParam == 'hdfKey':
         print('setting')
-        coparams['hdfKey'] = value
+        paramobj.coparams['hdfKey'] = value
     elif whichParam in ("explicitSets"):
-        coparams['explicitSets'] = value
+        paramobj.coparams['explicitSets'] = value
     elif whichParam in ("nSets", "cut", "minNS", "maxNS"):
         print("please set \'", whichParam, "\' with setDistributedParams")
         return
@@ -315,7 +313,7 @@ def setParam(paramobj: CoParams, whichParam, value):
         print(whichParam, " has been deprecated, this parameter will be ignored")
         return
     else:
-        setattr(paramobj, whichParam, value)
+        setattr(paramobj.gaps, whichParam, value)
     return paramobj
 
 
