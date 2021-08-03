@@ -1,4 +1,5 @@
 from PyCoGAPS import *
+from subset_data import *
 import warnings
 import multiprocessing
 
@@ -24,12 +25,14 @@ def callInternalCoGAPS(data, allParams, uncertainty=None, subsetIndices=None, wo
     return CoGAPS(data, allParams, uncertainty)
 
 
-def distributedCoGAPS (data, allParams, uncertainty):
+def distributedCoGAPS(data, allParams, uncertainty=None):
     print("Not yet implemented")
-
+    # step 0: if the user passed in a path, fetch data and convert to anndata object
+    if isinstance(data, str):
+        data = toAnndata(data)
     # step 1: randomly break up the data
     sets = createSets(data, allParams)
-    if min(len(s) for s in sets) < allParams.nPatterns:
+    if min(len(s) for s in sets) < allParams.gaps.nPatterns:
         warnings.warn("data subset dimension less than nPatterns--terminating execution")
         return
 

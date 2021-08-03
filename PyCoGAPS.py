@@ -5,6 +5,7 @@ import pandas as pd
 import pycogaps
 import anndata
 from helper_functions import *
+import distributed_cogaps
 
 class CoParams:
     '''
@@ -44,8 +45,13 @@ class CoParams:
         self.coparams['minNS'] = math.ceil(self.coparams['cut'] / 2)
         self.coparams['maxNS'] = self.coparams['minNS'] + self.coparams['nSets']
 
-    def setDistributedParams(self, nSets=None, cut=None, minNS=None, maxNS=None):
+    def setDistributedParams(self, distributed=None, nSets=None, cut=None, minNS=None, maxNS=None):
         print("setting distributed parameters - call this again if you change nPatterns")
+        if distributed == "genome-wide":
+            self.coparams['distributed'] = distributed
+        else:
+            print("if you wish to perform genome-wide distributed cogaps, please run setDistributedParams("
+                  "\"genome-wide\", ...)")
         if nSets is None:
             self.coparams['nSets'] = self.coparams['nSets']
         else:
@@ -215,8 +221,7 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
 
     getDimNames(adata, prm)
     # check data input
-    checkData(adata, prm.gaps, uncertainty)  
-    gapsresultobj = pycogaps.runCogapsFromMatrix(matrix, prm.gaps)
+    checkData(adata, prm.gaps, uncertainty)
 
     result = {
         "GapsResult": gapsresultobj,
@@ -225,10 +230,11 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
     return result
 
 
-# TODO: should we pass uncertainty into runCogaps?
+def runDistributedCoGAPS(path, params=None, uncertainty=None):
+    return distributed_cogaps.distributedCoGAPS(path, params, uncertainty)
 
 
-def GapsResultToAnnData (gapsresult:GapsResult, adata, prm:GapsParameters):
+def GapsResultToAnnData (gapsresult:pycogaps.GapsResult, adata, prm:pycogaps.GapsParameters):
     # convert Amean and Pmean results to numpy arrays
     Amean = toNumpy(gapsresult.Amean)
     Pmean = toNumpy(gapsresult.Pmean)
@@ -244,9 +250,12 @@ def GapsResultToAnnData (gapsresult:GapsResult, adata, prm:GapsParameters):
     adata.uns["psd"] = pd.DataFrame(data=Psd, index=adata.var_names, columns=pattern_labels)
     return adata
 
+
 def GapsParameters(path):
     return pycogaps.GapsParameters(path)
 
+def GapsParameters(mtx:pycogaps.Matrix):
+    return pycogaps.GapsParameters(mtx)
 
 def getBuildReport():
     return pycogaps.getBuildReport()
