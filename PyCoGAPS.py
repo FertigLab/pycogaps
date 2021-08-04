@@ -200,7 +200,7 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
             adata = adata.transpose()
         matrix = pycogaps.Matrix(adata.X)
 
-    # prm = getDimNames(adata, prm)
+    prm = getDimNames(adata, prm)
     # check data input
     checkData(adata, prm.gaps, uncertainty) 
     gapsresultobj = pycogaps.runCogapsFromMatrix(matrix, prm.gaps)
