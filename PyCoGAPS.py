@@ -40,12 +40,16 @@ class CoParams:
                             'fixedPatterns': None,
                             'distributed': None,
                             'hdfKey': hdfKey,
+                            'useSparseOptimization': None,
                         }
         self.coparams['minNS'] = math.ceil(self.coparams['cut'] / 2)
         self.coparams['maxNS'] = self.coparams['minNS'] + self.coparams['nSets']
 
     def setDistributedParams(self, nSets=None, cut=None, minNS=None, maxNS=None):
         print("setting distributed parameters - call this again if you change nPatterns")
+        if self.coparams['distributed'] != "genome-wide":
+            print("if you wish to perform genome-wide distributed cogaps, please run setParams(params, "
+                  "\"distributed\", ""\"genome-wide\")")
         if nSets is None:
             self.coparams['nSets'] = self.coparams['nSets']
         else:
@@ -72,9 +76,12 @@ class CoParams:
     def setFixedPatterns(self, fixedPatterns, whichMatrixFixed):
         self.coparams['fixedPatterns'] = fixedPatterns
         self.coparams['whichMatrixFixed'] = whichMatrixFixed
+        self.gaps.useFixedPatterns = True
+        self.gaps.fixedPatterns = pycogaps.Matrix(fixedPatterns)
+        self.gaps.whichMatrixFixed = whichMatrixFixed
 
     # print standard and sparsity parameters
-    def print(self):
+    def printParams(self):
         print('\n-- Standard Parameters --')
         print('nPatterns: ', self.gaps.nPatterns)
         print('nIterations: ', self.gaps.nIterations)
@@ -94,47 +101,8 @@ class CoParams:
             print('\n')
         
     # print all GapsParameters 
-    def print_all(self):
-        print("\n----------- Parameters -----------\n")
-        print('transposeData: ', self.gaps.transposeData)
-        print('nGenes: ', self.gaps.nGenes)
-        print('nSamples: ', self.gaps.nSamples)
-        print('nPatterns: ', self.gaps.nPatterns)
-        print('nIterations: ', self.gaps.nIterations)
-        print('seed: ', self.gaps.seed)
-        print('\n')
-        print('maxThreads: ', self.gaps.maxThreads)
-        print('printMessages: ', self.gaps.printMessages)
-        print('outputFrequency: ', self.gaps.outputFrequency)
-        print('snapshotFrequency: ', self.gaps.snapshotFrequency)
-        print('\n')
-        print("useSparseOptimization: ", self.gaps.useSparseOptimization)
-        print("asynchronousUpdates: ", self.gaps.asynchronousUpdates)
-        print("takePumpSamples: ", self.gaps.takePumpSamples)
-        print("\n")
-        print("runningDistributed: ", self.gaps.runningDistributed)
-        print("printThreadUsage: ", self.gaps.printThreadUsage)
-        print("workerID: ", self.gaps.workerID)
-        print("\n")
-        print("alphaA: {:0.2f}".format(self.gaps.alphaA))
-        print("alphaP: {:0.2f}".format(self.gaps.alphaP))
-        print("maxGibbsMassA: ", self.gaps.maxGibbsMassA)
-        print("maxGibbsMassP: ", self.gaps.maxGibbsMassP)
-        print("\n")
-        print("useCheckPoint: ", self.gaps.useCheckPoint)
-        print("checkpointInterval: ", self.gaps.checkpointInterval)
-        print("checkpointFile: ", self.gaps.checkpointFile)
-        print("checkpointOutFile: ", self.gaps.checkpointOutFile)
-        print("\n")
-        print("subsetData: ", self.gaps.subsetData)
-        print("subsetGenes: ", self.gaps.subsetGenes)
-        print("dataIndicesSubset.size(): ", len(self.gaps.dataIndicesSubset))
-        print("\n")
-        print("useFixedPatterns: ", self.gaps.useFixedPatterns)
-        print("whichMatrixFixed: ", self.gaps.whichMatrixFixed)
-        print("fixedPatterns.nRow(): ", self.gaps.fixedPatterns.nRow())
-        print("fixedPatterns.nCol(): ", self.gaps.fixedPatterns.nCol())
-        print("\n------------------------\n\n")
+    def printAllParams(self):
+        self.gaps.print()
 
 
 def CoGAPS(path, params=None, nThreads=1, messages=True,
@@ -185,6 +153,8 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
 
         # convert data to anndata and matrix obj
         adata = toAnndata(path)
+        if transposeData:
+            adata = adata.transpose()
         matrix = pycogaps.Matrix(adata.X)
 
         # construct a parameters object using whatever was passed in
@@ -196,7 +166,7 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
             'checkpointOutFile': checkpointOutFile,
             'checkpointInterval': checkpointInterval,
             'checkpointFile': checkpointInFile,
-            'transposeData': transposeData,
+            # 'transposeData': transposeData,
             'workerID': workerID,
             'asynchronousUpdates': asynchronousUpdates,
             'snapshotFrequency': nSnapshots,
@@ -210,12 +180,29 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
         else:
             prm = CoParams(params=params)
 
+        opts = {
+            'maxThreads': nThreads,
+            'printMessages': messages,
+            'outputFrequency': outputFrequency,
+            'checkpointOutFile': checkpointOutFile,
+            'checkpointInterval': checkpointInterval,
+            'checkpointFile': checkpointInFile,
+            # 'transposeData': transposeData,
+            'workerID': workerID,
+            'asynchronousUpdates': asynchronousUpdates,
+            'snapshotFrequency': nSnapshots,
+            'snapshotPhase': snapshotPhase,
+        }
+        setParams(prm, opts)
+
         adata = toAnndata(path, prm.coparams['hdfKey'])
+        if transposeData:
+            adata = adata.transpose()
         matrix = pycogaps.Matrix(adata.X)
 
-    getDimNames(adata, prm)
+    # prm = getDimNames(adata, prm)
     # check data input
-    checkData(adata, prm.gaps, uncertainty)  
+    checkData(adata, prm.gaps, uncertainty) 
     gapsresultobj = pycogaps.runCogapsFromMatrix(matrix, prm.gaps)
 
     result = {
@@ -296,11 +283,18 @@ def setParam(paramobj: CoParams, whichParam, value):
         paramobj.gaps.maxGibbsMassA = value
         paramobj.gaps.maxGibbsMassP = value
     elif whichParam == 'hdfKey':
-        print('setting')
         paramobj.coparams['hdfKey'] = value
     elif whichParam in ("explicitSets"):
         paramobj.coparams['explicitSets'] = value
+    elif whichParam in ("distributed"):
+        if value == "genome-wide":
+            paramobj.gaps.runningDistributed = True
+            paramobj.coparams['distributed'] = value
+        elif (value is not None) and (value is not False):
+            print("if you wish to perform genome-wide distributed cogaps, please run setParams(params, "
+                  "\"distributed\", ""\"genome-wide\")")
     elif whichParam in ("nSets", "cut", "minNS", "maxNS"):
+        paramobj.gaps.runningDistributed = True
         print("please set \'", whichParam, "\' with setDistributedParams")
         return
     elif whichParam in ("samplingAnnotation", "samplingWeight"):
