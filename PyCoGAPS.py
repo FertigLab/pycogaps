@@ -40,6 +40,7 @@ class CoParams:
                             'fixedPatterns': None,
                             'distributed': None,
                             'hdfKey': hdfKey,
+                            'useSparseOptimization': None,
                         }
         self.coparams['minNS'] = math.ceil(self.coparams['cut'] / 2)
         self.coparams['maxNS'] = self.coparams['minNS'] + self.coparams['nSets']
@@ -72,6 +73,9 @@ class CoParams:
     def setFixedPatterns(self, fixedPatterns, whichMatrixFixed):
         self.coparams['fixedPatterns'] = fixedPatterns
         self.coparams['whichMatrixFixed'] = whichMatrixFixed
+        self.gaps.useFixedPatterns = True
+        self.gaps.fixedPatterns = pycogaps.Matrix(fixedPatterns)
+        self.gaps.whichMatrixFixed = whichMatrixFixed
 
     # print standard and sparsity parameters
     def print(self):
@@ -185,6 +189,8 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
 
         # convert data to anndata and matrix obj
         adata = toAnndata(path)
+        if transposeData:
+            adata = adata.transpose()
         matrix = pycogaps.Matrix(adata.X)
 
         # construct a parameters object using whatever was passed in
@@ -196,7 +202,7 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
             'checkpointOutFile': checkpointOutFile,
             'checkpointInterval': checkpointInterval,
             'checkpointFile': checkpointInFile,
-            'transposeData': transposeData,
+            # 'transposeData': transposeData,
             'workerID': workerID,
             'asynchronousUpdates': asynchronousUpdates,
             'snapshotFrequency': nSnapshots,
@@ -211,11 +217,13 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
             prm = CoParams(params=params)
 
         adata = toAnndata(path, prm.coparams['hdfKey'])
+        if transposeData:
+            adata = adata.transpose()
         matrix = pycogaps.Matrix(adata.X)
 
-    getDimNames(adata, prm)
+    # prm = getDimNames(adata, prm)
     # check data input
-    checkData(adata, prm.gaps, uncertainty)  
+    checkData(adata, prm.gaps, uncertainty) 
     gapsresultobj = pycogaps.runCogapsFromMatrix(matrix, prm.gaps)
 
     result = {
@@ -296,11 +304,14 @@ def setParam(paramobj: CoParams, whichParam, value):
         paramobj.gaps.maxGibbsMassA = value
         paramobj.gaps.maxGibbsMassP = value
     elif whichParam == 'hdfKey':
-        print('setting')
         paramobj.coparams['hdfKey'] = value
     elif whichParam in ("explicitSets"):
         paramobj.coparams['explicitSets'] = value
+    elif whichParam in ("distributed"):
+        if value is not None or False:
+            paramobj.gaps.runningDistributed = True
     elif whichParam in ("nSets", "cut", "minNS", "maxNS"):
+        paramobj.gaps.runningDistributed = True
         print("please set \'", whichParam, "\' with setDistributedParams")
         return
     elif whichParam in ("samplingAnnotation", "samplingWeight"):
