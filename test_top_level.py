@@ -26,7 +26,7 @@ setParams(csv_params, {"nIterations": 100,
 setParams(mtx_params, {"nIterations": 100})
 setParams(tsv_params, {"nIterations": 100})
 
-csv_params.print_all()
+csv_params.printAllParams()
 
 res = [None] * 3
 res[0] = CoGAPS(csv_path, csv_params, outputFrequency=50, messages=False)
