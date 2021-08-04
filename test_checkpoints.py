@@ -12,5 +12,5 @@ if isCheckpointsEnabled():
     res1 = res1['GapsResult']
     res2 = res2['GapsResult']
 
-    assert(np.isclose(toNumpy(res1.Amean), toNumpy(res2.Amean), rtol=0.1))
-    assert((np.allclose(toNumpy(res1.Pmean), toNumpy(res2.Pmean), rtol=0.1)))
+    assert(np.allclose(toNumpy(res1.Amean), toNumpy(res2.Amean), rtol=0.1))
+    assert(np.allclose(toNumpy(res1.Pmean), toNumpy(res2.Pmean), rtol=0.1))
