@@ -1,10 +1,13 @@
 from PyCoGAPS import *
 from subset_data import *
 import warnings
+import pathos
+import dill
 import multiprocessing
 
 
 def callInternalCoGAPS(data, allParams, uncertainty=None, subsetIndices=None, workerID=None):
+    print("in callinternalcogaps function, name is", __name__)
     genomewide = allParams.coparams["distributed"] == "genome-wide"
 
     if genomewide:
@@ -26,7 +29,7 @@ def callInternalCoGAPS(data, allParams, uncertainty=None, subsetIndices=None, wo
 
 
 def distributedCoGAPS(data, allParams, uncertainty=None):
-    print("Not yet implemented")
+    print("in distributed cogaps function, name is", __name__)
     # step 0: if the user passed in a path, fetch data and convert to anndata object
     if isinstance(data, str):
         data = toAnndata(data)
@@ -37,13 +40,37 @@ def distributedCoGAPS(data, allParams, uncertainty=None):
         return
 
     processes = []
-    if allParams.gaps.fixedPatterns is None:
-        for i in range(len(sets)):
-            p = multiprocessing.Process(target=callInternalCoGAPS, args=(data, allParams, uncertainty, sets[[i]], i))
-            processes.append(p)
-            p.start()
-        for process in processes:
-            process.join()
+    if allParams.coparams["fixedPatterns"] is None:
+        print("beginning multithreading, name is...", __name__)
+        if __name__ == 'distributed_cogaps':
+            # pool = pathos.multiprocessing.Pool(processes=len(sets))
+            # results = pool.map(callInternalCoGAPS(), [data, allParams, uncertainty, sets])
+            # p = pp.ProcessPool(len(sets))
+            pool = multiprocessing.Pool(processes=(len(sets)))
+            for i in range(len(sets)):
+                # if __name__ == '__main__':
+                print("in multithreading loop: run", i)
+                # p.map(callInternalCoGAPS, [data, allParams, uncertainty, sets[i], i])
+                # multiprocess.Pool(processes=len(sets)).map(callInternalCoGAPS, [data, allParams, uncertainty, sets[i], i])
+                pool.apply_async(callInternalCoGAPS, args=(data, allParams, uncertainty, sets[i], i))
+                print("started a process")
+            # pool.close()
+            # print("closed")
+                pool.join()
+                print("joined")
+            pool.close()
+            print("closed")
+            return
+                #
+                # processes.append(p)
+                # print(p.name, "created")
+                # print("starting", p.name, "with id", p.pid)
+                #
+                # print("returned from start() function for", p.name)
+            # for process in processes:
+            #     print("joining", p.name)
+            #     process.join()
+            #     print("joined", p.name)
     return
 
 
@@ -70,3 +97,7 @@ def corcut(allPatterns, cut, minNS):
 def stitchTogether(result, allParams, sets):
     print("Not yet implemented")
     return
+
+def runDistributed(data, allParams, uncertainty=None):
+    if __name__ == "__main__":
+        return distributedCoGAPS(data, allParams, uncertainty=None)

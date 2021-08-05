@@ -134,7 +134,25 @@ PYBIND11_MODULE(pycogaps, m)
         .def_readwrite("workerID", &GapsParameters::workerID)
         .def_readwrite("runningDistributed", &GapsParameters::runningDistributed)
         .def_readwrite("dataIndicesSubset", &GapsParameters::dataIndicesSubset)
-        .def_readwrite("fixedPatterns", &GapsParameters::fixedPatterns);
+        .def_readwrite("fixedPatterns", &GapsParameters::fixedPatterns)
+        .def(py::pickle(
+            [](const GapsParameters &p) { // __getstate__
+                /* Return a tuple that fully encodes the state of the object */
+                return py::make_tuple(p.fixedPatterns, p.dataIndicesSubset);
+            },
+            [](py::tuple t) { // __setstate__
+                if (t.size() != 2)
+                    throw std::runtime_error("Invalid state!");
+
+                /* Create a new C++ instance */
+                GapsParameters p(t[0].cast<std::string>());
+
+//                /* Assign any additional state */
+//                p.setExtra(t[1].cast<int>());
+
+                return p;
+            }
+        ));
     m.def("getBuildReport", &getBuildReport, "Return build report.");
     m.def("isCheckpointsEnabled", &isCheckpointsEnabled, "Return whether checkpoints enabled.");
     m.def("isCompiledWithOpenMPSupport", &isCompiledWithOpenMPSupport, "Return whether compiled with Open MP Support.");
@@ -170,11 +188,6 @@ PYBIND11_MODULE(pycogaps, m)
 
     py::class_<Matrix>(m, "Matrix", py::buffer_protocol())
         .def(py::init<>())
-        .def(py::init<unsigned &, unsigned &>())
-        .def(py::init<const Matrix &, bool &, bool &,
-        std::vector<unsigned> &>())
-        .def(py::init<const std::string &, bool &, bool &,
-        std::vector<unsigned> &>())
         // Matrix constructed from numpy array
         .def(py::init([](py::array_t<float> b) {
             py::buffer_info info = b.request();
@@ -197,6 +210,11 @@ PYBIND11_MODULE(pycogaps, m)
 
             return mat.getMatrix();
          }))
+        .def(py::init<unsigned &, unsigned &>())
+        .def(py::init<const Matrix &, bool &, bool &,
+        std::vector<unsigned> &>())
+        .def(py::init<const std::string &, bool &, bool &,
+        std::vector<unsigned> &>())
 
         .def("nCol", &Matrix::nCol)
         .def("nRow", &Matrix::nRow)
@@ -211,5 +229,23 @@ PYBIND11_MODULE(pycogaps, m)
                 {m.nRow(), m.nCol()},
                 {sizeof(float) * m.nCol(), sizeof(float)}
             );
-        });
+        })
+        .def(py::pickle(
+            [](const Matrix &p) { // __getstate__
+                /* Return a tuple that fully encodes the state of the object */
+                return py::make_tuple(p.nRow(), p.nCol());
+            },
+            [](py::tuple t) { // __setstate__
+                if (t.size() != 2)
+                    throw std::runtime_error("Invalid state!");
+
+                /* Create a new C++ instance */
+                Matrix p(t[0].cast<std::uint64_t>(), t[1].cast<std::uint64_t>());
+
+//                /* Assign any additional state */
+//                p.setExtra(t[1].cast<int>());
+
+                return p;
+            }
+        ));
 }

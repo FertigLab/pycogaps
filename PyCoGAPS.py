@@ -45,6 +45,7 @@ class CoParams:
         self.coparams['minNS'] = math.ceil(self.coparams['cut'] / 2)
         self.coparams['maxNS'] = self.coparams['minNS'] + self.coparams['nSets']
 
+
     def setDistributedParams(self, distributed=None, nSets=None, cut=None, minNS=None, maxNS=None):
         print("setting distributed parameters - call this again if you change nPatterns")
         if distributed == "genome-wide":
@@ -167,7 +168,7 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
     @param snapshotPhase: one of "sampling", "equilibration", "all"
     @return: a CogapsResult object
     """
-
+    print("in cogaps function; name is", __name__)
     # check OpenMP support
     if isCompiledWithOpenMPSupport() is False:
         if asynchronousUpdates is not None and nThreads > 1:
@@ -186,7 +187,6 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
         print("Please choose one of: sampling, equilibration, all")
         return
 
-    gapsresultobj = None
     if params is None:
 
         # convert data to anndata and matrix obj
@@ -219,9 +219,10 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
         adata = toAnndata(path, prm.coparams['hdfKey'])
         matrix = pycogaps.Matrix(adata.X)
 
-    getDimNames(adata, prm)
+    prm = getDimNames(adata, prm)
     # check data input
     checkData(adata, prm.gaps, uncertainty)
+    gapsresultobj = pycogaps.runCogapsFromMatrix(matrix, prm.gaps)
 
     result = {
         "GapsResult": gapsresultobj,
@@ -231,6 +232,7 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
 
 
 def runDistributedCoGAPS(path, params=None, uncertainty=None):
+    print("in rundistributedcogaps, name is", __name__)
     return distributed_cogaps.distributedCoGAPS(path, params, uncertainty)
 
 
@@ -254,8 +256,10 @@ def GapsResultToAnnData (gapsresult:pycogaps.GapsResult, adata, prm:pycogaps.Gap
 def GapsParameters(path):
     return pycogaps.GapsParameters(path)
 
+
 def GapsParameters(mtx:pycogaps.Matrix):
     return pycogaps.GapsParameters(mtx)
+
 
 def getBuildReport():
     return pycogaps.getBuildReport()
