@@ -4,7 +4,7 @@ import warnings
 import pathos
 import dill
 import multiprocessing
-
+import distcaller
 
 def callInternalCoGAPS(data, allParams, uncertainty=None, subsetIndices=None, workerID=None):
     print("in callinternalcogaps function, name is", __name__)
@@ -28,6 +28,11 @@ def callInternalCoGAPS(data, allParams, uncertainty=None, subsetIndices=None, wo
     return CoGAPS(data, allParams, uncertainty)
 
 
+def add(a,b):
+    print("in add fxn")
+    return a+b
+
+
 def distributedCoGAPS(data, allParams, uncertainty=None):
     print("in distributed cogaps function, name is", __name__)
     # step 0: if the user passed in a path, fetch data and convert to anndata object
@@ -46,20 +51,31 @@ def distributedCoGAPS(data, allParams, uncertainty=None):
             # pool = pathos.multiprocessing.Pool(processes=len(sets))
             # results = pool.map(callInternalCoGAPS(), [data, allParams, uncertainty, sets])
             # p = pp.ProcessPool(len(sets))
-            pool = multiprocessing.Pool(processes=(len(sets)))
+            # pool = multiprocessing.Pool(processes=(len(sets)))
+
+            processes=[]
             for i in range(len(sets)):
                 # if __name__ == '__main__':
                 print("in multithreading loop: run", i)
+                p = multiprocessing.Process(target=distcaller.callinternal, args=(data, allParams, uncertainty, sets[i], i))
+                processes.append(p)
+                print("added process", i)
+                p.start()
                 # p.map(callInternalCoGAPS, [data, allParams, uncertainty, sets[i], i])
                 # multiprocess.Pool(processes=len(sets)).map(callInternalCoGAPS, [data, allParams, uncertainty, sets[i], i])
-                pool.apply_async(callInternalCoGAPS, args=(data, allParams, uncertainty, sets[i], i))
+                # pool.apply_async(callInternalCoGAPS, args=(data, allParams, uncertainty, sets[i], i))
+                # res=pool.apply_async(add, args=(1,2))
+                # print("result was", res)
                 print("started a process")
+            for p in processes:
+                print("joining")
+                p.join()
+            # pool.close()
+            # # print("closed")
+            #     pool.join()
+            #     print("joined")
             # pool.close()
             # print("closed")
-                pool.join()
-                print("joined")
-            pool.close()
-            print("closed")
             return
                 #
                 # processes.append(p)
