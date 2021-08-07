@@ -1,3 +1,7 @@
+```
+TODO: add TOC with links
+```
+
 # **1. Introduction**
 Coordinated Gene Activity in Pattern Sets (CoGAPS) implements a Bayesian MCMC matrix factorization algorithm, GAPS, and links it to gene set statistic methods to infer biological process activity. It can be used to perform sparse matrix factorization on any data, and when this data represents biomolecules, to do gene set analysis.
 
@@ -14,22 +18,30 @@ python3 setup.py install
 ```
 # **3. Usage**
 
-We first give a walkthrough of the package features using a simple, simulated data set. In later sections we provide two example workflows on real data sets.
+To import the python CoGAPS package:
+```python
+from PyCoGAPS import *
+```
 
 ## 3.1 Running CoGAPS with Default Parameters
 The only required argument to CoGAPS is the path to the data. This can be a .csv, .tsv, .mtx, .h5, or .h5ad file containing the data.
 
 ```python 
-from PyCoGAPS import *
-
 # replace with the path to your data, or use this provided example
 path = "./data/GIST.csv" 
 
 # run CoGAPS on your dataset
 result = CoGAPS(path)
 ```
+```
+TODO: print function to display parameters
+```
+<details>
+  <summary> About CoGAPS print status messages </summary>
 
 While CoGAPS is running it periodically prints status messages. For example, 20000 of 25000, Atoms: 2932(80), ChiSq: 9728, time: 00:00:29 / 00:01:19. This message tells us that CoGAPS is at iteration 20000 out of 25000 for this phase, and that 29 seconds out of an estimated 1 minute 19 seconds have passed. It also tells us the size of the atomic domain which is a core component of the algorithm but can be ignored for now. Finally, the ChiSq value tells us how closely the A and P matrices reconstruct the original data. In general, we want this value to go down - but it is not a perfect measurment of how well CoGAPS is finding the biological processes contained in the data. CoGAPS also prints a message indicating which phase is currently happening. There are two phases to the algorithm - Equilibration and Sampling.
+
+</details>
 
 ## 3.2 Running CoGAPS with Custom Parameters
 
@@ -50,6 +62,11 @@ setParams(params, {
 
 result = CoGAPS(path, params)
 ```
+```
+TODO: list all main params here, add all params as fields in CoParams object
+
+TODO: remove following heading and wording, shorten to say additional run params can be passed directly as arguments - list the args.
+```
 
 ### 3.2.2 Run Configuration Options
 The CoParams class manages the model parameters - i.e. the parameters that affect the result. There are also a few parameters that are passed directly to CoGAPS that control things like displaying the status of the run.
@@ -60,7 +77,7 @@ result = CoGAPS(path, params, nIterations=1000, outputFrequency=250)
 ```
 
 ## 3.3 Breaking Down the Return Object from CoGAPS
-CoGAPS returns a dictionary of two representations of the result: a GapsResult object and an anndata object. CoGAPS stores the lower dimensional representation of the samples (P matrix) in the .var slot and the weight of the features (A matrix) in the .obs slot. The standard deviation across sample points for each matrix are stored in the .uns slot.
+CoGAPS returns the result as an anndata object. CoGAPS stores the lower dimensional representation of the samples (P matrix) in the .var slot and the weight of the features (A matrix) in the .obs slot. The standard deviation across sample points for each matrix are stored in the .uns slot.
 
 ```
 TODO: add image/print
@@ -75,6 +92,10 @@ plot(result)
 
 ```
 TODO: add image example
+```
+
+```
+TODO: output plotting, stat functions, etc. here
 ```
 
 ## 3.5 Running CoGAPS in Parallel
