@@ -203,9 +203,9 @@ The result object can be passed on to the analysis and plotting functions provid
 plot(result)
 ```
 
-```
-TODO: add image example - res_plot
-```
+![alt text][show] 
+
+[show]: https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/res_show.png "show result function"
 
 ```
 TODO: output plotting, stat functions, etc. here
