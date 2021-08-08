@@ -191,8 +191,13 @@ CoGAPS returns a dictionary of the result as two representations: an `anndata` o
 # this retrieves the anndata result object
 result["anndata"]
 ```
+
+![alt text][anndata result] 
+
+[anndata result]: https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/anndata-result.jpeg "anndata result object"
+
 ```
-TODO: add image representation of anndata object 
+TODO: get mean chi sq, get orig params, get version
 ```
 
 ## 2.4 Visualizing Output
@@ -375,6 +380,10 @@ result = CoGAPS(path, params, uncertainty=GIST_uncertainty.csv)
 ```
 
 ## 3.4 Distributed CoGAPS
+
+3.4.1 [ Methods of Subsetting Data ](#341-methods-of-subsetting-data)  
+3.4.2 [ Additional Return Information ](#342-additional-return-information)  
+3.4.3 [ Manual Pipeline ](#343-manual-pipeline)  
 
 ### 3.4.1 Methods of Subsetting Data
 The default method for subsetting the data is to uniformly break up the rows (cols) of the data. There is an alternative option where the user provides an annotation vector for the rownames (colnames) of the data and gives a weight to each category in the annotation vector. Equal sized subsets are then drawn by sampling all rows (cols) according to the weight of each category.
