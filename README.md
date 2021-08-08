@@ -13,7 +13,7 @@ This package, PyCoGAPS, presents a unified python interface, with a parallel, ef
   2.4 [ Visualizing Output ](#24-visualizing-output)  
   2.5 [ Running CoGAPS in Parallel ](#25-running-cogaps-in-parallel)
 3. [ Additional Features of CoGAPS ](#3-additional-features-of-cogaps)  
-  3.1 [ Checkpoint System: Saving/Loading CoGAPS Runs ](#31-checkpoint-system:-saving/loading-cogaps-runs)  
+  3.1 [ Checkpoint System: Saving/Loading CoGAPS Runs ](#31-checkpoint-system-savingloading-cogaps-runs)  
   3.2 [ Transposing Data ](#32-transposing-data)  
   3.3 [ Passing Uncertainty Matrix ](#33-passing-uncertainty-matrix)  
   3.4 [ Distributed CoGAPS ](#34-distributed-cogaps)  
