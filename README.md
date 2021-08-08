@@ -7,7 +7,6 @@ This package, PyCoGAPS, presents a unified python interface, with a parallel, ef
 
 1. [ Installation ](#1-installation)
 2. [ Usage ](#2-usage)
-</br>
   2.1 [ Running CoGAPS with Default Parameters ](#21-running-cogaps-with-default-parameters)
 </br>
   2.2 [ Running CoGAPS with Custom Parameters ](#22-running-cogaps-with-custom-parameters)
