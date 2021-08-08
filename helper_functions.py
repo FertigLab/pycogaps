@@ -11,6 +11,8 @@ from scipy.stats import zscore
 import warnings
 from PyCoGAPS import *
 import os
+mpl.use('tkagg')
+
 
 
 def supported(file):
@@ -135,13 +137,26 @@ def getDimNames(data, allParams):
     allParams.coparams['sampleNames'] = sampleNames
     return (allParams)
 
+def startupMessage(params, path):
+    print("\nThis is ", end='')
+    getVersion()
+
+    dist_message = "Standard"
+    if params.coparams["distributed"] is not None and params.coparams["distributed"] is not False:
+        dist_message = params.coparams["distributed"]
+
+    data_name = os.path.basename(path)
+    print("Running", dist_message, "CoGAPS on", data_name, "(", len(params.coparams['geneNames']), "genes and", len(params.coparams['sampleNames']),"samples)",
+    "with parameters: ")
+    params.printParams()
+
 
 def show(obj: anndata):
     nfeatures = obj.n_obs
-    nsamples = obj.n_var
+    nsamples = obj.n_vars
     npatterns = len(obj.obs_keys())
-    print("GapsResult result object with ", nfeatures, " features and ", nsamples, " samples")
-    print(npatterns, " patterns were learned")
+    print("\nGapsResult result object with", nfeatures, "features and", nsamples, "samples")
+    print(npatterns, "patterns were learned\n")
     return
 
 
@@ -351,7 +366,7 @@ def calcCoGAPSStat(object, sets, whichMatrix='featureLoadings', numPerm=1000):
     if not isinstance(sets, list):
         raise Exception("Sets must be a list of either measurements of samples")
 
-    zMatrix = calcZ(object['GapsResult'], whichMatrix)
+    zMatrix = calcZ(object['anndata'], whichMatrix)
 
     pattern_labels = (object['anndata'].obs).columns
 
@@ -427,7 +442,7 @@ def calcGeneGSStat(object, GStoGenes, numPerm, Pw=None, nullGenes=False):
 
 def computeGeneGSProb(object, GStoGenes, numPerm=500, Pw=None, PwNull=False):
 
-    featureLoadings = toNumpy(getFeatureLoadings(object['GapsResult']))
+    featureLoadings = toNumpy(object['GapsResult'].Amean)
     adata = object['anndata']
     
     if Pw is None:

@@ -30,13 +30,13 @@ print(getFileInfo(path))
 
 print("--Testing CogapsResult Object\n")
 print("calling show(result)\n")
-show(result)
+show(anndata)
 print("calling plot(result)\n")
-plot(result)
+plot(anndata)
 
-calcZP = calcZ(result, "sampleFactors")
+calcZP = calcZ(anndata, "sampleFactors")
 print(calcZP)
-calcZA = calcZ(result, "featureLoadings")
+calcZA = calcZ(anndata, "featureLoadings")
 print(calcZA)
 getVersion()
 

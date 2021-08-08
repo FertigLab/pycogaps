@@ -203,12 +203,14 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
     prm = getDimNames(adata, prm)
     # check data input
     checkData(adata, prm.gaps, uncertainty) 
+    startupMessage(prm, path)
     gapsresultobj = pycogaps.runCogapsFromMatrix(matrix, prm.gaps)
 
     result = {
         "GapsResult": gapsresultobj,
         "anndata": GapsResultToAnnData(gapsresultobj, adata, prm.gaps)
     }
+    show(result["anndata"])
     return result
 
 
