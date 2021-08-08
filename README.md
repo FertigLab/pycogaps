@@ -194,7 +194,7 @@ result["anndata"]
 
 ![alt text][anndata result] 
 
-[anndata result]: https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/anndata-result.jpeg "anndata result object"
+[anndata result]: https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/anndata-result.png "anndata result object"
 
 ```
 TODO: get mean chi sq, get orig params, get version
