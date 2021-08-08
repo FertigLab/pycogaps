@@ -56,11 +56,10 @@ GapsResult result object with 1363 features and 9 samples
 
 </br>
 
-While CoGAPS is running it periodically prints status messages. For example, 20000 of 25000, Atoms: 2932(80), ChiSq: 9728, time: 00:00:29 / 00:01:19. This message tells us that CoGAPS is at iteration 20000 out of 25000 for this phase, and that 29 seconds out of an estimated 1 minute 19 seconds have passed. It also tells us the size of the atomic domain which is a core component of the algorithm but can be ignored for now. Finally, the ChiSq value tells us how closely the A and P matrices reconstruct the original data. In general, we want this value to go down - but it is not a perfect measurment of how well CoGAPS is finding the biological processes contained in the data. CoGAPS also prints a message indicating which phase is currently happening. There are two phases to the algorithm - Equilibration and Sampling.
+While CoGAPS is running it periodically prints status messages. For example, `20000 of 25000, Atoms: 2932(80), ChiSq: 9728, time: 00:00:29 / 00:01:19`. This message tells us that CoGAPS is at iteration 20000 out of 25000 for this phase, and that 29 seconds out of an estimated 1 minute 19 seconds have passed. It also tells us the size of the atomic domain which is a core component of the algorithm but can be ignored for now. Finally, the ChiSq value tells us how closely the A and P matrices reconstruct the original data. In general, we want this value to go down - but it is not a perfect measurment of how well CoGAPS is finding the biological processes contained in the data. CoGAPS also prints a message indicating which phase is currently happening. There are two phases to the algorithm - Equilibration and Sampling.
 
 </details>
 
-</br>
 
 ## 3.2 Running CoGAPS with Custom Parameters
 
@@ -172,12 +171,6 @@ result = CoGAPS(path, params, messages=False, outputFrequency=250)
 
 </br>
 
-```
-TODO: Add all params as fields in CoParams object
-```
-
-
-
 ## 3.3 Breaking Down the Return Object from CoGAPS
 CoGAPS returns a dictionary of the result as two representations: an `anndata` object and `GapsResult` object. For simplicity and relevancy, we will only consider the `anndata` object. CoGAPS stores the lower dimensional representation of the samples (P matrix) in the `.var` slot and the weight of the features (A matrix) in the `.obs` slot. The standard deviation across sample points for each matrix are stored in the `.uns` slots.
 
@@ -243,31 +236,73 @@ Setting `nSets` requires balancing available hardware and run time against the s
 ## 4.1 Checkpoint System -- Saving/Loading CoGAPS Runs
 CoGAPS allows the user to save their progress throughout the run, and restart from the latest saved “checkpoint”. This is intended so that if the server crashes in the middle of a long run it doesn’t need to be restarted from the beginning. Set the `checkpointInterval` parameter to save checkpoints and pass a file name as `checkpointInFile` to load from a checkpoint.
 
+```python
+# enabling checkpoint system, saving CoGAPS run
+result1 = CoGAPS(mtx_path, params, checkpointInterval=100, checkpointOutFile="example.out", messages=False)
+
+# loading saved CoGAPS run
+result2 = CoGAPS(mtx_path, params, checkpointInFile="example.out", messages=False)
+```
+
 ## 4.2 Transposing Data
 If your data is stored as samples x genes, CoGAPS allows you to pass `transposeData=True` and will automatically read the transpose of your data to get the required genes x samples configuration.
 
 ## 4.3 Passing Uncertainty Matrix
 In addition to providing the data, the user can also specify an uncertainty measurement - the standard deviation of each entry in the data matrix. By default, CoGAPS assumes that the standard deviation matrix is 10% of the data matrix. This is a reasonable heuristic to use, but for specific types of data you may be able to provide better information.
 
+```python
+# run CoGAPS with custom uncertainty
+result = CoGAPS(path, params, uncertainty=GIST_uncertainty.csv)
+```
+
 ## 4.4 Distributed CoGAPS
 
 ### 4.4.1 Methods of Subsetting Data
 The default method for subsetting the data is to uniformly break up the rows (cols) of the data. There is an alternative option where the user provides an annotation vector for the rownames (colnames) of the data and gives a weight to each category in the annotation vector. Equal sized subsets are then drawn by sampling all rows (cols) according to the weight of each category.
 
+```python
+# sampling with weights - use this example or replace with your data
+
+# list row names to set weights for
+names = ['IM00', 'IM02']
+# list weight corresponding to the row names
+wt = [2, 0.5]
+# dictionary format
+weight = dict(zip(names, wt))
+annotation = ['IM00', 'IM02', 'IM00']
+
+# call this method to set weights
+params.setAnnotationWeights(annotation=annotation, weights=weight)
+
+result = CoGAPS(path, params)
 ```
-```
+
 Finally, the user can set `explicitSets` which is a list of character or numeric vectors indicating which names or indices of the data should be put into each set. Make sure to set nSets to the correct value before passing `explicitSets`.
 
+```python
+# running CoGAPS with given subsets - use this example or replace with your data
+
+sets = ['IM00', 'IM02']
+setParam(params, "explicitSets", sets)
+
+# call this method to set nSets
+params.setDistributedParams(nSets=len(sets))
+
+result = CoGAPS(path, params)
+```
+
 ### 4.4.2 Additional Return Information
-When running GWCoGAPS or scCoGAPS, some additional metadata is returned that relates to the pattern matching process. This process is how CoGAPS stitches the results from each subset back together.
+When running distributed CoGAPS, some additional metadata is returned that relates to the pattern matching process. This process is how CoGAPS stitches the results from each subset back together.
 
 ```
+TODO: once implement unmatched patterns
 ```
 
 ### 4.4.3 Manual Pipeline
 CoGAPS allows for a custom process for matching the patterns together. If you have a result object from a previous run of Distributed CoGAPS, the unmatched patterns for each subset are found by calling `getUnmatchedPatterns`. Apply any method you like as long as the result is a matrix with the number of rows equal to the number of samples (genes) and the number of columns is equal to the number of patterns. Then pass the matrix to the `fixedPatterns` argument along with the original parameters for the GWCoGAPS/scCoGAPS run.
 
 ```
+TODO: once implement unmatched patterns
 ```
 
 # **5. Citing CoGAPS**
