@@ -54,9 +54,13 @@ GapsResult result object with 1363 features and 9 samples
 <details>
   <summary> About CoGAPS print status messages </summary>
 
+</br>
+
 While CoGAPS is running it periodically prints status messages. For example, 20000 of 25000, Atoms: 2932(80), ChiSq: 9728, time: 00:00:29 / 00:01:19. This message tells us that CoGAPS is at iteration 20000 out of 25000 for this phase, and that 29 seconds out of an estimated 1 minute 19 seconds have passed. It also tells us the size of the atomic domain which is a core component of the algorithm but can be ignored for now. Finally, the ChiSq value tells us how closely the A and P matrices reconstruct the original data. In general, we want this value to go down - but it is not a perfect measurment of how well CoGAPS is finding the biological processes contained in the data. CoGAPS also prints a message indicating which phase is currently happening. There are two phases to the algorithm - Equilibration and Sampling.
 
 </details>
+
+</br>
 
 ## 3.2 Running CoGAPS with Custom Parameters
 
@@ -85,7 +89,7 @@ Running Standard CoGAPS on GIST.csv (1363 genes and 9 samples) with parameters:
 -- Standard Parameters --
 nPatterns:  7
 nIterations:  1500
-seed:  0
+seed:  42
 sparseOptimization:  False
 
 -- Sparsity Parameters --
@@ -97,23 +101,80 @@ GapsResult result object with 1363 features and 9 samples
 ```
 
 <details>
-  <summary> About all parameters </summary>
+  <summary> Standard & Sparsity Parameters </summary>
 
-```
-TODO: list all main params here, add all params as fields in CoParams object
+- Standard Parameters
+  - `nPatterns` number of patterns CoGAPS will learn
+  -  `nIterations` number of iterations for each phase of the algorithm
+  - `seed` random number generator seed
+  - `sparseOptimization` speeds up performance with sparse data (roughly >80% of data is zero), note this can only be used with the default uncertainty
 
-TODO: remove following heading and wording, shorten to say additional run params can be passed directly as arguments - list the args.
-```
+- Sparsity Parameters
+  - `alphaA` sparsity parameter for feature matrix
+  - `alphaP` sparsity parameter for sample matrix
+  - `maxGibbsMassA` atomic mass restriction for feature matrix
+  - `maxGibbsMassP` atomic mass restriction for sample matrix
 
-### 3.2.2 Run Configuration Options
-The CoParams class manages the model parameters - i.e. the parameters that affect the result. There are also a few parameters that are passed directly to CoGAPS that control things like displaying the status of the run.
+</details>
+
+<details>
+  <summary> Run Configuration Parameters </summary>
+
+- Run Configuration Parameters (these can be passed in to CoGAPS directly)
+  - `nThreads` maximum number of threads to run on
+  - `messages` T/F for displaying output
+  - `outputFrequency` number of iterations between each output (set to 0 to disable status updates)
+  - `uncertainty` uncertainty matrix - either a matrix or a supported file type
+  - `checkpointOutFile` name of the checkpoint file to create
+  - `checkpointInterval` number of iterations between each checkpoint (set to 0 to disable checkpoints)
+  - `checkpointInFile` if this is provided, CoGAPS runs from the checkpoint contained in this file
+  - `transposeData` T/F for transposing data while reading it in - useful for data that is stored as samples x genes since CoGAPS requires data to be genes x samples
+  - `workerID` if calling CoGAPS in parallel the worker ID can be specified
+  - `asynchronousUpdates` enable asynchronous updating which allows for multi-threaded runs
+  - `nSnapshots` how many snapshots to take in each phase, setting this to 0 disables snapshots
+  - `snapshotPhase` which phase to take snapsjots in e.g. "equilibration", "sampling", "all"
 
 ```python
 # run config arguments can be passed as an argument to CoGAPS
-result = CoGAPS(path, params, nIterations=1000, outputFrequency=250)
+result = CoGAPS(path, params, messages=False, outputFrequency=250)
 ```
 
 </details>
+
+<details>
+  <summary> Distributed Parameters </summary>
+
+- Distributed Parameters
+  - `distributed`  must set to `"genome-wide"`
+  - `nSets` [distributed parameter] number of sets to break data into
+  - `cut` [distributed parameter] number of branches at which to cut dendrogram used in pattern matching
+  - `minNS` [distributed parameter] minimum of individual set contributions a cluster must contain
+  - `maxNS` [distributed parameter] maximum of individual set contributions a cluster can contain
+  - `explicitSets` [distributed parameter] specify subsets by index or name
+  - `samplingAnnotation` [distributed parameter] specify categories along the rows (cols) to use for weighted sampling
+  - `samplingWeight` [distributed parameter] weights associated with  samplingAnnotation
+
+</details>
+
+<details>
+  <summary> Additional Parameters </summary>
+
+- Additional Parameters
+  - `subsetIndices` set of indices to use from the data
+  - `subsetDim` which dimension (1=rows, 2=cols) to subset
+  - `geneNames` vector of names of genes in data
+  - `sampleNames` vector of names of samples in data
+  - `fixedPatterns` fix either 'A' or 'P' matrix to these values, in the context of distributed CoGAPS, the first phase is skipped and `fixedPatterns` is used for all sets allowing manual pattern matching, as well as fixed runs of standard CoGAPS
+  - `whichMatrixFixed` either 'A' or 'P', indicating which matrix is fixed
+  - `takePumpSamples` whether or not to take PUMP samples
+
+</details>
+
+</br>
+
+```
+TODO: Add all params as fields in CoParams object
+```
 
 
 
@@ -165,17 +226,17 @@ For large datasets (greater than a few thousand genes or samples) the multi-thre
 In order to use these extensions, some additional parameters are required. We first need to set CoParam's `distributed` parameter to be `genome-wide` using `setParam`. Next, `nSets` specifies the number of subsets to break the data set into. `cut`, `minNS`, and `maxNS` control the process of matching patterns across subsets and in general should not be changed from defaults. More information about these parameters can be found in the original papers. These parameters need to be set with a different function, `setDistributedParameters`, than `setParam` since they depend on each other. Here we only set `nSets` (always required), but we have the option to pass the other parameters as well.
 
 ```python
+# first, set distributed param to "genome-wide"
 setParam(params, "distributed", "genome-wide")
+
+# then, set other params such as nSets, cut, minNS, maxNS
 params.setDistributedParameters(nSets=3)
+
+# last, call CoGAPS as usual
+result = CoGAPS(path, params)
 ```
 
 Setting `nSets` requires balancing available hardware and run time against the size of your data. In general, `nSets` should be less than or equal to the number of nodes/cores that are available. If that is true, then the more subsets you create, the faster CoGAPS will run - however, some robustness can be lost when the subsets get too small. The general rule of thumb is to set `nSets` so that each subset has between 1000 and 5000 genes or cells. We will see an example of this on real data in the next two sections.
-
-Once the distributed parameters have been set we can call CoGAPS as usual.
-
-```python
-result = CoGAPS(path, params)
-```
 
 # **4. Additional Features of CoGAPS**
 
