@@ -1,14 +1,39 @@
-```
-TODO: add TOC with links
-```
-
-# **1. Introduction**
+# **PyCoGAPS**
 Coordinated Gene Activity in Pattern Sets (CoGAPS) implements a Bayesian MCMC matrix factorization algorithm, GAPS, and links it to gene set statistic methods to infer biological process activity. It can be used to perform sparse matrix factorization on any data, and when this data represents biomolecules, to do gene set analysis.
 
-This package presents a unified python interface, with a parallel, efficient underlying implementation in C++.
+This package, PyCoGAPS, presents a unified python interface, with a parallel, efficient underlying implementation in C++.
+
+# **Table of Contents**
+
+1. [ Installation ](#1-installation)
+2. [ Usage ](#2-usage)
+</br>
+2.1 [ Running CoGAPS with Default Parameters ](#21-running-cogaps-with-default-parameters)
+</br>
+2.2 [ Running CoGAPS with Custom Parameters ](#22-running-cogaps-with-custom-parameters)
+</br>
+2.3 [ Breaking Down the Return Object from CoGAPS ](#23-breaking-down-the-return-object-from-cogaps)
+</br>
+2.4 [ Visualizing Output ](#24-visualizing-output)
+</br>
+2.5 [ Running CoGAPS in Parallel ](#25-running-cogaps-in-parallel)
+</br>
+3. [ Additional Features of CoGAPS ](#3-additional-features-of-cogaps)
+</br>
+3.1 [ Checkpoint System: Saving/Loading CoGAPS Runs ](#31-checkpoint-system:-saving/loading-cogaps-runs)
+</br>
+3.2 [ Transposing Data ](#32-transposing-data)
+</br>
+3.3 [ Passing Uncertainty Matrix ](#33-passing-uncertainty-matrix)
+</br>
+3.4 [ Distributed CoGAPS ](#34-distributed-cogaps)
+</br>
+4. [ Citing CoGAPS ](#4-citing-cogaps)
 
 
-# **2. Installation**
+
+
+# **1. Installation**
 ```
 git clone https://github.com/FertigLab/pycogaps --recursive
 cd pycogaps
@@ -16,14 +41,14 @@ pip3 install .
 OR
 python3 setup.py install
 ```
-# **3. Usage**
+# **2. Usage**
 
 To import the python CoGAPS package:
 ```python
 from PyCoGAPS import *
 ```
 
-## 3.1 Running CoGAPS with Default Parameters
+## 2.1 Running CoGAPS with Default Parameters
 The only required argument to CoGAPS is the path to the data. This can be a *.csv, .tsv, .mtx, .h5, or .h5ad* file containing the data.
 
 ```python 
@@ -56,12 +81,12 @@ GapsResult result object with 1363 features and 9 samples
 
 </br>
 
-While CoGAPS is running it periodically prints status messages. For example, `20000 of 25000, Atoms: 2932(80), ChiSq: 9728, time: 00:00:29 / 00:01:19`. This message tells us that CoGAPS is at iteration 20000 out of 25000 for this phase, and that 29 seconds out of an estimated 1 minute 19 seconds have passed. It also tells us the size of the atomic domain which is a core component of the algorithm but can be ignored for now. Finally, the ChiSq value tells us how closely the A and P matrices reconstruct the original data. In general, we want this value to go down - but it is not a perfect measurment of how well CoGAPS is finding the biological processes contained in the data. CoGAPS also prints a message indicating which phase is currently happening. There are two phases to the algorithm - Equilibration and Sampling.
+While CoGAPS is running it periodically prints status messages. For example, `20000 of 25000, Atoms: 2932(80), ChiSq: 9728, time: 00:00:29 / 00:01:19`. This message tells us that CoGAPS is at iteration 20000 out of 25000 for this phase, and that 29 seconds out of an estimated 1 minute 19 seconds have passed. It also tells us the size of the atomic domain which is a core component of the algorithm but can be ignored for now. Finally, the `ChiSq` value tells us how closely the A and P matrices reconstruct the original data. In general, we want this value to go down - but it is not a perfect measurment of how well CoGAPS is finding the biological processes contained in the data. CoGAPS also prints a message indicating which phase is currently happening. There are two phases to the algorithm - Equilibration and Sampling.
 
 </details>
 
 
-## 3.2 Running CoGAPS with Custom Parameters
+## 2.2 Running CoGAPS with Custom Parameters
 
 Most of the time we’ll want to set some parameters before running CoGAPS. Parameters are managed with a CoParams object. This object will store all parameters needed to run CoGAPS and provides a simple interface for viewing and setting the parameter values.
 
@@ -171,7 +196,7 @@ result = CoGAPS(path, params, messages=False, outputFrequency=250)
 
 </br>
 
-## 3.3 Breaking Down the Return Object from CoGAPS
+## 2.3 Breaking Down the Return Object from CoGAPS
 CoGAPS returns a dictionary of the result as two representations: an `anndata` object and `GapsResult` object. For simplicity and relevancy, we will only consider the `anndata` object. CoGAPS stores the lower dimensional representation of the samples (P matrix) in the `.var` slot and the weight of the features (A matrix) in the `.obs` slot. The standard deviation across sample points for each matrix are stored in the `.uns` slots.
 
 ```python
@@ -182,7 +207,7 @@ result["anndata"]
 TODO: add image representation of anndata object 
 ```
 
-## 3.4 Visualizing Output
+## 2.4 Visualizing Output
 The result object can be passed on to the analysis and plotting functions provided in the package. By default, the `plot` function displays how the patterns vary across the samples.
 
 ```python
@@ -198,10 +223,10 @@ TODO: add image example - res_plot
 TODO: output plotting, stat functions, etc. here
 ```
 
-## 3.5 Running CoGAPS in Parallel
+## 2.5 Running CoGAPS in Parallel
 Non-Negative Matrix Factorization algorithms typically require long computation times and CoGAPS is no exception. In order to scale CoGAPS up to the size of data sets seen in practice we need to take advantage of modern hardware and parallelize the algorithm.
 
-### 3.5.1 Multi-Threaded Parallelization
+### 2.5.1 Multi-Threaded Parallelization
 The simplest way to run CoGAPS in parallel is to provide the `nThreads` argument to CoGAPS. This allows the underlying algorithm to run on multiple threads and has no effect on the mathematics of the algorithm i.e. this is still standard CoGAPS. The precise number of threads to use depends on many things like hardware and data size. The best approach is to play around with different values and see how it effects the estimated time.
 
 ```python
@@ -213,7 +238,7 @@ Note this method relies on CoGAPS being compiled with OpenMP support, use `build
 print(getBuildReport())
 ```
 
-### 3.5.2 Distributed CoGAPS
+### 2.5.2 Distributed CoGAPS
 For large datasets (greater than a few thousand genes or samples) the multi-threaded parallelization isn’t enough. It is more efficient to break up the data into subsets and perform CoGAPS on each subset in parallel, stitching the results back together at the end (Stein-O’Brien et al. (2017)).
 
 In order to use these extensions, some additional parameters are required. We first need to set CoParam's `distributed` parameter to be `genome-wide` using `setParam`. Next, `nSets` specifies the number of subsets to break the data set into. `cut`, `minNS`, and `maxNS` control the process of matching patterns across subsets and in general should not be changed from defaults. More information about these parameters can be found in the original papers. These parameters need to be set with a different function, `setDistributedParameters`, than `setParam` since they depend on each other. Here we only set `nSets` (always required), but we have the option to pass the other parameters as well.
@@ -231,9 +256,9 @@ result = CoGAPS(path, params)
 
 Setting `nSets` requires balancing available hardware and run time against the size of your data. In general, `nSets` should be less than or equal to the number of nodes/cores that are available. If that is true, then the more subsets you create, the faster CoGAPS will run - however, some robustness can be lost when the subsets get too small. The general rule of thumb is to set `nSets` so that each subset has between 1000 and 5000 genes or cells. We will see an example of this on real data in the next two sections.
 
-# **4. Additional Features of CoGAPS**
+# **3. Additional Features of CoGAPS**
 
-## 4.1 Checkpoint System -- Saving/Loading CoGAPS Runs
+## 3.1 Checkpoint System: Saving/Loading CoGAPS Runs
 CoGAPS allows the user to save their progress throughout the run, and restart from the latest saved “checkpoint”. This is intended so that if the server crashes in the middle of a long run it doesn’t need to be restarted from the beginning. Set the `checkpointInterval` parameter to save checkpoints and pass a file name as `checkpointInFile` to load from a checkpoint.
 
 ```python
@@ -244,10 +269,10 @@ result1 = CoGAPS(mtx_path, params, checkpointInterval=100, checkpointOutFile="ex
 result2 = CoGAPS(mtx_path, params, checkpointInFile="example.out", messages=False)
 ```
 
-## 4.2 Transposing Data
+## 3.2 Transposing Data
 If your data is stored as samples x genes, CoGAPS allows you to pass `transposeData=True` and will automatically read the transpose of your data to get the required genes x samples configuration.
 
-## 4.3 Passing Uncertainty Matrix
+## 3.3 Passing Uncertainty Matrix
 In addition to providing the data, the user can also specify an uncertainty measurement - the standard deviation of each entry in the data matrix. By default, CoGAPS assumes that the standard deviation matrix is 10% of the data matrix. This is a reasonable heuristic to use, but for specific types of data you may be able to provide better information.
 
 ```python
@@ -255,9 +280,9 @@ In addition to providing the data, the user can also specify an uncertainty meas
 result = CoGAPS(path, params, uncertainty=GIST_uncertainty.csv)
 ```
 
-## 4.4 Distributed CoGAPS
+## 3.4 Distributed CoGAPS
 
-### 4.4.1 Methods of Subsetting Data
+### 3.4.1 Methods of Subsetting Data
 The default method for subsetting the data is to uniformly break up the rows (cols) of the data. There is an alternative option where the user provides an annotation vector for the rownames (colnames) of the data and gives a weight to each category in the annotation vector. Equal sized subsets are then drawn by sampling all rows (cols) according to the weight of each category.
 
 ```python
@@ -291,21 +316,21 @@ params.setDistributedParams(nSets=len(sets))
 result = CoGAPS(path, params)
 ```
 
-### 4.4.2 Additional Return Information
+### 3.4.2 Additional Return Information
 When running distributed CoGAPS, some additional metadata is returned that relates to the pattern matching process. This process is how CoGAPS stitches the results from each subset back together.
 
 ```
 TODO: once implement unmatched patterns
 ```
 
-### 4.4.3 Manual Pipeline
+### 3.4.3 Manual Pipeline
 CoGAPS allows for a custom process for matching the patterns together. If you have a result object from a previous run of Distributed CoGAPS, the unmatched patterns for each subset are found by calling `getUnmatchedPatterns`. Apply any method you like as long as the result is a matrix with the number of rows equal to the number of samples (genes) and the number of columns is equal to the number of patterns. Then pass the matrix to the `fixedPatterns` argument along with the original parameters for the GWCoGAPS/scCoGAPS run.
 
 ```
 TODO: once implement unmatched patterns
 ```
 
-# **5. Citing CoGAPS**
+# **4. Citing CoGAPS**
 If you use the CoGAPS package for your analysis, please cite Fertig et al. (2010)
 
 If you use the gene set statistic, please cite Ochs et al. (2009)
