@@ -195,8 +195,15 @@ result["anndata"]
 TODO: add image representation of anndata object 
 ```
 
+```
+TODO: result stat functions, etc. here
+```
+
 ## 2.4 Visualizing Output
-The result object can be passed on to the analysis and plotting functions provided in the package. By default, the `plot` function displays how the patterns vary across the samples.
+The result object can be passed on to the analysis and plotting functions provided in the package. 
+
+### 2.4.1 Default Plot
+By default, the `plot` function displays how the patterns vary across the samples.
 
 ```python
 # plot result object returned from CoGAPS
@@ -207,9 +214,50 @@ plot(result)
 
 [show]: https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/res_show.png "show result function"
 
+### 2.4.2 Residuals Plot
+`plotResiduals` calculates residuals and produces a heatmap.
+
+```python
+plotResiduals(result)
 ```
-TODO: output plotting, stat functions, etc. here
+
+![alt text][plot residuals] 
+
+[plot residuals]: https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/plot_residuals.png "plot residuals"
+
+
+### 2.4.3 Pattern Markers Plot
+`plotPatternMarkers` plots a heatmap of the original data clustered by the pattern markers statistic, which computes the most associated pattern for each gene.
+
+```python
+plotPatternMarkers(result, legend_pos=None)
 ```
+
+![alt text][plot pm] 
+
+[plot pm]: https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/plot_pm.png "plot pattern markers"
+
+### 2.4.4 Binary Plot
+`binaryA` creates a binarized heatmap of the A matrix in which the value is 1 if the value in Amean is greater
+than `threshold * Asd` and 0 otherwise.
+
+```python
+binaryA(result, threshold=3)
+```
+
+![alt text][plot binaryA] 
+
+[plot binaryA]: https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/binaryA.png "plot binary hm"
+
+```python
+# plotting clustered binary plot
+binaryA(result, threshold=3, cluster=True)
+```
+
+![alt text][plot binaryA cluster] 
+
+[plot binaryA cluster]: https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/binaryA_cluster.png "plot binary hm, cluster"
+
 
 ## 2.5 Running CoGAPS in Parallel
 Non-Negative Matrix Factorization algorithms typically require long computation times and CoGAPS is no exception. In order to scale CoGAPS up to the size of data sets seen in practice we need to take advantage of modern hardware and parallelize the algorithm.
