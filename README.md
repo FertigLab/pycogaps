@@ -12,6 +12,7 @@ This package, PyCoGAPS, presents a unified python interface, with a parallel, ef
   2.2 [ Running CoGAPS with Custom Parameters ](#22-running-cogaps-with-custom-parameters)  
   2.3 [ Breaking Down the Return Object from CoGAPS ](#23-breaking-down-the-return-object-from-cogaps)  
   2.4 [ Visualizing Output ](#24-visualizing-output)  
+    2.4.1 [ Default Plot ](#241-default-plot)  
   2.5 [ Running CoGAPS in Parallel ](#25-running-cogaps-in-parallel)
 3. [ Additional Features of CoGAPS ](#3-additional-features-of-cogaps)  
   3.1 [ Checkpoint System: Saving/Loading CoGAPS Runs ](#31-checkpoint-system-savingloading-cogaps-runs)  
