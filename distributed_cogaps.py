@@ -4,16 +4,20 @@ import warnings
 import pathos
 import dill
 import multiprocessing
-import distcaller
+import main
+from multiprocessing import Pool, TimeoutError
+import time
+import os
+
 
 def callInternalCoGAPS(data, allParams, uncertainty=None, subsetIndices=None, workerID=None):
     print("in callinternalcogaps function, name is", __name__)
     genomewide = allParams.coparams["distributed"] == "genome-wide"
 
-    if genomewide:
-        allParams.coparams["geneNames"] = allParams.coparams["geneNames"][subsetIndices]
-    else:
-        allParams.coparams["sampleNames"] = allParams.coparams["sampleNames"][subsetIndices]
+    # if genomewide:
+    #     allParams.coparams["geneNames"] = allParams.coparams["geneNames"][subsetIndices]
+    # else:
+    #     allParams.coparams["sampleNames"] = np.array(allParams.coparams["sampleNames"])[subsetIndices]
 
     allParams.coparams["subsetIndices"] = subsetIndices
     if genomewide:
@@ -23,7 +27,7 @@ def callInternalCoGAPS(data, allParams, uncertainty=None, subsetIndices=None, wo
 
     allParams.gaps.workerID = workerID
     allParams.gaps.asynchronousUpdates = None
-    allParams.gaps.nThreads = 1
+    # allParams.gaps.nThreads = 1
 
     return CoGAPS(data, allParams, uncertainty)
 
@@ -37,47 +41,25 @@ def distributedCoGAPS(data, allParams, uncertainty=None):
     print("in distributed cogaps function, name is", __name__)
     # step 0: if the user passed in a path, fetch data and convert to anndata object
     if isinstance(data, str):
+        path = data
         data = toAnndata(data)
     # step 1: randomly break up the data
     sets = createSets(data, allParams)
+    print("number of sets is", len(sets))
     if min(len(s) for s in sets) < allParams.gaps.nPatterns:
         warnings.warn("data subset dimension less than nPatterns--terminating execution")
         return
 
-    processes = []
     if allParams.coparams["fixedPatterns"] is None:
         print("beginning multithreading, name is...", __name__)
-        if __name__ == 'distributed_cogaps':
-            # pool = pathos.multiprocessing.Pool(processes=len(sets))
-            # results = pool.map(callInternalCoGAPS(), [data, allParams, uncertainty, sets])
-            # p = pp.ProcessPool(len(sets))
-            # pool = multiprocessing.Pool(processes=(len(sets)))
-
-            processes=[]
+        # start 4 worker processes
+        with Pool(processes=len(sets)) as pool:
             for i in range(len(sets)):
+            # print(pool.apply(main.callinternal, args=(data, allParams, uncertainty, sets[1], 1)))
+                print("run", i, "result is", pool.apply(main.callinternal, args=(path, allParams, uncertainty, sets[1], 1)))
                 # if __name__ == '__main__':
-                print("in multithreading loop: run", i)
-                p = multiprocessing.Process(target=distcaller.callinternal, args=(data, allParams, uncertainty, sets[i], i))
-                processes.append(p)
-                print("added process", i)
-                p.start()
-                # p.map(callInternalCoGAPS, [data, allParams, uncertainty, sets[i], i])
-                # multiprocess.Pool(processes=len(sets)).map(callInternalCoGAPS, [data, allParams, uncertainty, sets[i], i])
-                # pool.apply_async(callInternalCoGAPS, args=(data, allParams, uncertainty, sets[i], i))
-                # res=pool.apply_async(add, args=(1,2))
-                # print("result was", res)
-                print("started a process")
-            for p in processes:
-                print("joining")
-                p.join()
-            # pool.close()
-            # # print("closed")
-            #     pool.join()
-            #     print("joined")
-            # pool.close()
-            # print("closed")
-            return
-                #
+                # print("in multithreading loop: run", i)
+                # p = multiprocessing.Process(target=distcaller.callinternal, args=(data, allParams, uncertainty, sets[i], i))
                 # processes.append(p)
                 # print(p.name, "created")
                 # print("starting", p.name, "with id", p.pid)

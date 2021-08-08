@@ -7,11 +7,13 @@ import anndata
 from helper_functions import *
 import distributed_cogaps
 
+
 class CoParams:
     '''
     self.gaps : GapsParameters object
     self.cogaps : dictionary of additional parameters (not in GapsParameters)
     '''
+
     def __init__(self, path=None, matrix=None, params=None, hdfKey=None):
         if matrix is not None:
             self.gaps = GapsParameters(matrix)
@@ -28,25 +30,25 @@ class CoParams:
             raise Exception('initialize with path= or params=')
 
         self.coparams = {'cut': self.gaps.nPatterns,
-                            'nSets': 4,
-                            'minNS': None,
-                            'maxNS': None,
-                            'explicitSets': None,
-                            'samplingAnnotation': None,
-                            'samplingWeight': None,
-                            'subsetIndices': None,
-                            'subsetDim': 0,
-                            'geneNames': None,
-                            'sampleNames': None,
-                            'fixedPatterns': None,
-                            'distributed': None,
-                            'hdfKey': hdfKey,
-                        }
+                         'nSets': 4,
+                         'minNS': None,
+                         'maxNS': None,
+                         'explicitSets': None,
+                         'samplingAnnotation': None,
+                         'samplingWeight': None,
+                         'subsetIndices': None,
+                         'subsetDim': 0,
+                         'geneNames': None,
+                         'sampleNames': None,
+                         'fixedPatterns': None,
+                         'distributed': None,
+                         'hdfKey': hdfKey,
+                         }
         self.coparams['minNS'] = math.ceil(self.coparams['cut'] / 2)
         self.coparams['maxNS'] = self.coparams['minNS'] + self.coparams['nSets']
 
-
-    def setDistributedParams(self, distributed=None, nSets=None, cut=None, minNS=None, maxNS=None):
+    def setDistributedParams(self, distributed=None, nSets=None, cut=None, minNS=None, maxNS=None, sampleNames=None,
+                             subsetIndices=None):
         print("setting distributed parameters - call this again if you change nPatterns")
         if distributed == "genome-wide":
             self.coparams['distributed'] = distributed
@@ -69,6 +71,14 @@ class CoParams:
             self.coparams['maxNS'] = self.coparams['minNS'] + self.coparams['nSets']
         else:
             self.coparams['maxNS'] = minNS
+        if sampleNames is None:
+            self.coparams["sampleNames"] = None
+        else:
+            self.coparams["sampleNames"] = sampleNames
+        if subsetIndices is None:
+            self.coparams["subsetIndices"] = None
+        else:
+            self.coparams["subsetIndices"] = subsetIndices
 
     # samplingWeight is a dictionary
     # can use: dict(zip(names, weights))
@@ -99,7 +109,7 @@ class CoParams:
             print('minNS: ', self.coparams['minNS'])
             print('maxNS: ', self.coparams['maxNS'])
             print('\n')
-        
+
     # print all GapsParameters 
     def print_all(self):
         print("\n----------- Parameters -----------\n")
@@ -236,7 +246,7 @@ def runDistributedCoGAPS(path, params=None, uncertainty=None):
     return distributed_cogaps.distributedCoGAPS(path, params, uncertainty)
 
 
-def GapsResultToAnnData (gapsresult:pycogaps.GapsResult, adata, prm:pycogaps.GapsParameters):
+def GapsResultToAnnData(gapsresult: pycogaps.GapsResult, adata, prm: pycogaps.GapsParameters):
     # convert Amean and Pmean results to numpy arrays
     Amean = toNumpy(gapsresult.Amean)
     Pmean = toNumpy(gapsresult.Pmean)
@@ -257,7 +267,7 @@ def GapsParameters(path):
     return pycogaps.GapsParameters(path)
 
 
-def GapsParameters(mtx:pycogaps.Matrix):
+def GapsParameters(mtx: pycogaps.Matrix):
     return pycogaps.GapsParameters(mtx)
 
 
@@ -332,4 +342,3 @@ def setParam(paramobj: CoParams, whichParam, value):
 
 def getParam(paramobj, whichParam):
     return getattr(paramobj, whichParam)
-

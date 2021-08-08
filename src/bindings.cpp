@@ -145,7 +145,7 @@ PYBIND11_MODULE(pycogaps, m)
                     throw std::runtime_error("Invalid state!");
 
                 /* Create a new C++ instance */
-                GapsParameters p(t[0].cast<std::string>());
+                GapsParameters p("./data/GIST.csv");
 
 //                /* Assign any additional state */
 //                p.setExtra(t[1].cast<int>());
@@ -160,6 +160,23 @@ PYBIND11_MODULE(pycogaps, m)
 
     py::class_<GapsResult>(m, "GapsResult")
         .def(py::init<const GapsStatistics &>())
+        .def(py::pickle([](const GapsResult &p) { // __getstate__
+            /* Return a tuple that fully encodes the state of the object */
+                return py::make_tuple(p.Amean, p.Asd);
+            },
+            [](py::tuple t) { // __setstate__
+                if (t.size() != 2)
+                    throw std::runtime_error("Invalid state!");
+
+            /* Create a new C++ instance */
+                GapsResult p();
+
+            /* Assign any additional state */
+//                p.setExtra(t[1].cast<int>());
+
+                return p;
+            }
+         ))
         .def("writeToFile", &GapsResult::writeToFile)
         .def_readwrite("Amean", &GapsResult::Amean)
         .def_readwrite("Asd", &GapsResult::Asd)
