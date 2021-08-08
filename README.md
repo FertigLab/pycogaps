@@ -6,27 +6,17 @@ This package, PyCoGAPS, presents a unified python interface, with a parallel, ef
 # **Table of Contents**
 
 1. [ Installation ](#1-installation)
-2. [ Usage ](#2-usage)
-  2.1 [ Running CoGAPS with Default Parameters ](#21-running-cogaps-with-default-parameters)
-</br>
-  2.2 [ Running CoGAPS with Custom Parameters ](#22-running-cogaps-with-custom-parameters)
-</br>
-  2.3 [ Breaking Down the Return Object from CoGAPS ](#23-breaking-down-the-return-object-from-cogaps)
-</br>
-  2.4 [ Visualizing Output ](#24-visualizing-output)
-</br>
+2. [ Usage ](#2-usage)  
+  2.1 [ Running CoGAPS with Default Parameters ](#21-running-cogaps-with-default-parameters)  
+  2.2 [ Running CoGAPS with Custom Parameters ](#22-running-cogaps-with-custom-parameters)  
+  2.3 [ Breaking Down the Return Object from CoGAPS ](#23-breaking-down-the-return-object-from-cogaps)  
+  2.4 [ Visualizing Output ](#24-visualizing-output)  
   2.5 [ Running CoGAPS in Parallel ](#25-running-cogaps-in-parallel)
-</br>
-3. [ Additional Features of CoGAPS ](#3-additional-features-of-cogaps)
-</br>
-  3.1 [ Checkpoint System: Saving/Loading CoGAPS Runs ](#31-checkpoint-system:-saving/loading-cogaps-runs)
-</br>
-  3.2 [ Transposing Data ](#32-transposing-data)
-</br>
-  3.3 [ Passing Uncertainty Matrix ](#33-passing-uncertainty-matrix)
-</br>
-  3.4 [ Distributed CoGAPS ](#34-distributed-cogaps)
-</br>
+3. [ Additional Features of CoGAPS ](#3-additional-features-of-cogaps)  
+  3.1 [ Checkpoint System: Saving/Loading CoGAPS Runs ](#31-checkpoint-system:-saving/loading-cogaps-runs)  
+  3.2 [ Transposing Data ](#32-transposing-data)  
+  3.3 [ Passing Uncertainty Matrix ](#33-passing-uncertainty-matrix)  
+  3.4 [ Distributed CoGAPS ](#34-distributed-cogaps)  
 4. [ Citing CoGAPS ](#4-citing-cogaps)
 
 
