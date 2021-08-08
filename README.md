@@ -12,7 +12,6 @@ This package, PyCoGAPS, presents a unified python interface, with a parallel, ef
   2.2 [ Running CoGAPS with Custom Parameters ](#22-running-cogaps-with-custom-parameters)  
   2.3 [ Breaking Down the Return Object from CoGAPS ](#23-breaking-down-the-return-object-from-cogaps)  
   2.4 [ Visualizing Output ](#24-visualizing-output)        
-        2.4.1 [ Default Plot ](#241-default-plot)  
   2.5 [ Running CoGAPS in Parallel ](#25-running-cogaps-in-parallel)
 3. [ Additional Features of CoGAPS ](#3-additional-features-of-cogaps)  
   3.1 [ Checkpoint System: Saving/Loading CoGAPS Runs ](#31-checkpoint-system-savingloading-cogaps-runs)  
@@ -196,12 +195,18 @@ result["anndata"]
 TODO: add image representation of anndata object 
 ```
 
-```
-TODO: result stat functions, etc. here
-```
-
 ## 2.4 Visualizing Output
 The result object can be passed on to the analysis and plotting functions provided in the package. 
+
+2.4.1 [ Default Plot ](#241-default-plot)  
+2.4.2 [ Residuals Plot ](#242-residuals-plot)  
+2.4.3 [ Pattern Markers Plot ](#243-pattern-markers-plot)  
+2.4.4 [ Binary Plot ](#244-binarya-plot)  
+2.4.5 [ Calculate CoGAPS Statistics ](#245-calculate-cogaps-statistics)  
+2.4.6 [ Calculate Gene GSS Statistic ](#246-calculate-gene-gss-statistic)  
+2.4.7 [ Calculate Gene GS Probability ](#247-calculate-gene-gs-probability)  
+
+
 
 ### 2.4.1 Default Plot
 By default, the `plot` function displays how the patterns vary across the samples.
@@ -258,6 +263,58 @@ binaryA(result, threshold=3, cluster=True)
 ![alt text][plot binaryA cluster] 
 
 [plot binaryA cluster]: https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/binaryA_cluster.png "plot binary hm, cluster"
+
+### 2.4.5 Calculate CoGAPS Statistics
+`calcCoGAPSStat` calculates a statistic to determine if a pattern is enriched in a a particular set of measurements or samples.
+
+```python
+# sets is list of sets of measurements/samples
+stats = calcCoGAPSStat(result, sets=['Hs.101174', 'Hs.1012'])
+```
+
+```
+{'twoSidedPValue':               
+Pattern1  0.496
+Pattern2  0.353
+Pattern3  0.289, 
+'GSUpreg':                       
+Pattern1  0.496
+Pattern2  0.647
+Pattern3  0.711, 
+'GSDownreg':               
+Pattern1  0.504
+Pattern2  0.353
+Pattern3  0.289, 
+'GSActEst':               
+Pattern1  0.008
+Pattern2 -0.294
+Pattern3 -0.422}
+```
+
+### 2.4.6 Calculate Gene GSS Statistic
+`calcGeneGSStat` calculates the probability that a gene listed in a gene set behaves like other genes in the set within the given data set.
+
+```python
+stats = calcGeneGSStat(result, GStoGenes=['Hs.101174', 'Hs.1012'], numPerm=1000)
+```
+
+```
+Hs.101174  0.422955
+Hs.1012    0.391747
+```
+
+### 2.4.7 Compute Gene GS Probability
+
+`computeGeneGSProb` computes the p-value for gene set membership using the CoGAPS-based statistics developed in Fertig et al. (2012). This statistic refines set membership for each candidate gene in a set specified in GSGenes by comparing the inferred activity of that gene to the average activity of the set.
+
+```python
+stats = computeGeneGSProb(result, GStoGenes=['Hs.101174', 'Hs.1012'])
+```
+
+```
+Hs.101174  0.617193
+Hs.1012    0.887583
+```
 
 
 ## 2.5 Running CoGAPS in Parallel
