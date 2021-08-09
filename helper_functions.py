@@ -160,7 +160,8 @@ def show(obj: anndata):
     return
 
 
-def plot(obj: anndata):
+def plot(obj):
+    obj = obj["anndata"]
     samples = obj.var
     nsamples = np.shape(samples)[0]
     fig = plt.figure()
@@ -191,7 +192,8 @@ def getPatternMatrix(object):
     return object.var
 
 # TODO need to access chisq through anndata
-def getMeanChiSq(object: GapsResult):
+def getMeanChiSq(object):
+    object = object["GapsResult"]
     return object.meanChiSq
 
 
@@ -249,7 +251,7 @@ def reconstructGene(object: anndata, genes=None):
     return D
 
 
-def binaryA(object: anndata, threshold, nrows="all", cluster=False):
+def binaryA(object, threshold, nrows="all", cluster=False):
     """
     plots a binary heatmap with each entry representing whether
     that position in the A matrix has a value greater than (black)
@@ -263,6 +265,7 @@ def binaryA(object: anndata, threshold, nrows="all", cluster=False):
     and skinny feature matrices)
     @return: matplotlib plot object
     """
+    object = object["anndata"]
     binA = calcZ(object, whichMatrix="featureLoadings")
     if nrows != "all":
         binA = binA[1:nrows, :]
@@ -278,13 +281,14 @@ def binaryA(object: anndata, threshold, nrows="all", cluster=False):
     return hm
 
 
-def plotResiduals(object: anndata, uncertainty=None, legend=False):
+def plotResiduals(object, uncertainty=None, legend=False):
     """
     generate a residual plot
     @param object: AnnData object
     @param uncertainty: original SD matrix with which GAPS was run
     @return: matplotlib plot object
     """
+    object = object["anndata"]
     rawdata = object.X
     if uncertainty is None:
         uncertainty = np.where(rawdata * 0.1 > 0.1, rawdata * 0.1, 0.1)
@@ -465,7 +469,7 @@ def computeGeneGSProb(object, GStoGenes, numPerm=500, Pw=None, PwNull=False):
 
 
 
-def plotPatternMarkers(data: anndata, patternmarkers=None, patternPalette=None,
+def plotPatternMarkers(data, patternmarkers=None, patternPalette=None,
                        samplePalette=None, colorscheme="coolwarm",
                        colDendrogram=True, rowDendrogram=False, scale="row", legend_pos=None):
     """
@@ -480,6 +484,7 @@ def plotPatternMarkers(data: anndata, patternmarkers=None, patternPalette=None,
     @param legend_pos: string indicating legend position, or none (no legend). default is none
 )    @return: a clustergrid instance
     """
+    data = data["anndata"]
     if patternmarkers is None:
         patternmarkers=patternMarkers(data)
     if samplePalette is None:
