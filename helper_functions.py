@@ -16,7 +16,7 @@ mpl.use('tkagg')
 
 
 def supported(file):
-    return file.lower().endswith((".tsv", ".csv", ".mtx", ".h5ad", ".h5"))  # currently gct not supported w/ anndata
+    return file.lower().endswith((".tsv", ".csv", ".mtx", ".h5ad", ".h5", ".gct")) 
 
 
 def checkData(adata, params, uncertainty=None):
@@ -53,8 +53,11 @@ def toAnndata(file, hdf_key=None):
     elif file.lower().endswith(".h5"):
         if hdf_key is None:
             raise Exception("set dataset name from hdf file to use with params = CoParams(path=filename, hdfKey=key")
-        adata = anndata.read_hdf(file, hdf_key) # change to user supplied key
-    # elif file.lower().endswith(".gct")
+        adata = anndata.read_hdf(file, hdf_key) # user supplied key
+    elif file.lower().endswith(".gct"):
+        csv_table = pd.read_csv(file, sep='\t', skiprows=2)
+        csv_table.to_csv('file.csv', index=False)
+        adata = anndata.read_csv('{}.csv'.format(os.path.splitext(file)[0]))
 
     if scipy.sparse.issparse(adata.X):
         adata.X = (adata.X).toarray()
