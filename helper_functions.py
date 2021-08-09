@@ -62,11 +62,21 @@ def toAnndata(file, hdf_key=None):
     return adata
 
 
-# not implemented yet - reads HDF5 file
-# we can use this for testing later 
-def getRetinaSubset(n=1):
-    if not (1 <= n <= 4):
-        raise Exception("invalid number of subsets requested")
+def checkInputs(uncertainty, allParams):
+    if uncertainty is not None and not supported(uncertainty):
+            raise Exception("unsupported file extension for uncertainty")
+    if uncertainty is not None and allParams.coparams["useSparseOptimization"] is True:
+        raise Exception("must use default uncertainty when enabling useSparseOptimization")
+    if allParams.gaps.checkpointFile is not None and not isCheckpointsEnabled():
+        raise Exception("CoGAPS was built with checkpoints disabled")
+    if allParams.gaps.snapshotFrequency > 0:
+        warnings.warn("snapshots slow down computatioin and shouldo nly be used for testing")
+
+    if allParams.coparams["distributed"] is not None:
+        if allParams.gaps.nThreads > 1:
+            warnings.warn("can't run multi-threaded and distributed CoGAPS at the same time, ignoring nThreads")
+        if allParams.gaps.checkpointFile is not None:
+            raise Exception("checkpoints not supported for distributed CoGAPS")
 
 
 def nrowHelper(data):
