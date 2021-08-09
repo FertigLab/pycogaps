@@ -173,11 +173,13 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
             'snapshotPhase': snapshotPhase,
         }
         setParams(prm, opts)
+
         if uncertainty is not None:
             unc = toAnndata(uncertainty)
             unc = pycogaps.Matrix(unc.X)
         else:
             unc = pycogaps.Matrix()
+
     else:
         # params passed in should probably be type CoParams, but just in case
         if isinstance(params, CoParams):
@@ -199,6 +201,7 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
             'snapshotPhase': snapshotPhase,
         }
         setParams(prm, opts)
+
         if uncertainty is not None:
             unc = toAnndata(uncertainty, prm.coparams['hdfKey'])
             unc = pycogaps.Matrix(unc.X)
@@ -211,8 +214,11 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
         matrix = pycogaps.Matrix(adata.X)
 
     prm = getDimNames(adata, prm)
+
     # check data input
     checkData(adata, prm.gaps, uncertainty) 
+    checkInputs(uncertainty, prm)
+
     startupMessage(prm, path)
     gapsresultobj = pycogaps.runCogapsFromMatrix(matrix, prm.gaps, unc)
 
@@ -220,6 +226,7 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
         "GapsResult": gapsresultobj,
         "anndata": GapsResultToAnnData(gapsresultobj, adata, prm.gaps)
     }
+    
     show(result["anndata"])
     return result
 
