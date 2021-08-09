@@ -34,10 +34,10 @@ GapsResult runCogaps(const std::string &path, GapsParameters params)
     return result;
 }
 
-GapsResult runCogapsFromMatrix(Matrix mat, GapsParameters params)
+GapsResult runCogapsFromMatrix(Matrix mat, GapsParameters params, Matrix unc)
 {
     GapsRandomState randState(params.seed);
-    GapsResult result(gaps::run(mat, params, Matrix(), &randState));
+    GapsResult result(gaps::run(mat, params, unc, &randState));
     return result;
 }
 

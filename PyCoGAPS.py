@@ -173,6 +173,11 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
             'snapshotPhase': snapshotPhase,
         }
         setParams(prm, opts)
+        if uncertainty is not None:
+            unc = toAnndata(uncertainty)
+            unc = pycogaps.Matrix(unc.X)
+        else:
+            unc = pycogaps.Matrix()
     else:
         # params passed in should probably be type CoParams, but just in case
         if isinstance(params, CoParams):
@@ -194,7 +199,12 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
             'snapshotPhase': snapshotPhase,
         }
         setParams(prm, opts)
-
+        if uncertainty is not None:
+            unc = toAnndata(uncertainty, prm.coparams['hdfKey'])
+            unc = pycogaps.Matrix(unc.X)
+        else:
+            unc = pycogaps.Matrix()
+        
         adata = toAnndata(path, prm.coparams['hdfKey'])
         if transposeData:
             adata = adata.transpose()
@@ -204,7 +214,7 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
     # check data input
     checkData(adata, prm.gaps, uncertainty) 
     startupMessage(prm, path)
-    gapsresultobj = pycogaps.runCogapsFromMatrix(matrix, prm.gaps)
+    gapsresultobj = pycogaps.runCogapsFromMatrix(matrix, prm.gaps, unc)
 
     result = {
         "GapsResult": gapsresultobj,
