@@ -160,6 +160,7 @@ PYBIND11_MODULE(pycogaps, m)
 
     py::class_<GapsResult>(m, "GapsResult")
         .def(py::init<const GapsStatistics &>())
+        .def(py::init<>())
         .def(py::pickle([](const GapsResult &p) { // __getstate__
             /* Return a tuple that fully encodes the state of the object */
                 return py::make_tuple(p.Amean, p.Asd);
@@ -169,7 +170,7 @@ PYBIND11_MODULE(pycogaps, m)
                     throw std::runtime_error("Invalid state!");
 
             /* Create a new C++ instance */
-                GapsResult p();
+                GapsResult p;
 
             /* Assign any additional state */
 //                p.setExtra(t[1].cast<int>());
