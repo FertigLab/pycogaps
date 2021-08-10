@@ -12,13 +12,16 @@ import os
 
 def callInternalCoGAPS(data, allParams, uncertainty=None, subsetIndices=None, workerID=None):
     print("in callinternalcogaps function, name is", __name__)
+    print("assigning genome wide")
+    subsetIndices = subsetIndices[workerID]
     genomewide = allParams.coparams["distributed"] == "genome-wide"
 
-    # if genomewide:
-    #     allParams.coparams["geneNames"] = allParams.coparams["geneNames"][subsetIndices]
-    # else:
-    #     allParams.coparams["sampleNames"] = np.array(allParams.coparams["sampleNames"])[subsetIndices]
-
+    if genomewide and allParams.coparams["geneNames"] is not None:
+        allParams.coparams["geneNames"] = allParams.coparams["geneNames"][subsetIndices]
+    else:
+        if allParams.coparams["sampleNames"] is not None:
+            allParams.coparams["sampleNames"] = allParams.coparams["sampleNames"][subsetIndices]
+    print("callinternal")
     allParams.coparams["subsetIndices"] = subsetIndices
     if genomewide:
         allParams.coparams["subsetDim"] = 1
@@ -27,14 +30,23 @@ def callInternalCoGAPS(data, allParams, uncertainty=None, subsetIndices=None, wo
 
     allParams.gaps.workerID = workerID
     allParams.gaps.asynchronousUpdates = None
-    # allParams.gaps.nThreads = 1
+    allParams.gaps.nThreads = 1
 
     return CoGAPS(data, allParams, uncertainty)
 
 
-def add(a,b):
-    print("in add fxn")
-    return a+b
+def callback():
+    print("in callback")
+
+
+def handleResult():
+    print("handler was called")
+    return "this is the hidden treasure baby"
+
+
+def goofin(mat):
+    print("in goofin")
+    return "flomillishit"
 
 
 def distributedCoGAPS(data, allParams, uncertainty=None):
@@ -53,23 +65,26 @@ def distributedCoGAPS(data, allParams, uncertainty=None):
     if allParams.coparams["fixedPatterns"] is None:
         print("beginning multithreading, name is...", __name__)
         # start 4 worker processes
-        with Pool(processes=len(sets)) as pool:
-            for i in range(len(sets)):
-            # print(pool.apply(main.callinternal, args=(data, allParams, uncertainty, sets[1], 1)))
-                print("run", i, "result is", pool.apply(main.callinternal, args=(path, allParams, uncertainty, sets[1], 1)))
-                # if __name__ == '__main__':
-                # print("in multithreading loop: run", i)
-                # p = multiprocessing.Process(target=distcaller.callinternal, args=(data, allParams, uncertainty, sets[i], i))
-                # processes.append(p)
-                # print(p.name, "created")
-                # print("starting", p.name, "with id", p.pid)
-                #
-                # print("returned from start() function for", p.name)
-            # for process in processes:
-            #     print("joining", p.name)
-            #     process.join()
-            #     print("joined", p.name)
-    return
+        i=0
+        with multiprocessing.get_context("spawn").Pool(processes=len(sets)) as pool:
+            # for i in range(len(sets)):
+            #     print("i=",i)
+            # pool.apply_async(main.callinternal, args=(path, allParams, uncertainty, sets, 1), callback=callback)
+            print("started the pool")
+            # result = pool.apply_async(callInternalCoGAPS, args=(path, allParams, uncertainty, sets[1], 1))
+            # result = pool.apply_async(CoGAPS, args=(path, allParams, uncertainty))
+            matrix = pycogaps.Matrix(5,5)
+            print("made a matrix")
+            result = pool.apply_async(goofin, args=[matrix])
+            # print("async call returned. now trying to get()")
+            # result = result.get()
+            # print("get() call returned")
+            pool.close()
+            print("closed the pool")
+            pool.join()
+            print("joined the pool")
+    print("out of the loop baby")
+    return result
 
 
 def findConsensusMatrix(unmatchedPatterns, gapsParams):

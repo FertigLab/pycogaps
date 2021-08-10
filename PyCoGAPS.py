@@ -232,8 +232,9 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
     prm = getDimNames(adata, prm)
     # check data input
     checkData(adata, prm.gaps, uncertainty)
+    print("getting result from c++")
     gapsresultobj = pycogaps.runCogapsFromMatrix(matrix, prm.gaps)
-
+    print("assembling result dict")
     result = {
         "GapsResult": gapsresultobj,
         "anndata": GapsResultToAnnData(gapsresultobj, adata, prm.gaps)

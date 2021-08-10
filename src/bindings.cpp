@@ -138,7 +138,7 @@ PYBIND11_MODULE(pycogaps, m)
         .def(py::pickle(
             [](const GapsParameters &p) { // __getstate__
                 /* Return a tuple that fully encodes the state of the object */
-                return py::make_tuple(p.fixedPatterns, p.dataIndicesSubset);
+                return py::make_tuple(p.fixedPatterns, p.dataIndicesSubset, p.maxThreads);
             },
             [](py::tuple t) { // __setstate__
                 if (t.size() != 2)
@@ -146,7 +146,7 @@ PYBIND11_MODULE(pycogaps, m)
 
                 /* Create a new C++ instance */
                 GapsParameters p("./data/GIST.csv");
-
+                p.maxThreads = t[2].cast<int>();
 //                /* Assign any additional state */
 //                p.setExtra(t[1].cast<int>());
 
@@ -163,18 +163,18 @@ PYBIND11_MODULE(pycogaps, m)
         .def(py::init<>())
         .def(py::pickle([](const GapsResult &p) { // __getstate__
             /* Return a tuple that fully encodes the state of the object */
-                return py::make_tuple(p.Amean, p.Asd);
+                return py::make_tuple(p.Amean, p.Asd, p.Pmean, p.Psd, p.pumpMatrix, p.meanPatternAssignment, p.equilibrationSnapshotsA,
+                p.equilibrationSnapshotsP, p.samplingSnapshotsA, p.samplingSnapshotsP, p.chisqHistory, p.atomHistoryA, p.atomHistoryP,
+                p.totalUpdates, p.seed, p.totalRunningTime, p.meanChiSq, p.averageQueueLengthA, p.averageQueueLengthP);
             },
             [](py::tuple t) { // __setstate__
                 if (t.size() != 2)
                     throw std::runtime_error("Invalid state!");
 
-            /* Create a new C++ instance */
+            /* Create a new C++ instance amd reassign object state completely */
                 GapsResult p;
-
-            /* Assign any additional state */
-//                p.setExtra(t[1].cast<int>());
-
+//                p.Amean = py::cast<Matrix>(t[0]);
+                p.seed = t[14].cast<std::uint64_t>();
                 return p;
             }
          ))
@@ -205,6 +205,7 @@ PYBIND11_MODULE(pycogaps, m)
 
 
     py::class_<Matrix>(m, "Matrix", py::buffer_protocol())
+        .def(py::init<const Matrix &, bool &, bool &, std::vector<unsigned> &>())
         .def(py::init<>())
         // Matrix constructed from numpy array
         .def(py::init([](py::array_t<float> b) {
@@ -229,8 +230,6 @@ PYBIND11_MODULE(pycogaps, m)
             return mat.getMatrix();
          }))
         .def(py::init<unsigned &, unsigned &>())
-        .def(py::init<const Matrix &, bool &, bool &,
-        std::vector<unsigned> &>())
         .def(py::init<const std::string &, bool &, bool &,
         std::vector<unsigned> &>())
 
@@ -249,21 +248,42 @@ PYBIND11_MODULE(pycogaps, m)
             );
         })
         .def(py::pickle(
-            [](const Matrix &p) { // __getstate__
+            [](const Matrix &mat) { // __getstate__
                 /* Return a tuple that fully encodes the state of the object */
-                return py::make_tuple(p.nRow(), p.nCol());
+                int cols = mat.nCol();
+                int rows = mat.nRow();
+                std::cout << "cols: " << cols;
+                std::cout << "rows: " << rows;
+                // assumes using std::vector for brevity
+                std::vector<std::vector<int>> a(rows, std::vector<int>(cols));
+                std::cout << "C array:\n";
+                for (int i = 0; i < rows; ++i) {
+                    for (int j = 0; j < cols; ++j) {
+                        a[i][j] = mat.operator()(i,j);
+                        std::cout << a[i][j];
+                    }
+                    std::cout << std::endl;
+                }
+                return py::make_tuple(a, rows, cols);
             },
             [](py::tuple t) { // __setstate__
-                if (t.size() != 2)
-                    throw std::runtime_error("Invalid state!");
+//                if (t.size() != 2)
+//                    throw std::runtime_error("Invalid state!");
+                int rows = t[1].cast<int>();
+                int cols = t[2].cast<int>();
+                Matrix mat = Matrix(rows, cols);
+                std::vector<std::vector<int>> ptr(rows, std::vector<int>(cols));
 
-                /* Create a new C++ instance */
-                Matrix p(t[0].cast<std::uint64_t>(), t[1].cast<std::uint64_t>());
-
-//                /* Assign any additional state */
-//                p.setExtra(t[1].cast<int>());
-
-                return p;
+                for(int i = 0; i < rows; i++)
+                {
+                    for (int j = 0; j < cols; j++)
+                    {
+                        std::cout << ptr[i][j] << " ";
+                        mat.operator()(i,j) = ptr[i][j];
+                    }
+                    std::cout << std::endl;
+                }
+                return mat;
             }
         ));
 }
