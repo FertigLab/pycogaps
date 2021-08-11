@@ -37,7 +37,7 @@ def checkData(adata, params, uncertainty=None):
         raise Exception('nPatterns must be less than dimensions of data')
 
 
-def toAnndata(file, hdf_key=None):
+def toAnndata(file, hdf_key=None, transposeData=False):
     if not supported(file):
         raise Exception("unsupported data type")
     if file.lower().endswith(".csv"):
@@ -61,6 +61,9 @@ def toAnndata(file, hdf_key=None):
 
     if scipy.sparse.issparse(adata.X):
         adata.X = (adata.X).toarray()
+    
+    if transposeData:
+        adata = adata.transpose()
 
     return adata
 
