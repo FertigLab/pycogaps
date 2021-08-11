@@ -369,7 +369,15 @@ result2 = CoGAPS(mtx_path, params, checkpointInFile="example.out", messages=Fals
 ```
 
 ## 3.2 Transposing Data
-If your data is stored as samples x genes, CoGAPS allows you to pass `transposeData=True` and will automatically read the transpose of your data to get the required genes x samples configuration.
+If your data is stored as samples x genes, CoGAPS allows you to pass `transposeData=True` and will automatically read the transpose of your data to get the required genes x samples configuration. In order to transpose data, you must pass `transposeData=True` as an argument to both `CoGAPS()` and to `CoParams()`.
+
+```python
+# create CoParams object with transposeData argument
+params = CoParams(path, transposeData=True)
+
+# run CoGAPS as usual, with transposeData argument
+result = CoGAPS(path, transposeData=True)
+```
 
 ## 3.3 Passing Uncertainty Matrix
 In addition to providing the data, the user can also specify an uncertainty measurement - the standard deviation of each entry in the data matrix. By default, CoGAPS assumes that the standard deviation matrix is 10% of the data matrix. This is a reasonable heuristic to use, but for specific types of data you may be able to provide better information.

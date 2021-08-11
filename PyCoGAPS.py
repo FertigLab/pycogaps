@@ -1,5 +1,6 @@
 import time
 import math
+from numpy.core.fromnumeric import transpose
 
 import pandas as pd
 import pycogaps
@@ -11,18 +12,16 @@ class CoParams:
     self.gaps : GapsParameters object
     self.cogaps : dictionary of additional parameters (not in GapsParameters)
     '''
-    def __init__(self, path=None, matrix=None, params=None, hdfKey=None):
+    def __init__(self, path=None, matrix=None, transposeData=False, hdfKey=None):
         if matrix is not None:
             self.gaps = GapsParameters(matrix)
         elif path is not None:
             if not path.lower().endswith(".h5"):
-                adata = toAnndata(path)
+                adata = toAnndata(path, transposeData=transposeData)
             else:
-                adata = toAnndata(path, hdfKey)
+                adata = toAnndata(path, hdfKey, transposeData=transposeData)
             matrix = pycogaps.Matrix(adata.X)
             self.gaps = GapsParameters(matrix)
-        elif params is not None:
-            self.gaps = params
         else:
             raise Exception('initialize with path= or params=')
 
@@ -41,6 +40,7 @@ class CoParams:
                             'distributed': None,
                             'hdfKey': hdfKey,
                             'useSparseOptimization': None,
+                            'transposeData': transposeData,
                         }
         self.coparams['minNS'] = math.ceil(self.coparams['cut'] / 2)
         self.coparams['maxNS'] = self.coparams['minNS'] + self.coparams['nSets']
@@ -107,7 +107,7 @@ class CoParams:
 
 def CoGAPS(path, params=None, nThreads=1, messages=True,
            outputFrequency=1000, uncertainty=None, checkpointOutFile="gaps_checkpoint.out",
-           checkpointInterval=0, checkpointInFile="", transposeData=None,
+           checkpointInterval=0, checkpointInFile="", transposeData=False,
            BPPARAM=None, workerID=1, asynchronousUpdates=None, nSnapshots=0,
            snapshotPhase='sampling'):
     """
@@ -149,69 +149,41 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
         return
 
     gapsresultobj = None
-    if params is None:
 
-        # convert data to anndata and matrix obj
-        adata = toAnndata(path)
-        if transposeData:
-            adata = adata.transpose()
-        matrix = pycogaps.Matrix(adata.X)
-
-        # construct a parameters object using whatever was passed in
-        prm = CoParams(matrix=matrix)
-        opts = {
-            'maxThreads': nThreads,
-            'printMessages': messages,
-            'outputFrequency': outputFrequency,
-            'checkpointOutFile': checkpointOutFile,
-            'checkpointInterval': checkpointInterval,
-            'checkpointFile': checkpointInFile,
-            # 'transposeData': transposeData,
-            'workerID': workerID,
-            'asynchronousUpdates': asynchronousUpdates,
-            'snapshotFrequency': nSnapshots,
-            'snapshotPhase': snapshotPhase,
-        }
-        setParams(prm, opts)
-
-        if uncertainty is not None:
-            unc = toAnndata(uncertainty)
-            unc = pycogaps.Matrix(unc.X)
-        else:
-            unc = pycogaps.Matrix()
-
+    # convert data to anndata and matrix obj
+    if params is not None:
+        adata = toAnndata(path, params.coparams['hdfKey'], transposeData=transposeData)
     else:
-        # params passed in should probably be type CoParams, but just in case
-        if isinstance(params, CoParams):
-            prm = params
-        else:
-            prm = CoParams(params=params)
+        adata = toAnndata(path, transposeData=transposeData)
 
-        opts = {
-            'maxThreads': nThreads,
-            'printMessages': messages,
-            'outputFrequency': outputFrequency,
-            'checkpointOutFile': checkpointOutFile,
-            'checkpointInterval': checkpointInterval,
-            'checkpointFile': checkpointInFile,
-            # 'transposeData': transposeData,
-            'workerID': workerID,
-            'asynchronousUpdates': asynchronousUpdates,
-            'snapshotFrequency': nSnapshots,
-            'snapshotPhase': snapshotPhase,
-        }
-        setParams(prm, opts)
+    matrix = pycogaps.Matrix(adata.X)
 
-        if uncertainty is not None:
-            unc = toAnndata(uncertainty, prm.coparams['hdfKey'])
-            unc = pycogaps.Matrix(unc.X)
-        else:
-            unc = pycogaps.Matrix()
-        
-        adata = toAnndata(path, prm.coparams['hdfKey'])
-        if transposeData:
-            adata = adata.transpose()
-        matrix = pycogaps.Matrix(adata.X)
+    if params is None:
+        prm = CoParams(matrix=matrix, transposeData=transposeData)
+    else:
+        prm = params
+
+    opts = {
+        'maxThreads': nThreads,
+        'printMessages': messages,
+        'outputFrequency': outputFrequency,
+        'checkpointOutFile': checkpointOutFile,
+        'checkpointInterval': checkpointInterval,
+        'checkpointFile': checkpointInFile,
+        # 'transposeData': transposeData,
+        'workerID': workerID,
+        'asynchronousUpdates': asynchronousUpdates,
+        'snapshotFrequency': nSnapshots,
+        'snapshotPhase': snapshotPhase,
+    }
+    setParams(prm, opts)
+
+    if uncertainty is not None:
+        unc = toAnndata(uncertainty)
+        unc = pycogaps.Matrix(unc.X)
+    else:
+        unc = pycogaps.Matrix()
+
 
     prm = getDimNames(adata, prm)
 
@@ -221,12 +193,16 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
 
     startupMessage(prm, path)
     gapsresultobj = pycogaps.runCogapsFromMatrix(matrix, prm.gaps, unc)
+    prm.gaps.transposeData = transposeData
+
+    if prm.gaps.transposeData != prm.coparams["transposeData"]:
+        raise Exception("make sure to pass transposeData=True argument in both CoParams() and CoGAPS()")
 
     result = {
         "GapsResult": gapsresultobj,
         "anndata": GapsResultToAnnData(gapsresultobj, adata, prm.gaps)
     }
-    
+
     show(result["anndata"])
     return result
 
@@ -242,10 +218,11 @@ def GapsResultToAnnData (gapsresult:GapsResult, adata, prm:GapsParameters):
     Psd = toNumpy(gapsresult.Psd)
     pattern_labels = ["Pattern" + str(i) for i in range(1, prm.nPatterns + 1)]
     # load adata obs and var from Amean and Pmean results
-    A_mat = pd.DataFrame(data=Amean, index=adata.obs_names, columns=pattern_labels)
-    adata.obs = A_mat
-    P_mat = pd.DataFrame(data=Pmean, index=adata.var_names, columns=pattern_labels)
-    adata.var = P_mat
+    print(adata.X)
+    print(Amean)
+    print(Pmean)
+    adata.obs = pd.DataFrame(data=Amean, index=adata.obs_names, columns=pattern_labels)
+    adata.var = pd.DataFrame(data=Pmean, index=adata.var_names, columns=pattern_labels)
     adata.uns["asd"] = pd.DataFrame(data=Asd, index=adata.obs_names, columns=pattern_labels)
     adata.uns["psd"] = pd.DataFrame(data=Psd, index=adata.var_names, columns=pattern_labels)
     return adata
@@ -294,17 +271,15 @@ def setParam(paramobj: CoParams, whichParam, value):
     @param value: the value to set whichParam as
     @return: nothing paramobj will be modified
     """
-
+    coparam_params = ['hdfKey', 'explicitSets', 'subsetDim', 'geneNames', 'sampleNames']
     if whichParam == "alpha":
         paramobj.gaps.alphaA = value
         paramobj.gaps.alphaP = value
     elif whichParam == "maxGibbsMass":
         paramobj.gaps.maxGibbsMassA = value
         paramobj.gaps.maxGibbsMassP = value
-    elif whichParam == 'hdfKey':
-        paramobj.coparams['hdfKey'] = value
-    elif whichParam in ("explicitSets"):
-        paramobj.coparams['explicitSets'] = value
+    elif whichParam in coparam_params:
+        paramobj.coparams[whichParam] = value
     elif whichParam in ("distributed"):
         if value == "genome-wide":
             paramobj.gaps.runningDistributed = True
