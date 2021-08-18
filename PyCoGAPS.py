@@ -1,6 +1,5 @@
 import time
 import math
-from numpy.core.fromnumeric import transpose
 
 import pandas as pd
 import pycogaps
