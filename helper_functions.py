@@ -11,10 +11,12 @@ from scipy.stats import zscore
 import warnings
 from PyCoGAPS import *
 import os
+mpl.use('tkagg')
+
 
 
 def supported(file):
-    return file.lower().endswith((".tsv", ".csv", ".mtx", ".h5ad", ".h5"))  # currently gct not supported w/ anndata
+    return file.lower().endswith((".tsv", ".csv", ".mtx", ".h5ad", ".h5", ".gct")) 
 
 
 def checkData(adata, params, uncertainty=None):
@@ -35,7 +37,7 @@ def checkData(adata, params, uncertainty=None):
         raise Exception('nPatterns must be less than dimensions of data')
 
 
-def toAnndata(file, hdf_key=None):
+def toAnndata(file, hdf_key=None, transposeData=False):
     if not supported(file):
         raise Exception("unsupported data type")
     if file.lower().endswith(".csv"):
@@ -51,20 +53,36 @@ def toAnndata(file, hdf_key=None):
     elif file.lower().endswith(".h5"):
         if hdf_key is None:
             raise Exception("set dataset name from hdf file to use with params = CoParams(path=filename, hdfKey=key")
-        adata = anndata.read_hdf(file, hdf_key) # change to user supplied key
-    # elif file.lower().endswith(".gct")
+        adata = anndata.read_hdf(file, hdf_key) # user supplied key
+    elif file.lower().endswith(".gct"):
+        csv_table = pd.read_csv(file, sep='\t', skiprows=2)
+        csv_table.to_csv('file.csv', index=False)
+        adata = anndata.read_csv('{}.csv'.format(os.path.splitext(file)[0]))
 
     if scipy.sparse.issparse(adata.X):
         adata.X = (adata.X).toarray()
+    
+    if transposeData:
+        adata = adata.transpose()
 
     return adata
 
 
-# not implemented yet - reads HDF5 file
-# we can use this for testing later 
-def getRetinaSubset(n=1):
-    if not (1 <= n <= 4):
-        raise Exception("invalid number of subsets requested")
+def checkInputs(uncertainty, allParams):
+    if uncertainty is not None and not supported(uncertainty):
+            raise Exception("unsupported file extension for uncertainty")
+    if uncertainty is not None and allParams.coparams["useSparseOptimization"] is True:
+        raise Exception("must use default uncertainty when enabling useSparseOptimization")
+    if allParams.gaps.checkpointFile is not None and not isCheckpointsEnabled():
+        raise Exception("CoGAPS was built with checkpoints disabled")
+    if allParams.gaps.snapshotFrequency > 0:
+        warnings.warn("snapshots slow down computatioin and shouldo nly be used for testing")
+
+    if allParams.coparams["distributed"] is not None:
+        if allParams.gaps.nThreads > 1:
+            warnings.warn("can't run multi-threaded and distributed CoGAPS at the same time, ignoring nThreads")
+        if allParams.gaps.checkpointFile is not None:
+            raise Exception("checkpoints not supported for distributed CoGAPS")
 
 
 def nrowHelper(data):
@@ -135,17 +153,31 @@ def getDimNames(data, allParams):
     allParams.coparams['sampleNames'] = sampleNames
     return (allParams)
 
+def startupMessage(params, path):
+    print("\nThis is ", end='')
+    getVersion()
+
+    dist_message = "Standard"
+    if params.coparams["distributed"] is not None and params.coparams["distributed"] is not False:
+        dist_message = params.coparams["distributed"]
+
+    data_name = os.path.basename(path)
+    print("Running", dist_message, "CoGAPS on", data_name, "(", len(params.coparams['geneNames']), "genes and", len(params.coparams['sampleNames']),"samples)",
+    "with parameters: ")
+    params.printParams()
+
 
 def show(obj: anndata):
     nfeatures = obj.n_obs
-    nsamples = obj.n_var
+    nsamples = obj.n_vars
     npatterns = len(obj.obs_keys())
-    print("GapsResult result object with ", nfeatures, " features and ", nsamples, " samples")
-    print(npatterns, " patterns were learned")
+    print("\nGapsResult result object with", nfeatures, "features and", nsamples, "samples")
+    print(npatterns, "patterns were learned\n")
     return
 
 
-def plot(obj: anndata):
+def plot(obj):
+    obj = obj["anndata"]
     samples = obj.var
     nsamples = np.shape(samples)[0]
     fig = plt.figure()
@@ -176,7 +208,8 @@ def getPatternMatrix(object):
     return object.var
 
 # TODO need to access chisq through anndata
-def getMeanChiSq(object: GapsResult):
+def getMeanChiSq(object):
+    object = object["GapsResult"]
     return object.meanChiSq
 
 
@@ -234,7 +267,7 @@ def reconstructGene(object: anndata, genes=None):
     return D
 
 
-def binaryA(object: anndata, threshold, nrows="all", cluster=False):
+def binaryA(object, threshold, nrows="all", cluster=False):
     """
     plots a binary heatmap with each entry representing whether
     that position in the A matrix has a value greater than (black)
@@ -248,6 +281,7 @@ def binaryA(object: anndata, threshold, nrows="all", cluster=False):
     and skinny feature matrices)
     @return: matplotlib plot object
     """
+    object = object["anndata"]
     binA = calcZ(object, whichMatrix="featureLoadings")
     if nrows != "all":
         binA = binA[1:nrows, :]
@@ -263,13 +297,14 @@ def binaryA(object: anndata, threshold, nrows="all", cluster=False):
     return hm
 
 
-def plotResiduals(object: anndata, uncertainty=None, legend=False):
+def plotResiduals(object, uncertainty=None, legend=False):
     """
     generate a residual plot
     @param object: AnnData object
     @param uncertainty: original SD matrix with which GAPS was run
     @return: matplotlib plot object
     """
+    object = object["anndata"]
     rawdata = object.X
     if uncertainty is None:
         uncertainty = np.where(rawdata * 0.1 > 0.1, rawdata * 0.1, 0.1)
@@ -351,7 +386,7 @@ def calcCoGAPSStat(object, sets, whichMatrix='featureLoadings', numPerm=1000):
     if not isinstance(sets, list):
         raise Exception("Sets must be a list of either measurements of samples")
 
-    zMatrix = calcZ(object['GapsResult'], whichMatrix)
+    zMatrix = calcZ(object['anndata'], whichMatrix)
 
     pattern_labels = (object['anndata'].obs).columns
 
@@ -427,7 +462,7 @@ def calcGeneGSStat(object, GStoGenes, numPerm, Pw=None, nullGenes=False):
 
 def computeGeneGSProb(object, GStoGenes, numPerm=500, Pw=None, PwNull=False):
 
-    featureLoadings = toNumpy(getFeatureLoadings(object['GapsResult']))
+    featureLoadings = toNumpy(object['GapsResult'].Amean)
     adata = object['anndata']
     
     if Pw is None:
@@ -450,7 +485,7 @@ def computeGeneGSProb(object, GStoGenes, numPerm=500, Pw=None, PwNull=False):
 
 
 
-def plotPatternMarkers(data: anndata, patternmarkers=None, patternPalette=None,
+def plotPatternMarkers(data, patternmarkers=None, patternPalette=None,
                        samplePalette=None, colorscheme="coolwarm",
                        colDendrogram=True, rowDendrogram=False, scale="row", legend_pos=None):
     """
@@ -465,6 +500,7 @@ def plotPatternMarkers(data: anndata, patternmarkers=None, patternPalette=None,
     @param legend_pos: string indicating legend position, or none (no legend). default is none
 )    @return: a clustergrid instance
     """
+    data = data["anndata"]
     if patternmarkers is None:
         patternmarkers=patternMarkers(data)
     if samplePalette is None:

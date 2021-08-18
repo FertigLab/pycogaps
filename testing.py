@@ -15,12 +15,12 @@ CoGAPS(path, prm)
 cogapsrunresult = CoGAPS(path)
 result = cogapsrunresult['GapsResult']
 anndata = cogapsrunresult['anndata']
-plotResiduals(anndata)
-plotPatternMarkers(anndata, legend_pos=None)
-plotPatternMarkers(anndata, samplePalette=["green", "teal", "red", "violet", "crimson", "antiquewhite", "lightblue", "hotpink", "orange"], patternPalette=["pink", "teal", "gold"],
+plotResiduals(cogapsrunresult)
+plotPatternMarkers(cogapsrunresult, legend_pos=None)
+plotPatternMarkers(cogapsrunresult, samplePalette=["green", "teal", "red", "violet", "crimson", "antiquewhite", "lightblue", "hotpink", "orange"], patternPalette=["pink", "teal", "gold"],
                    legend_pos=None)
-binaryA(anndata, threshold=3)
-binaryA(anndata, threshold=3, cluster=True)
+binaryA(cogapsrunresult, threshold=3)
+binaryA(cogapsrunresult, threshold=3, cluster=True)
 print("AMEAN: ", result.Amean)
 print("chisqHistory: ", result.chisqHistory)
 print(getBuildReport())
@@ -30,13 +30,13 @@ print(getFileInfo(path))
 
 print("--Testing CogapsResult Object\n")
 print("calling show(result)\n")
-show(result)
+show(anndata)
 print("calling plot(result)\n")
-plot(result)
+plot(cogapsrunresult)
 
-calcZP = calcZ(result, "sampleFactors")
+calcZP = calcZ(anndata, "sampleFactors")
 print(calcZP)
-calcZA = calcZ(result, "featureLoadings")
+calcZA = calcZ(anndata, "featureLoadings")
 print(calcZA)
 getVersion()
 
