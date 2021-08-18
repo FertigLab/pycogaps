@@ -46,7 +46,7 @@ def handleResult():
 
 def goofin(mat):
     print("in goofin")
-    return "flomillishit"
+    return "this is the result gotten by the result getter"
 
 
 def distributedCoGAPS(data, allParams, uncertainty=None):
@@ -74,7 +74,12 @@ def distributedCoGAPS(data, allParams, uncertainty=None):
             # result = pool.apply_async(callInternalCoGAPS, args=(path, allParams, uncertainty, sets[1], 1))
             # result = pool.apply_async(CoGAPS, args=(path, allParams, uncertainty))
             matrix = pycogaps.Matrix(5,5)
-            print("made a matrix")
+            print("blank matrix...")
+            for col in range(matrix.nCol()):
+                column = matrix.getCol(col)
+                for j in range(matrix.nRow()):
+                    print(getElement(column, j))
+
             result = pool.apply_async(goofin, args=[matrix])
             # print("async call returned. now trying to get()")
             # result = result.get()

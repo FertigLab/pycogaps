@@ -247,18 +247,19 @@ PYBIND11_MODULE(pycogaps, m)
                 {sizeof(float) * m.nCol(), sizeof(float)}
             );
         })
+
         .def(py::pickle(
             [](const Matrix &mat) { // __getstate__
                 /* Return a tuple that fully encodes the state of the object */
+                std::cout << "pickling matrix...";
                 int cols = mat.nCol();
                 int rows = mat.nRow();
                 std::cout << "cols: " << cols;
                 std::cout << "rows: " << rows;
-                // assumes using std::vector for brevity
                 std::vector<std::vector<int>> a(rows, std::vector<int>(cols));
                 std::cout << "C array:\n";
-                for (int i = 0; i < rows; ++i) {
-                    for (int j = 0; j < cols; ++j) {
+                for (int i = 0; i < rows; i++) {
+                    for (int j = 0; j < cols; j++) {
                         a[i][j] = mat.operator()(i,j);
                         std::cout << a[i][j];
                     }
@@ -269,10 +270,14 @@ PYBIND11_MODULE(pycogaps, m)
             [](py::tuple t) { // __setstate__
 //                if (t.size() != 2)
 //                    throw std::runtime_error("Invalid state!");
+                std::cout << "trying to unpickle";
                 int rows = t[1].cast<int>();
                 int cols = t[2].cast<int>();
+                std::cout << "cols: " << cols;
+                std::cout << "rows: " << rows;
+
                 Matrix mat = Matrix(rows, cols);
-                std::vector<std::vector<int>> ptr(rows, std::vector<int>(cols));
+                std::vector<std::vector<int>> ptr = t[0].cast<std::vector<std::vector<int>>>();
 
                 for(int i = 0; i < rows; i++)
                 {
