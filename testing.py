@@ -9,8 +9,8 @@ from PyCoGAPS import *  # gonna try to only use things from this module
 path = "./data/GIST.csv"
 
 print("-- Passing params object into runCogaps function --\n")
-prm = GapsParameters(path)
-prm.print()  # c++ method to display all parameter values
+prm = CoParams(path)
+prm.printAllParams()  # c++ method to display all parameter values
 CoGAPS(path, prm)
 cogapsrunresult = CoGAPS(path)
 result = cogapsrunresult['GapsResult']
