@@ -1,7 +1,8 @@
 from PyCoGAPS import *
 
+
 # explicitSets either list of indices or names
-def sampleWithExplicitSets(allParams: CoParams, data):
+def sampleWithExplicitSets(allParams, data):
     explicit_sets = allParams.coparams['explicitSets']
     if all(isinstance(item, int) for item in explicit_sets):
         print("using provided indexed subsets")
@@ -22,7 +23,7 @@ def sampleWithExplicitSets(allParams: CoParams, data):
         return [list(allNames).index(i) for i in explicit_sets]
 
 
-def sampleWithAnnotationWeights(allParams: CoParams, setSize):
+def sampleWithAnnotationWeights(allParams, setSize):
     '''
     subset rows (cols) proportional to the user provided weights
     @param allParams list of all CoGAPS parameters
@@ -54,7 +55,7 @@ def sampleWithAnnotationWeights(allParams: CoParams, setSize):
     return sets
 
 
-def sampleUniformly(allParams: CoParams, total, setSize):
+def sampleUniformly(allParams, total, setSize):
     '''
     subset data by uniformly partioning rows (cols)
     @param allParams list of all CoGAPS parameters
@@ -71,7 +72,7 @@ def sampleUniformly(allParams: CoParams, total, setSize):
     sets[allParams.coparams['nSets'] - 1] = np.sort(list(remaining))
     return sets
 
-def createSets(data, allParams: CoParams):
+def createSets(data, allParams):
     subsetRows = allParams.gaps.transposeData != allParams.coparams['distributed'] == "genome-wide"
     if subsetRows:
         total = nrowHelper(data)
