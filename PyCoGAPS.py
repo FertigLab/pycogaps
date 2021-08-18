@@ -218,9 +218,6 @@ def GapsResultToAnnData (gapsresult:GapsResult, adata, prm:GapsParameters):
     Psd = toNumpy(gapsresult.Psd)
     pattern_labels = ["Pattern" + str(i) for i in range(1, prm.nPatterns + 1)]
     # load adata obs and var from Amean and Pmean results
-    print(adata.X)
-    print(Amean)
-    print(Pmean)
     adata.obs = pd.DataFrame(data=Amean, index=adata.obs_names, columns=pattern_labels)
     adata.var = pd.DataFrame(data=Pmean, index=adata.var_names, columns=pattern_labels)
     adata.uns["asd"] = pd.DataFrame(data=Asd, index=adata.obs_names, columns=pattern_labels)
