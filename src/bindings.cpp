@@ -94,6 +94,10 @@ PYBIND11_MODULE(pycogaps, m)
         .value("GAPS_SAMPLING_PHASE", GAPS_SAMPLING_PHASE)
         .value("GAPS_ALL_PHASES", GAPS_ALL_PHASES)
         .export_values();
+    py::enum_<PumpThreshold>(m, "PumpThreshold")
+        .value("PUMP_UNIQUE", PUMP_UNIQUE)
+        .value("PUMP_CUT", PUMP_CUT)
+        .export_values();
     py::class_<GapsParameters>(m, "GapsParameters")
         .def(py::init<const std::string &>())
         .def(py::init<const Matrix&>())
@@ -255,5 +259,39 @@ PYBIND11_MODULE(pycogaps, m)
                 {m.nRow(), m.nCol()},
                 {sizeof(float) * m.nCol(), sizeof(float)}
             );
-        });
+        })
+        .def(py::pickle(
+            [](const Matrix &m) { // __getstate__
+                std::vector<std::vector<int>> a(m.nRow(), std::vector<int>(m.nCol()));
+                std::cout << "C array:\n";
+                for (int i = 0; i < m.nRow(); i++) {
+                    for (int j = 0; j < m.nCol(); j++) {
+                        a[i][j] = m.operator()(i,j);
+                        std::cout << a[i][j];
+                    }
+                    std::cout << std::endl;
+                }
+                return py::make_tuple(m.nCol(), m.nRow(), a);
+            },
+            [](py::tuple t) { // __setstate__
+                if (t.size() != 3)
+                    throw std::runtime_error("Invalid state!");
+
+                /* Create a new C++ instance */
+                unsigned ncol = t[0].cast<unsigned>();
+                unsigned nrow = t[1].cast<unsigned>();
+                Matrix m(nrow, ncol);
+                std::vector<std::vector<int>> ptr = t[2].cast<std::vector<std::vector<int>>>();
+                for(int i = 0; i < (int)nrow; i++)
+                {
+                    for (int j = 0; j < (int)ncol; j++)
+                    {
+                        std::cout << ptr[i][j] << " ";
+                        m.operator()(i,j) = ptr[i][j];
+                    }
+                    std::cout << std::endl;
+                }
+                return m;
+            }
+        ));
 }
