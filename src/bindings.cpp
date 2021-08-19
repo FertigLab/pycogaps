@@ -136,17 +136,22 @@ PYBIND11_MODULE(pycogaps, m)
         .def_readwrite("fixedPatterns", &GapsParameters::fixedPatterns)
         .def(py::pickle(
             [](const GapsParameters &prm) {
+                std::cout << "Making a tuple...";
                 return py::make_tuple(prm.checkpointOutFile, prm.checkpointFile, prm.seed, prm.nGenes,
                 prm.nSamples, prm.nPatterns, prm.nIterations, prm.maxThreads, prm.outputFrequency,
                 prm.checkpointInterval, prm.snapshotFrequency, prm.alphaA, prm.alphaP, prm.maxGibbsMassA,
                 prm.maxGibbsMassP, prm.pumpThreshold, prm.snapshotPhase, prm.useFixedPatterns,
                 prm.subsetData, prm.useCheckPoint, prm.transposeData, prm.printMessages, prm.subsetGenes,
                 prm.printThreadUsage, prm.useSparseOptimization, prm.takePumpSamples, prm.asynchronousUpdates,
-                prm.whichMatrixFixed, prm.workerID, prm.runningDistributed, prm.dataIndicesSubset, prm.fixedPatterns);
+                prm.whichMatrixFixed,
+                prm.workerID,
+                prm.runningDistributed,
+                prm.dataIndicesSubset, prm.fixedPatterns);
             },
             [](py::tuple t) {
 //            if (t.size() != 31)
 //                throw std::runtime_error("Invalid state!");
+                std::cout << "Unraveling the tuple...";
                 GapsParameters prm = GapsParameters("./data/GIST.csv");
                 prm.checkpointOutFile    = t[0].cast<std::string>();
                 prm.checkpointFile    = t[1].cast<std::string>();
@@ -175,7 +180,7 @@ PYBIND11_MODULE(pycogaps, m)
                 prm.useSparseOptimization    = t[24].cast<bool>();
                 prm.takePumpSamples    = t[25].cast<bool>();
                 prm.asynchronousUpdates    = t[26].cast<bool>();
-                prm.whichMatrixFixed    = t[27].cast<bool>();
+                prm.whichMatrixFixed    = t[27].cast<char>();
                 prm.workerID    = t[28].cast<unsigned>();
                 prm.runningDistributed    = t[29].cast<bool>();
                 prm.dataIndicesSubset    = t[30].cast<std::vector<unsigned>>();
