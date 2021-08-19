@@ -149,8 +149,8 @@ PYBIND11_MODULE(pycogaps, m)
                 prm.dataIndicesSubset, prm.fixedPatterns);
             },
             [](py::tuple t) {
-//            if (t.size() != 31)
-//                throw std::runtime_error("Invalid state!");
+            if (t.size() != 32)
+                throw std::runtime_error("Invalid state!");
                 std::cout << "Unraveling the tuple...";
                 GapsParameters prm = GapsParameters("./data/GIST.csv");
                 prm.checkpointOutFile    = t[0].cast<std::string>();
@@ -194,6 +194,7 @@ PYBIND11_MODULE(pycogaps, m)
     m.def("getFileInfo", &getFileInfo, "Get info of inputted file.");
 
     py::class_<GapsResult>(m, "GapsResult")
+        .def(py::init<>())
         .def(py::init<const GapsStatistics &>())
         .def("writeToFile", &GapsResult::writeToFile)
         .def_readwrite("Amean", &GapsResult::Amean)
@@ -214,7 +215,27 @@ PYBIND11_MODULE(pycogaps, m)
         .def_readwrite("totalRunningTime", &GapsResult::totalRunningTime)
         .def_readwrite("meanChiSq", &GapsResult::meanChiSq)
         .def_readwrite("averageQueueLengthA", &GapsResult::averageQueueLengthA)
-        .def_readwrite("averageQueueLengthP", &GapsResult::averageQueueLengthP);
+        .def_readwrite("averageQueueLengthP", &GapsResult::averageQueueLengthP)
+        .def(py::pickle(
+        [](const GapsResult &r) { // __getstate__
+                /* Return a tuple that fully encodes the state of the object */
+                return py::make_tuple(r.Amean, r.Asd, r.Pmean, r.Psd, r.pumpMatrix,
+                r.meanPatternAssignment, r.equilibrationSnapshotsA, r.equilibrationSnapshotsP,
+                r.samplingSnapshotsA, r.samplingSnapshotsP, r.chisqHistory, r.atomHistoryA,
+                r.atomHistoryP, r.totalUpdates, r.seed, r.totalRunningTime, r.meanChiSq,
+                r.averageQueueLengthA, r.averageQueueLengthP);
+            },
+            [](py::tuple t) { // __setstate__
+//                if (t.size() != 2)
+//                    throw std::runtime_error("Invalid state!");
+
+                /* Create a new C++ instance */
+                GapsResult r;
+                r.Amean = t[0].cast<Matrix>();
+
+                return r;
+            }
+        ));
   
     py::class_<Vector>(m, "Vector")
         .def(py::init<unsigned &>())
