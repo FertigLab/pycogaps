@@ -2,6 +2,7 @@ from PyCoGAPS import *
 import subset_data
 import multiprocessing
 import helper_functions
+import numpy as np
 
 
 def distributedCoGAPS(path, params, uncertainty=None):
@@ -9,7 +10,7 @@ def distributedCoGAPS(path, params, uncertainty=None):
     sets = subset_data.createSets(data, params)
     with multiprocessing.get_context("spawn").Pool(processes=len(sets)) as pool:
         m = pycogaps.Matrix(4, 4)
-        result = pool.apply_async(callback, args=[m])
+        result = pool.apply_async(callback, args=[m, params])
         pool.close()
         print("closed the pool")
         pool.join()
@@ -21,5 +22,5 @@ def callInternalCoGAPS(path, params, uncertainty, subsetIndices, workerID):
     return "okokok"
 
 
-def callback(mat):
+def callback(mat, params):
     return "returned from callback"
