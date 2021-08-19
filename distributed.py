@@ -1,3 +1,4 @@
+import PyCoGAPS
 from PyCoGAPS import *
 import subset_data
 import multiprocessing
@@ -10,7 +11,7 @@ def distributedCoGAPS(path, params, uncertainty=None):
     sets = subset_data.createSets(data, params)
     with multiprocessing.get_context("spawn").Pool(processes=len(sets)) as pool:
         m = pycogaps.Matrix(4, 4)
-        result = pool.apply_async(callback, args=[m, params])
+        result = pool.apply_async(callInternalCoGAPS, args=[path, params])
         pool.close()
         print("closed the pool")
         pool.join()
@@ -18,8 +19,9 @@ def distributedCoGAPS(path, params, uncertainty=None):
     return result
 
 
-def callInternalCoGAPS(path, params, uncertainty, subsetIndices, workerID):
-    return "okokok"
+def callInternalCoGAPS(path, params, uncertainty=None, subsetIndices=None, workerID=None):
+    gapsresult = PyCoGAPS.CoGAPS(path, params)
+    return gapsresult
 
 
 def callback(mat, params):
