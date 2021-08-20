@@ -232,7 +232,24 @@ PYBIND11_MODULE(pycogaps, m)
                 /* Create a new C++ instance */
                 GapsResult r;
                 r.Amean = t[0].cast<Matrix>();
-
+                r.Asd = t[1].cast<Matrix>();
+                r.Pmean = t[2].cast<Matrix>();
+                r.Psd = t[3].cast<Matrix>();
+                r.pumpMatrix = t[4].cast<Matrix>();
+                r.meanPatternAssignment = t[5].cast<Matrix>();
+                r.equilibrationSnapshotsA = t[6].cast<std::vector<Matrix>>();
+                r.equilibrationSnapshotsP = t[7].cast<std::vector<Matrix>>();
+                r.samplingSnapshotsA = t[8].cast<std::vector<Matrix>>();
+                r.samplingSnapshotsP = t[9].cast<std::vector<Matrix>>();
+                r.chisqHistory = t[10].cast<std::vector<float>>();
+                r.atomHistoryA = t[11].cast<std::vector<unsigned>>();
+                r.atomHistoryP = t[12].cast<std::vector<unsigned>>();
+                r.totalUpdates = t[13].cast<uint64_t>();
+                r.seed = t[14].cast<uint32_t>();
+                r.totalRunningTime = t[15].cast<unsigned>();
+                r.meanChiSq = t[16].cast<float>();
+                r.averageQueueLengthA = t[17].cast<float>();
+                r.averageQueueLengthP = t[18].cast<float>();
                 return r;
             }
         ));
