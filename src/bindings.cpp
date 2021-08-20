@@ -305,7 +305,7 @@ PYBIND11_MODULE(pycogaps, m)
         })
         .def(py::pickle(
             [](const Matrix &m) { // __getstate__
-                std::vector<std::vector<int>> a(m.nRow(), std::vector<int>(m.nCol()));
+                std::vector<std::vector<float>> a(m.nRow(), std::vector<float>(m.nCol()));
                 std::cout << "C array:\n";
                 for (int i = 0; i < m.nRow(); i++) {
                     for (int j = 0; j < m.nCol(); j++) {
@@ -324,7 +324,7 @@ PYBIND11_MODULE(pycogaps, m)
                 unsigned ncol = t[0].cast<unsigned>();
                 unsigned nrow = t[1].cast<unsigned>();
                 Matrix m(nrow, ncol);
-                std::vector<std::vector<int>> ptr = t[2].cast<std::vector<std::vector<int>>>();
+                std::vector<std::vector<float>> ptr = t[2].cast<std::vector<std::vector<float>>>();
                 for(int i = 0; i < (int)nrow; i++)
                 {
                     for (int j = 0; j < (int)ncol; j++)
