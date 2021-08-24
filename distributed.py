@@ -1,5 +1,4 @@
 import PyCoGAPS
-from PyCoGAPS import *
 import subset_data
 import multiprocessing
 import helper_functions
@@ -9,9 +8,10 @@ import numpy as np
 def distributedCoGAPS(path, params, uncertainty=None):
     data = helper_functions.toAnndata(path)
     sets = subset_data.createSets(data, params)
+    PyCoGAPS.setParams(params, {'checkpointOutFile':""})
     with multiprocessing.get_context("spawn").Pool(processes=len(sets)) as pool:
-        m = pycogaps.Matrix(4, 4)
-        result = pool.apply_async(callInternalCoGAPS, args=[path, params])
+        m = PyCoGAPS.pycogaps.Matrix(4, 4)
+        result = pool.apply_async(callInternalCoGAPS, args=[path, params, 1, None, sets])
         pool.close()
         print("closed the pool")
         pool.join()
@@ -19,8 +19,22 @@ def distributedCoGAPS(path, params, uncertainty=None):
     return result
 
 
-def callInternalCoGAPS(path, params, uncertainty=None, subsetIndices=None, workerID=None):
-    gapsresult = PyCoGAPS.CoGAPS(path, params)
+def callInternalCoGAPS(path, params, workerID, uncertainty=None, subsetIndices=None):
+    if params.coparams['distributed'] == "genome-wide":
+        genes = np.array(params.coparams['geneNames'])
+        params.coparams['geneNames'] = np.take(genes, subsetIndices)
+        params.coparams['subsetDim'] = 1
+    else:
+        samples = np.array(params.coparams['sampleNames'])
+        params.coparams['sampleNames'] = np.take(samples, subsetIndices)
+        params.coparams['subsetDim'] = 2
+
+    params.coparams['subsetIndices'] = subsetIndices
+    params.gaps.workerID = workerID
+    params.gaps.asynchronousUpdates = False
+    params.gaps.maxThreads = 1
+    gapsresult = PyCoGAPS.CoGAPS(path, params, uncertainty)
+
     return gapsresult
 
 

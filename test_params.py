@@ -20,3 +20,5 @@ setParams(params, {
 params.setDistributedParams(nSets=5)
 
 result = CoGAPS(path, params)
+
+

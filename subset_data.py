@@ -57,7 +57,7 @@ def sampleWithAnnotationWeights(allParams, setSize):
 
 def sampleUniformly(allParams, total, setSize):
     '''
-    subset data by uniformly partioning rows (cols)
+    subset data by uniformly partitioning rows (cols)
     @param allParams list of all CoGAPS parameters
     @param total total number of rows (cols) that are being paritioned
     @param setSize the size of each subset of the total

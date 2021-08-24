@@ -7,13 +7,16 @@ adata = toAnndata(path)
 singlethreadres = CoGAPS(path, params)
 
 if __name__ == '__main__':
+    params.setDistributedParams(nSets=2)
+    params.coparams['subsetIndices'] = subset_data.createSets(adata, params)
     resultplaceholder = distributedCoGAPS(path, params, None)
     distresult = resultplaceholder.get()
     print(distresult)
-    # single- and multi-threaded cogaps should yield slightly different results
-    # because of different seeds, but we can compare some specific attributes
+
     assert(singlethreadres["GapsResult"].chisqHistory == distresult["GapsResult"].chisqHistory)
     assert (singlethreadres["anndata"].shape == distresult["anndata"].shape)
+
+
 
 
 # test pickling / unpickling python objects so they can be handled by spawned processes
