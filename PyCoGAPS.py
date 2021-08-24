@@ -35,10 +35,10 @@ class CoParams:
                             'samplingWeight': None,
                             'subsetIndices': None,
                             'subsetDim': 0,
-                            'geneNames': None,
-                            'sampleNames': None,
+                            'geneNames': adata.obs_names,
+                            'sampleNames': adata.var_names,
                             'fixedPatterns': None,
-                            'distributed': None,
+                            'distributed': "genome-wide",
                             'hdfKey': hdfKey,
                             'useSparseOptimization': None,
                             'transposeData': transposeData,
@@ -107,7 +107,7 @@ class CoParams:
 
 
 def CoGAPS(path, params=None, nThreads=1, messages=True,
-           outputFrequency=1000, uncertainty=None, checkpointOutFile="gaps_checkpoint.out",
+           outputFrequency=1000, uncertainty=None, checkpointOutFile="",
            checkpointInterval=0, checkpointInFile="", transposeData=False,
            BPPARAM=None, workerID=1, asynchronousUpdates=None, nSnapshots=0,
            snapshotPhase='sampling'):

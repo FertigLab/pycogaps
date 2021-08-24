@@ -79,9 +79,9 @@ def checkInputs(uncertainty, allParams):
         warnings.warn("snapshots slow down computatioin and shouldo nly be used for testing")
 
     if allParams.coparams["distributed"] is not None:
-        if allParams.gaps.nThreads > 1:
+        if allParams.gaps.maxThreads > 1:
             warnings.warn("can't run multi-threaded and distributed CoGAPS at the same time, ignoring nThreads")
-        if allParams.gaps.checkpointFile is not None:
+        if allParams.gaps.checkpointFile != "":
             raise Exception("checkpoints not supported for distributed CoGAPS")
 
 
@@ -134,10 +134,10 @@ def getDimNames(data, allParams):
 
     if allParams.coparams['subsetDim'] == 1:
         nGenes = len(allParams.coparams['subsetIndices'])
-        geneNames = geneNames[allParams.coparams['subsetIndices']]
+        geneNames = np.take(geneNames, allParams.coparams['subsetIndices'])
     elif allParams.coparams['subsetDim'] == 2:
         nSamples = len(allParams.coparams['subsetIndices'])
-        sampleNames = sampleNames[allParams.coparams['subsetIndices']]
+        sampleNames = np.take(sampleNames, allParams.coparams['subsetIndices'])
 
     if len(geneNames) != nGenes:
         raise Exception(len(geneNames), " != ", nGenes, " incorrect number of gene names given")
