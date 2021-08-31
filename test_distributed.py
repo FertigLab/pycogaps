@@ -9,13 +9,11 @@ singlethreadres = CoGAPS(path, params)
 if __name__ == '__main__':
     params.setDistributedParams(nSets=2)
     params.coparams['subsetIndices'] = subset_data.createSets(adata, params)
-    resultplaceholder = distributedCoGAPS(path, params, None)
-    distresult = resultplaceholder.get()
-    print(distresult)
-
-    assert(singlethreadres["GapsResult"].chisqHistory == distresult["GapsResult"].chisqHistory)
-    assert (singlethreadres["anndata"].shape == distresult["anndata"].shape)
-
+    result = distributedCoGAPS(path, params, None)
+    print(result)
+    print("length: ", len(result))
+    assert(singlethreadres["GapsResult"].chisqHistory == result[0]["GapsResult"].chisqHistory)
+    assert (singlethreadres["anndata"].shape == result[0]["anndata"].shape)
 
 
 
