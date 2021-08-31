@@ -306,13 +306,10 @@ PYBIND11_MODULE(pycogaps, m)
         .def(py::pickle(
             [](const Matrix &m) { // __getstate__
                 std::vector<std::vector<float>> a(m.nRow(), std::vector<float>(m.nCol()));
-                std::cout << "C array:\n";
                 for (int i = 0; i < m.nRow(); i++) {
                     for (int j = 0; j < m.nCol(); j++) {
                         a[i][j] = m.operator()(i,j);
-                        std::cout << a[i][j];
                     }
-                    std::cout << std::endl;
                 }
                 return py::make_tuple(m.nCol(), m.nRow(), a);
             },
@@ -329,10 +326,8 @@ PYBIND11_MODULE(pycogaps, m)
                 {
                     for (int j = 0; j < (int)ncol; j++)
                     {
-                        std::cout << ptr[i][j] << " ";
                         m.operator()(i,j) = ptr[i][j];
                     }
-                    std::cout << std::endl;
                 }
                 return m;
             }
