@@ -9,13 +9,18 @@ def distributedCoGAPS(path, params, uncertainty=None):
     data = helper_functions.toAnndata(path)
     sets = subset_data.createSets(data, params)
     PyCoGAPS.setParams(params, {'checkpointOutFile':""})
-    with multiprocessing.get_context("spawn").Pool(processes=len(sets)) as pool:
-        m = PyCoGAPS.pycogaps.Matrix(4, 4)
-        result = pool.apply_async(callInternalCoGAPS, args=[path, params, 1, sets, None])
-        pool.close()
-        print("closed the pool")
-        pool.join()
-        print("joined the pool")
+
+    if params.coparams["fixedPatterns"] is None:
+        print("Running Across Subsets...\n\n")
+        with multiprocessing.get_context("spawn").Pool(processes=len(sets)) as pool:
+            m = PyCoGAPS.pycogaps.Matrix(4, 4)
+            result = pool.apply_async(callInternalCoGAPS, args=[path, params, 1, sets, None])
+            pool.close()
+            print("closed the pool")
+            pool.join()
+            print("joined the pool")
+    else:
+        print("not implemented")
     return result
 
 
