@@ -9,6 +9,7 @@ import helper_functions
 import numpy as np
 import pandas as pd
 import itertools
+from sklearn.cluster import AgglomerativeClustering
 
 def distributedCoGAPS(path, params, uncertainty=None):
     data = helper_functions.toAnndata(path)
@@ -46,28 +47,28 @@ def distributedCoGAPS(path, params, uncertainty=None):
 
     return matched
 
-    # params.gaps.nPatterns = matched.consensus.shape[1]
-    # params.gaps.fixedPatterns = matched.consensus
-    # if params.coparams["distributed"] == "genome-wide":
-    #     params.gaps.whichMatrixFixed = "P"
-    # else:
-    #     params.gaps.whichMatrixFixed = "A"
-    #
-    # print("Running final stage...")
-    # with multiprocessing.get_context("spawn").Pool(processes=len(sets)) as pool:
-    #     paramlst = []
-    #     for i in range(len(sets)):
-    #         paramlst.append([path, params, i, sets[i], None])
-    #     finalresult = pool.map(callInternalCoGAPS, paramlst)
-    #     pool.close()
-    #     pool.join()
-    #
-    # fullresult = stitchTogether(finalresult, params, sets)
-    #
-    # # add diagnostics...
-    # fullresult.diagnostics.firstPass = result
-    #
-    # return fullresult
+    params.gaps.nPatterns = matched.consensus.shape[1]
+    params.gaps.fixedPatterns = matched.consensus
+    if params.coparams["distributed"] == "genome-wide":
+        params.gaps.whichMatrixFixed = "P"
+    else:
+        params.gaps.whichMatrixFixed = "A"
+
+    print("Running final stage...")
+    with multiprocessing.get_context("spawn").Pool(processes=len(sets)) as pool:
+        paramlst = []
+        for i in range(len(sets)):
+            paramlst.append([path, params, i, sets[i], None])
+        finalresult = pool.map(callInternalCoGAPS, paramlst)
+        pool.close()
+        pool.join()
+
+    fullresult = stitchTogether(finalresult, params, sets)
+
+    # add diagnostics...
+    fullresult.diagnostics.firstPass = result
+
+    return fullresult
 
 
 def callInternalCoGAPS(paramlst):
@@ -112,12 +113,7 @@ def findConsensusMatrix(unmatched, params):
         names.append(str(comb[i, 0]+1) + "." + str(comb[i, 1]+1))
     allpatterns.columns = names
     print(allpatterns)
-    return patternMatch()
-    # allPatterns < - do.call(cbind, unmatchedPatterns)
-    # comb < - expand.grid(1: gapsParams @ nSets, 1: gapsParams @ nPatterns)
-    # colnames(allPatterns) < - paste(comb[, 1], comb[, 2], sep = ".")
-    # return (patternMatch(allPatterns, gapsParams))
-    return 1
+    return patternMatch(allpatterns, params)
 
 
 def expandgrid(*itrs):
@@ -125,8 +121,39 @@ def expandgrid(*itrs):
    return {'Var{}'.format(i+1):[x[i] for x in product] for i in range(len(itrs))}
 
 
-def patternMatch():
+def patternMatch(allpatterns, params):
     print("not yet implemented")
+    clusters = corcut(allpatterns, params.coparams["cut"], params.coparams["minNS"])
+    return 1
+
+
+def corrToMeanPattern(cluster):
+    print("not implemented")
+
+
+def corcut(allpatterns, cut, minNS):
+    dist = allpatterns.corr()
+    dist = 1-dist
+    print(dist)
+    if dist.isnull().values.any():
+        warnings.warn("NaN values in correlation of patterns... Aborting")
+        return
+    clusters = AgglomerativeClustering(affinity="precomputed", linkage="average", n_clusters=cut).fit(dist)
+    clustid = dict()
+    print("labels", clusters.labels_)
+    for i in range(len(clusters.labels_)):
+        print("count", np.count_nonzero(clusters.labels_ == clusters.labels_[i]))
+        print("minNS", minNS)
+        if np.count_nonzero(clusters.labels_ == clusters.labels_[i]) >= minNS:
+            clustid[allpatterns.columns[i]] = clusters.labels_[i]
+        else:
+            warnings.warn("cluster did not meet minNS threshold and will be excluded")
+    for k, v in clustid.items():
+        print("pair: ", k, v)
+    return clustid
+
+
+
 
 
 def stitchTogether(result, params, sets):
