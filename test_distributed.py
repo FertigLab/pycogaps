@@ -7,7 +7,7 @@ adata = toAnndata(path)
 singlethreadres = CoGAPS(path, params)
 
 if __name__ == '__main__':
-    params.setDistributedParams(nSets=2)
+    params.setDistributedParams(nSets=2, minNS=1, cut=3)
     params.coparams['subsetIndices'] = subset_data.createSets(adata, params)
     result = distributedCoGAPS(path, params, None)
     print(result)
