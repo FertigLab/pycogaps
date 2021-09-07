@@ -537,10 +537,11 @@ def plotPatternMarkers(data, patternmarkers=None, patternPalette=None,
         plotdata_z = pd.DataFrame(plotdata)
 
     plotdata_z = pd.DataFrame(plotdata_z, columns=samplelabels, index=markerlabels)
-
-    hm = sns.clustermap(plotdata_z, cmap=colorscheme, row_cluster=rowDendrogram, col_cluster=colDendrogram, row_colors=patternPalette, col_colors=samplePalette, cbar_pos=legend_pos)
-    plt.show()
-    return hm
+    try:
+        hm = sns.clustermap(plotdata_z, cmap=colorscheme, row_cluster=rowDendrogram, col_cluster=colDendrogram, row_colors=patternPalette, col_colors=samplePalette, cbar_pos=legend_pos)
+    except ValueError:
+        pass
+    return 1
 
 
 # convert matrix object to numpy array
