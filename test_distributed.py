@@ -12,7 +12,7 @@ if __name__ == '__main__':
     result = distributedCoGAPS(path, params, None)
     print(result)
     print("length: ", len(result))
-    print("Parallel chisqhistory:", result["GapsResult"].chisqHistory, "\n")
+    print("Parallel chisqhistory:", result[0]["GapsResult"].chisqHistory, "\n")
     print("Single-thread chisqhistory:", singlethreadres["GapsResult"].chisqHistory, "\n")
     # assert(singlethreadres["GapsResult"].chisqHistory == result[0]["GapsResult"].chisqHistory)
     # assert (singlethreadres["anndata"].shape == result[0]["anndata"].shape)

@@ -12,10 +12,12 @@ class CoParams:
     '''
     self.gaps : GapsParameters object
     self.cogaps : dictionary of additional parameters (not in GapsParameters)
+    @param matrix is an anndata object containing supplied data matrix
     '''
     def __init__(self, path=None, matrix=None, transposeData=False, hdfKey=None):
         if matrix is not None:
-            self.gaps = GapsParameters(matrix)
+            self.gaps = GapsParameters(pycogaps.Matrix(matrix.X))
+            adata = matrix
         elif path is not None:
             if not path.lower().endswith(".h5"):
                 adata = toAnndata(path, transposeData=transposeData)
@@ -160,7 +162,7 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
     matrix = pycogaps.Matrix(adata.X)
 
     if params is None:
-        prm = CoParams(matrix=matrix, transposeData=transposeData)
+        prm = CoParams(matrix=adata, transposeData=transposeData)
     else:
         prm = params
 
@@ -224,6 +226,7 @@ def GapsResultToAnnData (gapsresult:GapsResult, adata, prm:GapsParameters):
     adata.uns["asd"] = pd.DataFrame(data=Asd, index=adata.obs_names, columns=pattern_labels)
     adata.uns["psd"] = pd.DataFrame(data=Psd, index=adata.var_names, columns=pattern_labels)
     return adata
+
 
 def GapsParameters(path):
     return pycogaps.GapsParameters(path)
