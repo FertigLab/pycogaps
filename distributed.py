@@ -1,5 +1,6 @@
 import warnings
 
+import pycogaps
 from pandas.io.clipboard import paste
 
 import PyCoGAPS
@@ -10,6 +11,7 @@ import numpy as np
 import pandas as pd
 import itertools
 from sklearn.cluster import AgglomerativeClustering
+
 
 def distributedCoGAPS(path, params, uncertainty=None):
     data = helper_functions.toAnndata(path)
@@ -35,7 +37,6 @@ def distributedCoGAPS(path, params, uncertainty=None):
             if params.coparams['distributed'] == "genome-wide":
                 # unmatched = list(map(lambda x: np.array(x["GapsResult"].Pmean), result))
                 unmatched = []
-                print("length of result", len(result))
                 for r in result:
                     unmatched.append(np.array(r["GapsResult"].Pmean))
             else:
@@ -45,10 +46,8 @@ def distributedCoGAPS(path, params, uncertainty=None):
     else:
         matched = params.gaps.fixedPatterns
 
-    return matched
-
-    params.gaps.nPatterns = matched.consensus.shape[1]
-    params.gaps.fixedPatterns = matched.consensus
+    params.gaps.nPatterns = matched["consensus"].shape[1]
+    params.gaps.fixedPatterns = pycogaps.Matrix(matched["consensus"])
     if params.coparams["distributed"] == "genome-wide":
         params.gaps.whichMatrixFixed = "P"
     else:
@@ -101,7 +100,6 @@ def callInternalCoGAPS(paramlst):
 
 
 def findConsensusMatrix(unmatched, params):
-    print("not yet implemented")
     allpatterns = pd.DataFrame(np.hstack(unmatched))
     comb = expandgrid(range(params.coparams["nSets"]), range(params.gaps.nPatterns))
     comb = list(comb.values())
@@ -112,7 +110,6 @@ def findConsensusMatrix(unmatched, params):
     for i in range(comb.shape[0]):
         names.append(str(comb[i, 0]+1) + "." + str(comb[i, 1]+1))
     allpatterns.columns = names
-    print(allpatterns)
     return patternMatch(allpatterns, params)
 
 
@@ -122,38 +119,64 @@ def expandgrid(*itrs):
 
 
 def patternMatch(allpatterns, params):
-    print("not yet implemented")
     clusters = corcut(allpatterns, params.coparams["cut"], params.coparams["minNS"])
-    return 1
+
+    def splitcluster(list, index, minNS):
+        split = corcut(list.iloc[:, index], 2, minNS)
+        list[index] = split['0']
+        if len(split) > 1:
+            list = np.concatenate(list, split['1'])
+        return list
+
+    def toolarge(x):
+        return x.shape[1] > params.coparams["maxNS"]
+
+    indx = [c for c in clusters.values() if toolarge(c)]
+
+    while(len(indx) > 0):
+        clusters = splitcluster(clusters, indx[0], params.coparams["minNS"])
+        indx = [c for c in clusters if toolarge(c)]
+
+    # create matrix of mean patterns - weighted by correlation to mean pattern
+    meanpatterns = []
+    for cluster in clusters.values():
+        cr = corrToMeanPattern(cluster)
+        meanpatterns.append(np.average(cluster, weights=[cr[0]**3] * cluster.shape[0], axis=0))
+    meanpatterns = pd.DataFrame(meanpatterns)
+    print("meanpatterns\n", meanpatterns)
+    # returned patterns after scaling max to 1
+    result = {
+        "clustered": clusters,
+        "consensus": meanpatterns.apply(lambda x: x / x.max())
+    }
+    return result
 
 
 def corrToMeanPattern(cluster):
-    print("not implemented")
+    meanpat = np.mean(cluster, axis=1)
+    for i in range(cluster.shape[1]):
+        x = pd.DataFrame(cluster.iloc[:,i])
+        xc = x.corrwith(other=meanpat, drop=True, axis=0, )
+        rx = round(xc, ndigits=3)
+    return rx
 
 
 def corcut(allpatterns, cut, minNS):
     dist = allpatterns.corr()
     dist = 1-dist
-    print(dist)
     if dist.isnull().values.any():
         warnings.warn("NaN values in correlation of patterns... Aborting")
         return
     clusters = AgglomerativeClustering(affinity="precomputed", linkage="average", n_clusters=cut).fit(dist)
     clustid = dict()
-    print("labels", clusters.labels_)
-    for i in range(len(clusters.labels_)):
-        print("count", np.count_nonzero(clusters.labels_ == clusters.labels_[i]))
-        print("minNS", minNS)
+    for i in range(cut):
         if np.count_nonzero(clusters.labels_ == clusters.labels_[i]) >= minNS:
-            clustid[allpatterns.columns[i]] = clusters.labels_[i]
+            indices = [a for a, x in enumerate(clusters.labels_) if x == i]
+            thislist = allpatterns.iloc[:, indices]
+            clustid[i] = thislist
         else:
             warnings.warn("cluster did not meet minNS threshold and will be excluded")
-    for k, v in clustid.items():
-        print("pair: ", k, v)
     return clustid
-
-
-
 
 
 def stitchTogether(result, params, sets):
