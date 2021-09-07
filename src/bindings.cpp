@@ -89,15 +89,14 @@ PYBIND11_MODULE(pycogaps, m)
     m.def("runCogapsFromMatrix", &runCogapsFromMatrix, "Run CoGAPS Algorithm");
     m.def("runCPPTests", &runCPPTests, "Run CoGAPS C++ Tests");
     m.def("getElement", &getElement, "Get an element of a Vector");
-    // m.def("containsZeros", &containsZeros, "Check whether a Matrix contains zeros");
-    // m.def("replaceZeros", &replaceZeros, "Replace a Matrix's zeros with small values");
-    // m.def("divideMatrices", &divideMatrices, "Divide m1 / m2 element-wise; return result");
-    // m.def("multiplyMatrices", &multiplyMatrices, "Multiply m1*m2, return result");
-    // m.def("transposeMatrix", &transposeMatrix, "Transpose a matrix");
     py::enum_<GapsAlgorithmPhase>(m, "GapsAlgorithmPhase")
         .value("GAPS_EQUILIBRATION_PHASE", GAPS_EQUILIBRATION_PHASE)
         .value("GAPS_SAMPLING_PHASE", GAPS_SAMPLING_PHASE)
         .value("GAPS_ALL_PHASES", GAPS_ALL_PHASES)
+        .export_values();
+    py::enum_<PumpThreshold>(m, "PumpThreshold")
+        .value("PUMP_UNIQUE", PUMP_UNIQUE)
+        .value("PUMP_CUT", PUMP_CUT)
         .export_values();
     py::class_<GapsParameters>(m, "GapsParameters")
         .def(py::init<const std::string &>())
@@ -134,13 +133,68 @@ PYBIND11_MODULE(pycogaps, m)
         .def_readwrite("workerID", &GapsParameters::workerID)
         .def_readwrite("runningDistributed", &GapsParameters::runningDistributed)
         .def_readwrite("dataIndicesSubset", &GapsParameters::dataIndicesSubset)
-        .def_readwrite("fixedPatterns", &GapsParameters::fixedPatterns);
+        .def_readwrite("fixedPatterns", &GapsParameters::fixedPatterns)
+        .def(py::pickle(
+            [](const GapsParameters &prm) {
+                std::cout << "Making a tuple...";
+                return py::make_tuple(prm.checkpointOutFile, prm.checkpointFile, prm.seed, prm.nGenes,
+                prm.nSamples, prm.nPatterns, prm.nIterations, prm.maxThreads, prm.outputFrequency,
+                prm.checkpointInterval, prm.snapshotFrequency, prm.alphaA, prm.alphaP, prm.maxGibbsMassA,
+                prm.maxGibbsMassP, prm.pumpThreshold, prm.snapshotPhase, prm.useFixedPatterns,
+                prm.subsetData, prm.useCheckPoint, prm.transposeData, prm.printMessages, prm.subsetGenes,
+                prm.printThreadUsage, prm.useSparseOptimization, prm.takePumpSamples, prm.asynchronousUpdates,
+                prm.whichMatrixFixed,
+                prm.workerID,
+                prm.runningDistributed,
+                prm.dataIndicesSubset, prm.fixedPatterns);
+            },
+            [](py::tuple t) {
+            if (t.size() != 32)
+                throw std::runtime_error("Invalid state!");
+                std::cout << "Unraveling the tuple...";
+                GapsParameters prm = GapsParameters("./data/GIST.csv");
+                prm.checkpointOutFile    = t[0].cast<std::string>();
+                prm.checkpointFile    = t[1].cast<std::string>();
+                prm.seed    = t[2].cast<uint32_t>();
+                prm.nGenes    = t[3].cast<unsigned>();
+                prm.nSamples    = t[4].cast<unsigned>();
+                prm.nPatterns    = t[5].cast<unsigned>();
+                prm.nIterations    = t[6].cast<unsigned>();
+                prm.maxThreads    = t[7].cast<unsigned>();
+                prm.outputFrequency    = t[8].cast<unsigned>();
+                prm.checkpointInterval    = t[9].cast<unsigned>();
+                prm.snapshotFrequency    = t[10].cast<unsigned>();
+                prm.alphaA    = t[11].cast<float>();
+                prm.alphaP    = t[12].cast<float>();
+                prm.maxGibbsMassA    = t[13].cast<float>();
+                prm.maxGibbsMassP    = t[14].cast<float>();
+                prm.pumpThreshold    = t[15].cast<PumpThreshold>();
+                prm.snapshotPhase    = t[16].cast<GapsAlgorithmPhase>();
+                prm.useFixedPatterns    = t[17].cast<bool>();
+                prm.subsetData    = t[18].cast<bool>();
+                prm.useCheckPoint    = t[19].cast<bool>();
+                prm.transposeData    = t[20].cast<bool>();
+                prm.printMessages    = t[21].cast<bool>();
+                prm.subsetGenes    = t[22].cast<bool>();
+                prm.printThreadUsage    = t[23].cast<bool>();
+                prm.useSparseOptimization    = t[24].cast<bool>();
+                prm.takePumpSamples    = t[25].cast<bool>();
+                prm.asynchronousUpdates    = t[26].cast<bool>();
+                prm.whichMatrixFixed    = t[27].cast<char>();
+                prm.workerID    = t[28].cast<unsigned>();
+                prm.runningDistributed    = t[29].cast<bool>();
+                prm.dataIndicesSubset    = t[30].cast<std::vector<unsigned>>();
+                prm.fixedPatterns    = t[31].cast<Matrix>();
+                return prm;
+            }
+        ));
     m.def("getBuildReport", &getBuildReport, "Return build report.");
     m.def("isCheckpointsEnabled", &isCheckpointsEnabled, "Return whether checkpoints enabled.");
     m.def("isCompiledWithOpenMPSupport", &isCompiledWithOpenMPSupport, "Return whether compiled with Open MP Support.");
     m.def("getFileInfo", &getFileInfo, "Get info of inputted file.");
 
     py::class_<GapsResult>(m, "GapsResult")
+        .def(py::init<>())
         .def(py::init<const GapsStatistics &>())
         .def("writeToFile", &GapsResult::writeToFile)
         .def_readwrite("Amean", &GapsResult::Amean)
@@ -161,7 +215,44 @@ PYBIND11_MODULE(pycogaps, m)
         .def_readwrite("totalRunningTime", &GapsResult::totalRunningTime)
         .def_readwrite("meanChiSq", &GapsResult::meanChiSq)
         .def_readwrite("averageQueueLengthA", &GapsResult::averageQueueLengthA)
-        .def_readwrite("averageQueueLengthP", &GapsResult::averageQueueLengthP);
+        .def_readwrite("averageQueueLengthP", &GapsResult::averageQueueLengthP)
+        .def(py::pickle(
+        [](const GapsResult &r) { // __getstate__
+                /* Return a tuple that fully encodes the state of the object */
+                return py::make_tuple(r.Amean, r.Asd, r.Pmean, r.Psd, r.pumpMatrix,
+                r.meanPatternAssignment, r.equilibrationSnapshotsA, r.equilibrationSnapshotsP,
+                r.samplingSnapshotsA, r.samplingSnapshotsP, r.chisqHistory, r.atomHistoryA,
+                r.atomHistoryP, r.totalUpdates, r.seed, r.totalRunningTime, r.meanChiSq,
+                r.averageQueueLengthA, r.averageQueueLengthP);
+            },
+            [](py::tuple t) { // __setstate__
+//                if (t.size() != 2)
+//                    throw std::runtime_error("Invalid state!");
+
+                /* Create a new C++ instance */
+                GapsResult r;
+                r.Amean = t[0].cast<Matrix>();
+                r.Asd = t[1].cast<Matrix>();
+                r.Pmean = t[2].cast<Matrix>();
+                r.Psd = t[3].cast<Matrix>();
+                r.pumpMatrix = t[4].cast<Matrix>();
+                r.meanPatternAssignment = t[5].cast<Matrix>();
+                r.equilibrationSnapshotsA = t[6].cast<std::vector<Matrix>>();
+                r.equilibrationSnapshotsP = t[7].cast<std::vector<Matrix>>();
+                r.samplingSnapshotsA = t[8].cast<std::vector<Matrix>>();
+                r.samplingSnapshotsP = t[9].cast<std::vector<Matrix>>();
+                r.chisqHistory = t[10].cast<std::vector<float>>();
+                r.atomHistoryA = t[11].cast<std::vector<unsigned>>();
+                r.atomHistoryP = t[12].cast<std::vector<unsigned>>();
+                r.totalUpdates = t[13].cast<uint64_t>();
+                r.seed = t[14].cast<uint32_t>();
+                r.totalRunningTime = t[15].cast<unsigned>();
+                r.meanChiSq = t[16].cast<float>();
+                r.averageQueueLengthA = t[17].cast<float>();
+                r.averageQueueLengthP = t[18].cast<float>();
+                return r;
+            }
+        ));
   
     py::class_<Vector>(m, "Vector")
         .def(py::init<unsigned &>())
@@ -211,5 +302,34 @@ PYBIND11_MODULE(pycogaps, m)
                 {m.nRow(), m.nCol()},
                 {sizeof(float) * m.nCol(), sizeof(float)}
             );
-        });
+        })
+        .def(py::pickle(
+            [](const Matrix &m) { // __getstate__
+                std::vector<std::vector<float>> a(m.nRow(), std::vector<float>(m.nCol()));
+                for (int i = 0; i < m.nRow(); i++) {
+                    for (int j = 0; j < m.nCol(); j++) {
+                        a[i][j] = m.operator()(i,j);
+                    }
+                }
+                return py::make_tuple(m.nCol(), m.nRow(), a);
+            },
+            [](py::tuple t) { // __setstate__
+                if (t.size() != 3)
+                    throw std::runtime_error("Invalid state!");
+
+                /* Create a new C++ instance */
+                unsigned ncol = t[0].cast<unsigned>();
+                unsigned nrow = t[1].cast<unsigned>();
+                Matrix m(nrow, ncol);
+                std::vector<std::vector<float>> ptr = t[2].cast<std::vector<std::vector<float>>>();
+                for(int i = 0; i < (int)nrow; i++)
+                {
+                    for (int j = 0; j < (int)ncol; j++)
+                    {
+                        m.operator()(i,j) = ptr[i][j];
+                    }
+                }
+                return m;
+            }
+        ));
 }
