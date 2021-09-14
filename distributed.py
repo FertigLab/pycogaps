@@ -14,7 +14,7 @@ from sklearn.cluster import AgglomerativeClustering
 
 
 def distributedCoGAPS(path, params, uncertainty=None):
-    data = helper_functions.toAnndata(path)
+    data = helper_functions.toAnndata(path, hdf_key=params.coparams["hdfKey"])
     sets = subset_data.createSets(data, params)
     if min(map(len, sets)) < params.gaps.nPatterns:
         warnings.warn("Data subset dimension less than nPatterns. Aborting.")
@@ -63,11 +63,14 @@ def distributedCoGAPS(path, params, uncertainty=None):
         pool.join()
 
     stitched = stitchTogether(finalresult, params, sets)
+    print("15\n")
     finalresult = finalresult[0]
-    finalresult["GapsResult"].Amean = stitched["Amean"]
-    finalresult["GapsResult"].Asd = stitched["Asd"]
-    finalresult["GapsResult"].Pmean = stitched["Pmean"]
-    finalresult["GapsResult"].Psd = stitched["Psd"]
+    print("AMEAN", stitched["Amean"])
+    finalresult["GapsResult"].Amean = pycogaps.Matrix(stitched["Amean"])
+    finalresult["GapsResult"].Asd = pycogaps.Matrix(stitched["Asd"])
+    finalresult["GapsResult"].Pmean = pycogaps.Matrix(stitched["Pmean"])
+    finalresult["GapsResult"].Psd = pycogaps.Matrix(stitched["Psd"])
+    print("16\n")
     return finalresult
 
 
@@ -88,6 +91,7 @@ def callInternalCoGAPS(paramlst):
         params.coparams['subsetDim'] = 1
     else:
         samples = np.array(params.coparams['sampleNames'])
+        print("samples:", samples)
         params.coparams['sampleNames'] = np.take(samples, subsetIndices)
         params.coparams['subsetDim'] = 2
 
@@ -95,13 +99,17 @@ def callInternalCoGAPS(paramlst):
     params.gaps.workerID = workerID
     params.gaps.asynchronousUpdates = False
     params.gaps.maxThreads = 1
-    gapsresult = PyCoGAPS.CoGAPS(path, params, uncertainty)
+    print("ABOUT TO CALL INTERNAL COGAPS\n")
+    gapsresult = PyCoGAPS.CoGAPS(path, params, uncertainty, transposeData=params.coparams["transposeData"])
 
     return gapsresult
 
 
 def findConsensusMatrix(unmatched, params):
+    print("IN FIND CONSENSUS MATRIX\n")
+    print("UNMATCHED:", unmatched)
     allpatterns = pd.DataFrame(np.hstack(unmatched))
+    print("ALLPATTERNS:", allpatterns)
     comb = expandgrid(range(params.coparams["nSets"]), range(params.gaps.nPatterns))
     comb = list(comb.values())
     comb = pd.DataFrame(comb)
@@ -111,37 +119,46 @@ def findConsensusMatrix(unmatched, params):
     for i in range(comb.shape[0]):
         names.append(str(comb[i, 0] + 1) + "." + str(comb[i, 1] + 1))
     allpatterns.columns = names
+    print(allpatterns)
     return patternMatch(allpatterns, params)
 
 
 def expandgrid(*itrs):
+    print("IN EXPAND GRID\n")
     product = list(itertools.product(*itrs))
     return {'Var{}'.format(i + 1): [x[i] for x in product] for i in range(len(itrs))}
 
 
 def patternMatch(allpatterns, params):
+    print("IN PATTERN MATCH\n")
     clusters = corcut(allpatterns, params.coparams["cut"], params.coparams["minNS"])
-
+    print("CLUSTERS:", clusters)
     def splitcluster(list, index, minNS):
-        split = corcut(list.iloc[:, index], 2, minNS)
-        list[index] = split['0']
+        # list = pd.DataFrame(list)
+        print("IN SPLIT CLUSTER*******************", list, index, minNS)
+        split = corcut(index, 2, minNS)
+        list[0] = split[0]
         if len(split) > 1:
-            list = np.concatenate(list, split['1'])
+            list.append(split[1])
         return list
 
     def toolarge(x):
         return x.shape[1] > params.coparams["maxNS"]
 
+    print("CLUSTERS:", clusters)
     indx = [c for c in clusters if toolarge(c)]
 
-    while (len(indx) > 0):
+    while len(indx) > 0:
         clusters = splitcluster(clusters, indx[0], params.coparams["minNS"])
         indx = [c for c in clusters if toolarge(c)]
 
     # create matrix of mean patterns - weighted by correlation to mean pattern
     meanpatterns = []
     for cluster in clusters:
+        # cluster = pd.DataFrame(cluster)
         cr = corrToMeanPattern(cluster)
+        print("CR:", cr)
+        print("CLUSTER:", cluster)
         meanpatterns.append(np.average(cluster, weights=[cr[0] ** 3] * cluster.shape[0], axis=0))
     meanpatterns = pd.DataFrame(meanpatterns)
     # returned patterns after scaling max to 1
@@ -153,6 +170,8 @@ def patternMatch(allpatterns, params):
 
 
 def corrToMeanPattern(cluster):
+    print("IN CORR TO MEAN PATTERN")
+    print("CLUSTER:", cluster)
     meanpat = np.mean(cluster, axis=1)
     for i in range(cluster.shape[1]):
         x = pd.DataFrame(cluster.iloc[:, i])
@@ -162,18 +181,23 @@ def corrToMeanPattern(cluster):
 
 
 def corcut(allpatterns, cut, minNS):
+    print("IN CORCUT\n")
     dist = allpatterns.corr()
     dist = 1 - dist
     if dist.isnull().values.any():
         warnings.warn("NaN values in correlation of patterns... Aborting")
         return
     clusters = AgglomerativeClustering(affinity="precomputed", linkage="average", n_clusters=cut).fit(dist)
-    clustid = []
-    for i in range(cut):
-        if np.count_nonzero(clusters.labels_ == clusters.labels_[i]) >= minNS:
-            indices = [a for a, x in enumerate(clusters.labels_) if x == i]
+    print("clustering result", clusters.labels_)
+    clustid = [None] * cut
+    for id in set(clusters.labels_):
+        if np.count_nonzero(clusters.labels_ == id) >= minNS:
+            indices = [a for a, x in enumerate(clusters.labels_) if x == id]
+            print("indices", indices)
             thislist = allpatterns.iloc[:, indices]
-            clustid.append(thislist)
+            print(thislist)
+            clustid[id] = thislist
+            # clustid.append(np.array(flatlist))
         else:
             warnings.warn("cluster did not meet minNS threshold and will be excluded")
     return clustid
@@ -187,52 +211,71 @@ def stitchTogether(result, params, sets):
     @param sets: sets used to break apart data
     @return final GapsResult object
     """
+    print("IN STITCH TOGETHER\n")
     setindices = [item for sublist in sets for item in sublist]
     # step 1:
+    print("1\n")
     if params.coparams["distributed"] == "genome-wide":
+        print("2\n")
         # combine A matrices
-        Amean = []
-        Asd = []
+        Amean = pd.DataFrame()
+        Asd = pd.DataFrame()
         for r in result:
-            Amean.append(np.array(r["GapsResult"].Amean))
-            Asd.append(np.array(r["GapsResult"].Asd))
-        Amean = [item for sublist in Amean for item in sublist]
-        Amean = np.array(Amean)
-        Asd = [item for sublist in Asd for item in sublist]
-        Asd = np.array(Asd)
+            df1 = pd.DataFrame(np.array(r["GapsResult"].Amean))
+            df2 = pd.DataFrame(np.array(r["GapsResult"].Asd))
+            Amean = pd.concat([df1, Amean], axis=1)
+            Asd = pd.concat([df2, Asd], axis=1)
+        print("4\n")
+        # # Amean = [item for sublist in Amean for item in sublist]
+        # Amean = np.array(Amean)
+        # # Asd = [item for sublist in Asd for item in sublist]
+        # Asd = np.array(Asd)
+        print("5\n")
         # copy P matrix.. same for all sets
-        Pmean = np.array(result[0]["GapsResult"].Pmean)
-        Psd = pycogaps.Matrix(Pmean.shape[0], Pmean.shape[1])
+        Pmean = pd.DataFrame(np.array(r["GapsResult"].Pmean))
+        print("5.5 PMEAN:\n", Pmean)
+        Psd = pd.DataFrame(np.array(r["GapsResult"].Psd))
+
         # reorder features to match data
         if len(Amean) == len(setindices):
+            print("7\n")
             indices = range(Amean.shape[0])
             if indices.sort() == setindices.sort():
+                print("8\n")
                 reorder = set(indices) & set(setindices)
                 Amean = [Amean[i] for i in reorder]
                 Asd = [Asd[i] for i in reorder]
     else:
-        Pmean = []
-        Psd = []
+        print("9\n")
+        Pmean = pd.DataFrame()
+        Psd = pd.DataFrame()
         for r in result:
-            Pmean.append(np.array(r["GapsResult"].Pmean))
-            Psd.append(np.array(r["GapsResult"].Psd))
-        Pmean = [item for sublist in Pmean for item in sublist]
-        Pmean = np.array(Pmean)
-        Psd = [item for sublist in Psd for item in sublist]
-        Psd = np.array(Psd)
+            df1 = pd.DataFrame(np.array(r["GapsResult"].Pmean))
+            df2 = pd.DataFrame(np.array(r["GapsResult"].Psd))
+            Pmean = pd.concat([df1, Pmean], axis=1)
+            Psd = pd.concat([df2, Psd], axis=1)
+        # Pmean = [item for sublist in Pmean for item in sublist]
+        # Pmean = np.array(Pmean)
+        # Psd = [item for sublist in Psd for item in sublist]
+        # Psd = np.array(Psd)
         # copy P matrix.. same for all sets
         Amean = np.array(result[0]["GapsResult"].Amean)
-        Asd = pycogaps.Matrix(Amean.shape[0], Amean.shape[1])
+        # Asd = pycogaps.Matrix(Amean.shape[0], Amean.shape[1])
+        print("11\n")
         if Pmean.shape[0] == len(setindices):
+            print("12\n")
             indices = range(Pmean.shape[0])
             if indices.sort() == setindices.sort():
+                print("13\n")
                 reorder = set(indices) & set(setindices)
                 Pmean = [Pmean[i] for i in reorder]
                 Psd = [Psd[i] for i in reorder]
+    print("13.5\n")
     reslist = {
-        "Amean": pycogaps.Matrix(Amean),
-        "Asd": pycogaps.Matrix(Asd),
-        "Pmean": pycogaps.Matrix(Pmean),
-        "Psd": pycogaps.Matrix(Psd)
+        "Amean": Amean,
+        "Asd": Asd,
+        "Pmean": Pmean,
+        "Psd": Psd
     }
+    print("14\n")
     return reslist
