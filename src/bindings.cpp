@@ -99,6 +99,7 @@ PYBIND11_MODULE(pycogaps, m)
         .value("PUMP_CUT", PUMP_CUT)
         .export_values();
     py::class_<GapsParameters>(m, "GapsParameters")
+        .def(py::init<>())
         .def(py::init<const std::string &>())
         .def(py::init<const Matrix&>())
         .def("print", &GapsParameters::print)
@@ -136,7 +137,6 @@ PYBIND11_MODULE(pycogaps, m)
         .def_readwrite("fixedPatterns", &GapsParameters::fixedPatterns)
         .def(py::pickle(
             [](const GapsParameters &prm) {
-                std::cout << "Making a tuple...";
                 return py::make_tuple(prm.checkpointOutFile, prm.checkpointFile, prm.seed, prm.nGenes,
                 prm.nSamples, prm.nPatterns, prm.nIterations, prm.maxThreads, prm.outputFrequency,
                 prm.checkpointInterval, prm.snapshotFrequency, prm.alphaA, prm.alphaP, prm.maxGibbsMassA,
@@ -149,10 +149,10 @@ PYBIND11_MODULE(pycogaps, m)
                 prm.dataIndicesSubset, prm.fixedPatterns);
             },
             [](py::tuple t) {
-            if (t.size() != 32)
-                throw std::runtime_error("Invalid state!");
-                std::cout << "Unraveling the tuple...";
-                GapsParameters prm = GapsParameters("./data/GIST.csv");
+                if (t.size() != 32){
+                    throw std::runtime_error("Invalid state!");
+                }
+                GapsParameters prm;
                 prm.checkpointOutFile    = t[0].cast<std::string>();
                 prm.checkpointFile    = t[1].cast<std::string>();
                 prm.seed    = t[2].cast<uint32_t>();

@@ -1,17 +1,22 @@
 from PyCoGAPS import *
 import time
+import numpy as np
+import h5py
 
-# replace with the path to your data, or use this provided example
 path = "src/CoGAPS/inst/extdata/retina_subset_1.h5"
+np.savetxt("src/CoGAPS/inst/extdata/retina_subset_1.csv", h5py.File(path)['counts'], '%g', ',')
+# replace with the path to your data, or use this provided example
 # path = "./data/GIST.csv"
-
-params = CoParams(path, hdfKey="counts", transposeData=False)
+# df = pd.read_hdf(path)
+# df.to_csv("src/CoGAPS/inst/extdata/retina_subset_1.csv", index=False)
+csvpath = "src/CoGAPS/inst/extdata/retina_subset_1.csv"
+params = CoParams(csvpath, hdfKey="counts", transposeData=True)
 
 setParams(params, {"seed": 0,
                     "nIterations": 100,
                     "nPatterns": 3,
                     "useSparseOptimization": False,
-                   "transposeData": False,
+                   "transposeData": True,
                     "hdfKey": "counts"
                     })
 
