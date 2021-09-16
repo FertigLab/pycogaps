@@ -28,7 +28,7 @@ def distributedCoGAPS(path, params, uncertainty=None):
             # make a list of parameters for each function call so they can easily be mapped to processes
             paramlst = []
             for i in range(len(sets)):
-                paramlst.append([path, params, i, sets[i], None])
+                paramlst.append([data, params, i, sets[i], None])
 
             result = pool.map(callInternalCoGAPS, paramlst)
             pool.close()
@@ -57,7 +57,7 @@ def distributedCoGAPS(path, params, uncertainty=None):
     with multiprocessing.get_context("spawn").Pool(processes=len(sets)) as pool:
         paramlst = []
         for i in range(len(sets)):
-            paramlst.append([path, params, i, sets[i], None])
+            paramlst.append([data, params, i, sets[i], None])
         finalresult = pool.map(callInternalCoGAPS, paramlst)
         pool.close()
         pool.join()
@@ -81,26 +81,37 @@ def callInternalCoGAPS(paramlst):
     workerID = paramlst[2]
     subsetIndices = paramlst[3]
     uncertainty = paramlst[4]
+    if isinstance(path, str):
+        adata = helper_functions.toAnndata(path)
+    else:
+        adata = path
     if subsetIndices is None:
         print("No subset indices provided; generating random sets...")
-        adata = helper_functions.toAnndata(path)
         subsetIndices = subset_data.createSets(adata, params)
+
     if params.coparams['distributed'] == "genome-wide":
         genes = np.array(params.coparams['geneNames'])
-        params.coparams['geneNames'] = np.take(genes, subsetIndices)
+        genesubset = np.take(genes, subsetIndices)
+        print("gene subset", genesubset)
+        params.coparams['geneNames'] = genesubset
+        adata = adata[genesubset, :]
         params.coparams['subsetDim'] = 1
     else:
         samples = np.array(params.coparams['sampleNames'])
         print("samples:", samples)
-        params.coparams['sampleNames'] = np.take(samples, subsetIndices)
+        samplesubset = np.take(samples, subsetIndices)
+        print("sample subset:", samplesubset)
+        params.coparams['sampleNames'] = samplesubset
+        adata = adata[:, samplesubset]
         params.coparams['subsetDim'] = 2
+    print("AFTER SUBSETTING:", adata, adata.obs_names, adata.var_names)
 
     params.coparams['subsetIndices'] = subsetIndices
     params.gaps.workerID = workerID
     params.gaps.asynchronousUpdates = False
     params.gaps.maxThreads = 1
     print("ABOUT TO CALL INTERNAL COGAPS\n")
-    gapsresult = PyCoGAPS.CoGAPS(path, params, uncertainty, transposeData=params.coparams["transposeData"])
+    gapsresult = PyCoGAPS.CoGAPS(adata, params, uncertainty, transposeData=params.coparams["transposeData"])
 
     return gapsresult
 
