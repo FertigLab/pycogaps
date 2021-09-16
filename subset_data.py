@@ -72,6 +72,7 @@ def sampleUniformly(allParams, total, setSize):
     sets[allParams.coparams['nSets'] - 1] = np.sort(list(remaining))
     return sets
 
+
 def createSets(data, allParams):
     subsetRows = allParams.gaps.transposeData != allParams.coparams['distributed'] == "genome-wide"
     if subsetRows:

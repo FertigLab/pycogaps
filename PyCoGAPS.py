@@ -154,10 +154,13 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
     gapsresultobj = None
 
     # convert data to anndata and matrix obj
-    if params is not None:
-        adata = toAnndata(path, params.coparams['hdfKey'], transposeData=transposeData)
+    if isinstance(path, str):
+        if params is not None:
+            adata = toAnndata(path, params.coparams['hdfKey'], transposeData=transposeData)
+        else:
+            adata = toAnndata(path, transposeData=transposeData)
     else:
-        adata = toAnndata(path, transposeData=transposeData)
+        adata = path
 
     matrix = pycogaps.Matrix(adata.X)
 
@@ -173,7 +176,7 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
         'checkpointOutFile': checkpointOutFile,
         'checkpointInterval': checkpointInterval,
         'checkpointFile': checkpointInFile,
-        # 'transposeData': transposeData,
+        'transposeData': transposeData,
         'workerID': workerID,
         'asynchronousUpdates': asynchronousUpdates,
         'snapshotFrequency': nSnapshots,
@@ -187,8 +190,8 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
     else:
         unc = pycogaps.Matrix()
 
-
-    prm = getDimNames(adata, prm)
+    if prm.coparams["subsetIndices"] is None:
+        prm = getDimNames(adata, prm)
 
     # check data input
     checkData(adata, prm.gaps, uncertainty) 
@@ -200,10 +203,11 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
 
     if prm.gaps.transposeData != prm.coparams["transposeData"]:
         raise Exception("make sure to pass transposeData=True argument in both CoParams() and CoGAPS()")
-
+    print("SHAPE OF AMEAN--before transform", toNumpy(gapsresultobj.Amean).shape)
+    print("SHAPE OF PMEAN--before transform", toNumpy(gapsresultobj.Pmean).shape)
     result = {
         "GapsResult": gapsresultobj,
-        "anndata": GapsResultToAnnData(gapsresultobj, adata, prm.gaps)
+        "anndata": GapsResultToAnnData(gapsresultobj, adata, prm)
     }
 
     show(result["anndata"])
@@ -213,13 +217,23 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
 # TODO: should we pass uncertainty into runCogaps?
 
 
-def GapsResultToAnnData (gapsresult:GapsResult, adata, prm:GapsParameters):
-    # convert Amean and Pmean results to numpy arrays
-    Amean = toNumpy(gapsresult.Amean)
-    Pmean = toNumpy(gapsresult.Pmean)
-    Asd = toNumpy(gapsresult.Asd)
-    Psd = toNumpy(gapsresult.Psd)
-    pattern_labels = ["Pattern" + str(i) for i in range(1, prm.nPatterns + 1)]
+def GapsResultToAnnData (gapsresult:GapsResult, adata, prm:CoParams):
+    # need to subset matrices based on which dimension we're in...
+    # honestly not sure why these matrices are so big? look into this
+    print("SUBSET DIM", prm.coparams['subsetDim'])
+    if prm.coparams['subsetDim'] == 1:
+        Amean = toNumpy(gapsresult.Amean)[prm.coparams["subsetIndices"], :]
+        Pmean = toNumpy(gapsresult.Pmean)
+        Asd = toNumpy(gapsresult.Asd)[prm.coparams["subsetIndices"], :]
+        Psd = toNumpy(gapsresult.Psd)
+    else:
+        Amean = toNumpy(gapsresult.Amean)
+        Pmean = toNumpy(gapsresult.Pmean)[prm.coparams["subsetIndices"], :]
+        Asd = toNumpy(gapsresult.Asd)
+        Psd = toNumpy(gapsresult.Psd)[prm.coparams["subsetIndices"], :]
+    pattern_labels = ["Pattern" + str(i) for i in range(1, prm.gaps.nPatterns + 1)]
+    print("SHAPE OF AMEAN", Amean.shape)
+    print("SHAPE OF PMEAN", Pmean.shape)
     # load adata obs and var from Amean and Pmean results
     adata.obs = pd.DataFrame(data=Amean, index=adata.obs_names, columns=pattern_labels)
     adata.var = pd.DataFrame(data=Pmean, index=adata.var_names, columns=pattern_labels)

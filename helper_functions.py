@@ -160,8 +160,11 @@ def startupMessage(params, path):
     dist_message = "Standard"
     if params.coparams["distributed"] is not None and params.coparams["distributed"] is not False:
         dist_message = params.coparams["distributed"]
+    if isinstance(path, str):
+        data_name = os.path.basename(path)
+    else:
+        data_name = "provided data object"
 
-    data_name = os.path.basename(path)
     print("Running", dist_message, "CoGAPS on", data_name, "(", len(params.coparams['geneNames']), "genes and", len(params.coparams['sampleNames']),"samples)",
     "with parameters: ")
     params.printParams()
@@ -339,6 +342,9 @@ def patternMarkers(adata, threshold='all', lp=None, axis=1):
     else:
         resultMatrix = adata.var
 
+    # Replacing infinite with 0
+    resultMatrix.replace([np.inf, -np.inf, np.nan], 0, inplace=True)
+    resultMatrix.replace([np.inf, -np.inf, np.nan], 0, inplace=True)
     row_max = np.nanmax(resultMatrix.values, axis=1, keepdims=True)
     row_max = np.where(row_max == 0, 1, row_max)
 
@@ -500,6 +506,7 @@ def plotPatternMarkers(data, patternmarkers=None, patternPalette=None,
     @param legend_pos: string indicating legend position, or none (no legend). default is none
 )    @return: a clustergrid instance
     """
+    print("1")
     data = data["anndata"]
     if patternmarkers is None:
         patternmarkers=patternMarkers(data)
@@ -518,12 +525,13 @@ def plotPatternMarkers(data, patternmarkers=None, patternPalette=None,
         for i in range(len(patternkeys)):
             palette = np.concatenate((palette, np.repeat(patternPalette[i], len(patternmarkers["PatternMarkers"][patternkeys[i]]))))
         patternPalette = palette
-
+    print("2")
     markers = np.concatenate(list(patternmarkers["PatternMarkers"].values()))
     plotdata = data[markers].X
+    print("PLOTDATA", plotdata)
     markerlabels = data[markers].obs_names
     samplelabels = data[markers].var_names
-
+    print("PLOTDATA", plotdata)
     if scale not in ["row", "column", "none"]:
         warnings.warn("warning: scale must be one of \"row\", \"column\", or \"none\". data will not be scaled in "
                       "this plot")
@@ -535,13 +543,25 @@ def plotPatternMarkers(data, patternmarkers=None, patternPalette=None,
         plotdata_z = zscore(pd.DataFrame(plotdata))
     else:
         plotdata_z = pd.DataFrame(plotdata)
+    print("PLOTDATA_Z", plotdata_z)
+    print("sample labels", samplelabels)
+    print("marker labels", markerlabels)
+    print("3")
+    # plotdata_z = pd.DataFrame(plotdata_z, columns=samplelabels, index=markerlabels)
+    plotdata_z.columns = samplelabels
+    plotdata_z.index = markerlabels
+    print(plotdata_z)
+    plotdata_z.replace([np.inf, -np.inf, np.nan], 0, inplace=True)
+    print(plotdata_z)
+    # try:
+    #     hm = sns.clustermap(plotdata_z, cmap=colorscheme, row_cluster=rowDendrogram, col_cluster=colDendrogram, row_colors=patternPalette, col_colors=samplePalette, cbar_pos=legend_pos)
+    # except ValueError:
+    #     pass
 
-    plotdata_z = pd.DataFrame(plotdata_z, columns=samplelabels, index=markerlabels)
-    try:
-        hm = sns.clustermap(plotdata_z, cmap=colorscheme, row_cluster=rowDendrogram, col_cluster=colDendrogram, row_colors=patternPalette, col_colors=samplePalette, cbar_pos=legend_pos)
-    except ValueError:
-        pass
-    return 1
+    hm = sns.clustermap(plotdata_z, cmap=colorscheme, row_cluster=rowDendrogram, col_cluster=colDendrogram,
+                        row_colors=patternPalette, col_colors=samplePalette, cbar_pos=legend_pos)
+    plt.show()
+    return hm
 
 
 # convert matrix object to numpy array
