@@ -3,33 +3,34 @@ import time
 import numpy as np
 import h5py
 # #
-# path = "src/CoGAPS/inst/extdata/retina_subset_1.h5"
+path = "data/GSE98638_HCC.TCell.S5063.count.txt"
 # np.savetxt("src/CoGAPS/inst/extdata/retina_subset_1.csv", h5py.File(path)['counts'], '%g', ',')
 # replace with the path to your data, or use this provided example
-path = "./data/GIST.csv"
+# path = "./data/GIST.csv"
 # df = pd.read_hdf(path)
 # df.to_csv("src/CoGAPS/inst/extdata/retina_subset_1.csv", index=False)
 # csvpath = "src/CoGAPS/inst/extdata/retina_subset_1.csv"
-params = CoParams(path, hdfKey="counts")
+params = CoParams(path)
 
 setParams(params, {"seed": 0,
-                    "nIterations": 100,
+                    "nIterations": 10000,
                     "nPatterns": 3,
-                    "useSparseOptimization": False,
+                    "useSparseOptimization": True,
                     "hdfKey": "counts",
+                   "hdfColKey": "geneNames",
+                   "hdfRowKey": "cellNames"
                     })
 
 
 start = time.time()
 if __name__ == '__main__':
-    params.setDistributedParams(nSets=3, minNS=1, cut=3)
+    params.setDistributedParams()
     result = distributedCoGAPS(path, params, None)
-    print("RUN FINISHED")
-    plotResiduals(result)
-    binaryA(result, threshold=3)
-    plotPatternMarkers(result, colDendrogram=True)
-    plotPatternMarkers(result, rowDendrogram=True)
+end = time.time()
+print("TIME:", end - start)
+    # plotResiduals(result)
+    # binaryA(result, threshold=3)
+    # plotPatternMarkers(result, colDendrogram=True)
+    # plotPatternMarkers(result, rowDendrogram=True)
     # print(result)
 # CoGAPS(path, params, transposeData=True)
-end = time.time()
-print(end - start)

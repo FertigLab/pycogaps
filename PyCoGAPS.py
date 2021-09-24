@@ -7,6 +7,8 @@ import anndata
 from helper_functions import *
 from subset_data import *
 from distributed import *
+import sys
+sys.setrecursionlimit(10000)
 
 class CoParams:
     '''
@@ -14,15 +16,19 @@ class CoParams:
     self.cogaps : dictionary of additional parameters (not in GapsParameters)
     @param matrix is an anndata object containing supplied data matrix
     '''
-    def __init__(self, path=None, matrix=None, transposeData=False, hdfKey=None):
+    def __init__(self, path=None, matrix=None, transposeData=False, hdfKey=None, hdfRowKey=None, hdfColKey=None):
         if matrix is not None:
             self.gaps = GapsParameters(pycogaps.Matrix(matrix.X))
             adata = matrix
         elif path is not None:
-            if not path.lower().endswith(".h5"):
-                adata = toAnndata(path, transposeData=transposeData)
+            if path.lower().endswith(".h5"):
+                adata = toAnndata(path, hdfKey, hdfRowKey, hdfColKey, transposeData=transposeData)
+            elif path.lower().endswith(".txt"):
+                table = pd.read_table(path)
+                adata = anndata.AnnData(table.iloc[:, 2:])
+                adata.obs_names = table["symbol"]
             else:
-                adata = toAnndata(path, hdfKey, transposeData=transposeData)
+                adata = toAnndata(path, transposeData=transposeData)
             matrix = pycogaps.Matrix(adata.X)
             self.gaps = GapsParameters(matrix)
         else:
@@ -42,6 +48,8 @@ class CoParams:
                             'fixedPatterns': None,
                             'distributed': "genome-wide",
                             'hdfKey': hdfKey,
+                            'hdfRowKey': hdfRowKey,
+                            'hdfColKey': hdfColKey,
                             'useSparseOptimization': None,
                             'transposeData': transposeData,
                         }
@@ -68,7 +76,7 @@ class CoParams:
         if maxNS is None:
             self.coparams['maxNS'] = self.coparams['minNS'] + self.coparams['nSets']
         else:
-            self.coparams['maxNS'] = minNS
+            self.coparams['maxNS'] = maxNS
 
     # samplingWeight is a dictionary
     # can use: dict(zip(names, weights))
@@ -156,7 +164,7 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
     # convert data to anndata and matrix obj
     if isinstance(path, str):
         if params is not None:
-            adata = toAnndata(path, params.coparams['hdfKey'], transposeData=transposeData)
+            adata = toAnndata(path, params.coparams['hdfKey'], params.coparams['hdfRowKey'], params.coparams['hdfColKey'], transposeData=transposeData)
         else:
             adata = toAnndata(path, transposeData=transposeData)
     else:
@@ -203,8 +211,6 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
 
     if prm.gaps.transposeData != prm.coparams["transposeData"]:
         raise Exception("make sure to pass transposeData=True argument in both CoParams() and CoGAPS()")
-    print("SHAPE OF AMEAN--before transform", toNumpy(gapsresultobj.Amean).shape)
-    print("SHAPE OF PMEAN--before transform", toNumpy(gapsresultobj.Pmean).shape)
     result = {
         "GapsResult": gapsresultobj,
         "anndata": GapsResultToAnnData(gapsresultobj, adata, prm)
@@ -219,8 +225,6 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
 
 def GapsResultToAnnData (gapsresult:GapsResult, adata, prm:CoParams):
     # need to subset matrices based on which dimension we're in...
-    # honestly not sure why these matrices are so big? look into this
-    print("SUBSET DIM", prm.coparams['subsetDim'])
     if prm.coparams['subsetDim'] == 1:
         Amean = toNumpy(gapsresult.Amean)[prm.coparams["subsetIndices"], :]
         Pmean = toNumpy(gapsresult.Pmean)
@@ -232,9 +236,11 @@ def GapsResultToAnnData (gapsresult:GapsResult, adata, prm:CoParams):
         Asd = toNumpy(gapsresult.Asd)
         Psd = toNumpy(gapsresult.Psd)[prm.coparams["subsetIndices"], :]
     pattern_labels = ["Pattern" + str(i) for i in range(1, prm.gaps.nPatterns + 1)]
-    print("SHAPE OF AMEAN", Amean.shape)
-    print("SHAPE OF PMEAN", Pmean.shape)
     # load adata obs and var from Amean and Pmean results
+    if len(Pmean.shape) > 2:
+        Pmean = Pmean[0,:,:]
+        Psd = Psd[0, :, :]
+
     adata.obs = pd.DataFrame(data=Amean, index=adata.obs_names, columns=pattern_labels)
     adata.var = pd.DataFrame(data=Pmean, index=adata.var_names, columns=pattern_labels)
     adata.uns["asd"] = pd.DataFrame(data=Asd, index=adata.obs_names, columns=pattern_labels)
@@ -286,7 +292,7 @@ def setParam(paramobj: CoParams, whichParam, value):
     @param value: the value to set whichParam as
     @return: nothing paramobj will be modified
     """
-    coparam_params = ['hdfKey', 'explicitSets', 'subsetDim', 'geneNames', 'sampleNames']
+    coparam_params = ['hdfKey', 'hdfRowKey', 'hdfColKey', 'explicitSets', 'subsetDim', 'geneNames', 'sampleNames']
     if whichParam == "alpha":
         paramobj.gaps.alphaA = value
         paramobj.gaps.alphaP = value
