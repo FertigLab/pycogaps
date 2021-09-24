@@ -1,3 +1,4 @@
+import h5py
 from pycogaps import *
 import numpy as np
 import pandas as pd
@@ -16,7 +17,7 @@ mpl.use('tkagg')
 
 
 def supported(file):
-    return file.lower().endswith((".tsv", ".csv", ".mtx", ".h5ad", ".h5", ".gct")) 
+    return file.lower().endswith((".tsv", ".csv", ".mtx", ".h5ad", ".h5", ".gct", ".txt"))
 
 
 def checkData(adata, params, uncertainty=None):
@@ -37,11 +38,15 @@ def checkData(adata, params, uncertainty=None):
         raise Exception('nPatterns must be less than dimensions of data')
 
 
-def toAnndata(file, hdf_key=None, transposeData=False):
+def toAnndata(file, hdf_counts_key=None, hdf_dim1_key=None, hdf_dim2_key=None, transposeData=False):
     if not supported(file):
         raise Exception("unsupported data type")
     if file.lower().endswith(".csv"):
         adata = anndata.read_csv(file)
+    elif file.lower().endswith(".txt"):
+        table = pd.read_table(file)
+        adata = anndata.AnnData(table.iloc[:, 2:])
+        adata.obs_names = table["symbol"]
     elif file.lower().endswith(".tsv"):
         csv_table = pd.read_table(file,sep='\t')
         csv_table.to_csv('file.csv', index=False)
@@ -51,9 +56,19 @@ def toAnndata(file, hdf_key=None, transposeData=False):
     elif file.lower().endswith(".h5ad"):
         adata = anndata.read_h5ad(file)
     elif file.lower().endswith(".h5"):
-        if hdf_key is None:
+        if hdf_counts_key is None:
             raise Exception("set dataset name from hdf file to use with params = CoParams(path=filename, hdfKey=key")
-        adata = anndata.read_hdf(file, hdf_key) # user supplied key
+        adata = anndata.read_hdf(file, hdf_counts_key) # user supplied keydata
+        if transposeData:
+            if hdf_dim1_key is not None:
+                adata.obs_names = h5py.File(file, 'r')[hdf_dim1_key]
+            if hdf_dim2_key is not None:
+                adata.var_names = h5py.File(file, 'r')[hdf_dim2_key]
+        else:
+            if hdf_dim1_key is not None:
+                adata.var_names = h5py.File(file, 'r')[hdf_dim1_key]
+            if hdf_dim2_key is not None:
+                adata.obs_names = h5py.File(file, 'r')[hdf_dim2_key]
     elif file.lower().endswith(".gct"):
         csv_table = pd.read_csv(file, sep='\t', skiprows=2)
         csv_table.to_csv('file.csv', index=False)
@@ -250,10 +265,10 @@ def getSubsets(object):
 def calcZ(object: anndata, whichMatrix):
     if whichMatrix in "sampleFactors":
         mean = object.var
-        stddev = object.uns["psd"]
+        stddev = object.uns["asd"]
     elif whichMatrix in "featureLoadings":
         mean = object.obs
-        stddev = object.uns["asd"]
+        stddev = object.uns["psd"]
     else:
         print('whichMatrix must be either \'featureLoadings\' or \'sampleFactors\'')
         return
@@ -506,7 +521,6 @@ def plotPatternMarkers(data, patternmarkers=None, patternPalette=None,
     @param legend_pos: string indicating legend position, or none (no legend). default is none
 )    @return: a clustergrid instance
     """
-    print("1")
     data = data["anndata"]
     if patternmarkers is None:
         patternmarkers=patternMarkers(data)
@@ -525,13 +539,10 @@ def plotPatternMarkers(data, patternmarkers=None, patternPalette=None,
         for i in range(len(patternkeys)):
             palette = np.concatenate((palette, np.repeat(patternPalette[i], len(patternmarkers["PatternMarkers"][patternkeys[i]]))))
         patternPalette = palette
-    print("2")
     markers = np.concatenate(list(patternmarkers["PatternMarkers"].values()))
     plotdata = data[markers].X
-    print("PLOTDATA", plotdata)
     markerlabels = data[markers].obs_names
     samplelabels = data[markers].var_names
-    print("PLOTDATA", plotdata)
     if scale not in ["row", "column", "none"]:
         warnings.warn("warning: scale must be one of \"row\", \"column\", or \"none\". data will not be scaled in "
                       "this plot")
@@ -543,20 +554,9 @@ def plotPatternMarkers(data, patternmarkers=None, patternPalette=None,
         plotdata_z = zscore(pd.DataFrame(plotdata))
     else:
         plotdata_z = pd.DataFrame(plotdata)
-    print("PLOTDATA_Z", plotdata_z)
-    print("sample labels", samplelabels)
-    print("marker labels", markerlabels)
-    print("3")
-    # plotdata_z = pd.DataFrame(plotdata_z, columns=samplelabels, index=markerlabels)
     plotdata_z.columns = samplelabels
     plotdata_z.index = markerlabels
-    print(plotdata_z)
     plotdata_z.replace([np.inf, -np.inf, np.nan], 0, inplace=True)
-    print(plotdata_z)
-    # try:
-    #     hm = sns.clustermap(plotdata_z, cmap=colorscheme, row_cluster=rowDendrogram, col_cluster=colDendrogram, row_colors=patternPalette, col_colors=samplePalette, cbar_pos=legend_pos)
-    # except ValueError:
-    #     pass
 
     hm = sns.clustermap(plotdata_z, cmap=colorscheme, row_cluster=rowDendrogram, col_cluster=colDendrogram,
                         row_colors=patternPalette, col_colors=samplePalette, cbar_pos=legend_pos)

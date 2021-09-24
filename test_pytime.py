@@ -2,9 +2,9 @@ from PyCoGAPS import *
 import time
 
 # replace with the path to your data, or use this provided example
-path = "src/CoGAPS/inst/extdata/retina_subset_1.h5" 
+path = "data/GSE98638_HCC.TCell.S5063.count.txt"
 
-params = CoParams(path, hdfKey="counts", transposeData=True)
+params = CoParams(path)
 
 setParams(params, {"seed": 0,
                     "nIterations": 10000,
@@ -14,6 +14,7 @@ setParams(params, {"seed": 0,
 
 
 start = time.time()
-CoGAPS(path, params, transposeData=True)
+result = CoGAPS(path, params)
 end = time.time()
 print(end - start)
+# plotPatternMarkers(result)
