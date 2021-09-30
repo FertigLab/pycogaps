@@ -194,20 +194,79 @@ def show(obj: anndata):
     return
 
 
-def plot(obj):
+def plot(obj, groups=None, title=None):
     obj = obj["anndata"]
+    if groups is not None:
+        if len(groups) == len(obj.var_names):
+            obj.var_names = groups
+        else:
+            warnings.warn("length of groups does not match number of samples, aborting...")
+            return
+        samples = obj.var
+        samplenames = list(set(obj.var_names))
+        patterns = list(obj.var.columns)
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+
+        for pattern in patterns:
+            groupavgs = []
+            for name in samplenames:
+                groupavgs.append(samples.loc[name][pattern].mean())
+            ax.plot(np.array(range(1, len(samplenames) + 1)), groupavgs, label=pattern)
+        ax.legend()
+        plt.xlabel("Groups")
+        plt.ylabel("Relative Amplitude")
+        plt.xticks(np.arange(1, len(samplenames) + 1), samplenames, rotation=45, ha="right")
+        plt.subplots_adjust(bottom=0.15)
+        if title is not None:
+            ax.set_title(title)
+        plt.show()
+        return fig
+    else:
+        samples = obj.var
+        nsamples = np.shape(samples)[0]
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        for factor in list(samples):
+            ax.plot(np.array(range(1, nsamples + 1)), samples[factor], label=factor)
+        ax.legend()
+        plt.xlabel("Samples")
+        plt.ylabel("Relative Amplitude")
+        if title is not None:
+            ax.set_title(title)
+        plt.show()
+    return fig
+
+
+def patternBoxPlot(obj, groups):
+    obj = obj['anndata']
+    if len(groups) == len(obj.var_names):
+        obj.var_names = groups
+    else:
+        warnings.warn("length of groups does not match number of samples, aborting...")
+        return
     samples = obj.var
-    nsamples = np.shape(samples)[0]
+    samplenames = list(set(obj.var_names))
+    patterns = list(obj.var.columns)
     fig = plt.figure()
-    ax = fig.add_subplot(111)
-    for factor in list(samples):
-        ax.plot(np.array(range(1, nsamples + 1)), samples[factor], label=factor)
-    ax.legend()
-    plt.xlabel("Samples")
-    plt.ylabel("Relative Amplitude")
-    plt.xlim(0, nsamples + 1)
-    plt.ylim(0, np.argmax(samples) * 1.1)
+    ax = plt.subplot(111)
+    # plt.boxplot()
+    ampmat=[]
+    for i in range(len(patterns)):
+        ax = plt.subplot(1,len(patterns), i+1)
+        thispattern = samples[patterns[i]]
+        data = []
+        for name in samplenames:
+            data.append(thispattern.loc[name].values)
+            df=pd.DataFrame(data)
+            df=df.transpose()
+            df.columns = samplenames
+            df.boxplot()
+            # groupavgs.append(samples.loc[name][pattern].mean())
+        # sns.boxplot(groupavgs, x=pattern)
+        # ampmat.append(groupavgs)
     plt.show()
+    return
 
 
 def getFeatureLoadings(object: anndata):
@@ -506,7 +565,7 @@ def computeGeneGSProb(object, GStoGenes, numPerm=500, Pw=None, PwNull=False):
 
 
 
-def plotPatternMarkers(data, patternmarkers=None, patternPalette=None,
+def plotPatternMarkers(data, patternmarkers=None, groups = None, patternPalette=None,
                        samplePalette=None, colorscheme="coolwarm",
                        colDendrogram=True, rowDendrogram=False, scale="row", legend_pos=None):
     """
