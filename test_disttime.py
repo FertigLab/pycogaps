@@ -3,7 +3,7 @@ import time
 import numpy as np
 import h5py
 # #
-path = "data/GSE98638_HCC.TCell.S5063.count.txt"
+path = "data/GIST.csv"
 # np.savetxt("src/CoGAPS/inst/extdata/retina_subset_1.csv", h5py.File(path)['counts'], '%g', ',')
 # replace with the path to your data, or use this provided example
 # path = "./data/GIST.csv"
@@ -13,8 +13,8 @@ path = "data/GSE98638_HCC.TCell.S5063.count.txt"
 params = CoParams(path)
 
 setParams(params, {"seed": 0,
-                    "nIterations": 100,
-                    "nPatterns": 10,
+                    "nIterations": 10000,
+                    "nPatterns": 3,
                     "useSparseOptimization": True,
                     "hdfKey": "counts",
                    "hdfColKey": "geneNames",
