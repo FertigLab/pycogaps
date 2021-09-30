@@ -248,25 +248,23 @@ def patternBoxPlot(obj, groups):
     samples = obj.var
     samplenames = list(set(obj.var_names))
     patterns = list(obj.var.columns)
-    fig = plt.figure()
-    ax = plt.subplot(111)
-    # plt.boxplot()
-    ampmat=[]
-    for i in range(len(patterns)):
-        ax = plt.subplot(1,len(patterns), i+1)
+    for i in np.arange(len(patterns)):
         thispattern = samples[patterns[i]]
         data = []
         for name in samplenames:
             data.append(thispattern.loc[name].values)
-            df=pd.DataFrame(data)
-            df=df.transpose()
-            df.columns = samplenames
-            df.boxplot()
-            # groupavgs.append(samples.loc[name][pattern].mean())
-        # sns.boxplot(groupavgs, x=pattern)
-        # ampmat.append(groupavgs)
-    plt.show()
-    return
+        df = pd.DataFrame(data)
+        print(df)
+        df = df.transpose()
+        print(df)
+        print(samplenames)
+        df.columns = samplenames
+        ax = plt.subplot(1,len(patterns),i+1)
+        ax.set_title(patterns[i])
+        ax.set_xlabel("Groups")
+        ax.set_ylabel("Amplitude")
+        df.boxplot(ax=ax, rot=20)
+    return df
 
 
 def getFeatureLoadings(object: anndata):
