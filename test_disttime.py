@@ -13,8 +13,8 @@ path = "data/GSE98638_HCC.TCell.S5063.count.txt"
 params = CoParams(path)
 
 setParams(params, {"seed": 0,
-                    "nIterations": 10000,
-                    "nPatterns": 3,
+                    "nIterations": 100,
+                    "nPatterns": 10,
                     "useSparseOptimization": True,
                     "hdfKey": "counts",
                    "hdfColKey": "geneNames",
@@ -34,3 +34,4 @@ print("TIME:", end - start)
     # plotPatternMarkers(result, rowDendrogram=True)
     # print(result)
 # CoGAPS(path, params, transposeData=True)
+# Subset data
