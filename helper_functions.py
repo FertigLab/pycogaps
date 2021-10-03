@@ -446,7 +446,7 @@ def patternMarkers(adata, threshold='all', lp=None, axis=1):
             patternRank = markerRanks.values[:, i]
             rankCutoff[i] = np.max(patternRank[patternRank == np.amin(markerRanks, axis=1)])
             markersByPattern['Pattern' + str(i + 1)] = (
-                markerRanks[markerRanks.values[:, i] <= rankCutoff[i]]).index.values
+                markerRanks[markerRanks.values[:, i] > rankCutoff[i]]).index.values
 
     elif threshold == "all":
         patternsByMarker = markerScores.columns[np.argmin(markerScores.values, axis=1)]
@@ -499,7 +499,7 @@ def calcGeneGSStat(object, GStoGenes, numPerm, Pw=None, nullGenes=False):
     if Pw is None:
         Pw = np.ones(featureLoadings.shape[1])
     gsStat = calcCoGAPSStat(object, GStoGenes, numPerm=numPerm)
-    gsStat =  gsStat['GSUpreg'].values.T
+    gsStat = gsStat['GSUpreg'].values.T
     gsStat = -np.log(gsStat)
 
     if not np.isnan(Pw).all():
@@ -582,7 +582,18 @@ def plotPatternMarkers(data, patternmarkers=None, groups = None, patternPalette=
     if patternmarkers is None:
         patternmarkers=patternMarkers(data)
     if samplePalette is None:
-        samplePalette=sns.color_palette("Spectral", np.shape(data)[1])
+        if groups is None:
+            # color for each sample
+            samplePalette=sns.color_palette("Spectral", np.shape(data)[1])
+        else:
+            # color for each group
+            samplePalette = sns.color_palette("Spectral", len(set(groups)))
+            palette = []
+            groupkeys = list(set(groups))
+            grplst = list(groups)
+            for i in range(len(groupkeys)):
+                palette = np.concatenate((palette, np.repeat(mpl.colors.to_hex(samplePalette[i]), grplst.count(groupkeys[i]))))
+            samplePalette = palette
     if patternPalette is None:
         thiscmap = sns.color_palette("Spectral")
         palette = []
@@ -597,9 +608,13 @@ def plotPatternMarkers(data, patternmarkers=None, groups = None, patternPalette=
             palette = np.concatenate((palette, np.repeat(patternPalette[i], len(patternmarkers["PatternMarkers"][patternkeys[i]]))))
         patternPalette = palette
     markers = np.concatenate(list(patternmarkers["PatternMarkers"].values()))
-    plotdata = data[markers].X
-    markerlabels = data[markers].obs_names
-    samplelabels = data[markers].var_names
+    plotinfo = data[data.obs_names.isin(markers)]
+    plotdata = plotinfo.X
+    markerlabels = plotinfo.obs_names
+    if groups is not None:
+        samplelabels = groups
+    else:
+        samplelabels = data[markers].var_names
     if scale not in ["row", "column", "none"]:
         warnings.warn("warning: scale must be one of \"row\", \"column\", or \"none\". data will not be scaled in "
                       "this plot")
