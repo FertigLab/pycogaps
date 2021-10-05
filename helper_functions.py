@@ -254,16 +254,14 @@ def patternBoxPlot(obj, groups):
         for name in samplenames:
             data.append(thispattern.loc[name].values)
         df = pd.DataFrame(data)
-        print(df)
         df = df.transpose()
-        print(df)
-        print(samplenames)
         df.columns = samplenames
-        ax = plt.subplot(1,len(patterns),i+1)
+        ax = plt.subplot((len(patterns)/2)+1,len(patterns)/2,i+1)
         ax.set_title(patterns[i])
         ax.set_xlabel("Groups")
         ax.set_ylabel("Amplitude")
-        df.boxplot(ax=ax, rot=20)
+        plt.tight_layout()
+        df.boxplot(ax=ax, rot=20, fontsize="small")
     return df
 
 
@@ -372,7 +370,7 @@ def binaryA(object, threshold, nrows="all", cluster=False):
     return hm
 
 
-def plotResiduals(object, uncertainty=None, legend=False):
+def plotResiduals(object, uncertainty=None, legend=False, groups=None, ids=None):
     """
     generate a residual plot
     @param object: AnnData object
@@ -380,7 +378,9 @@ def plotResiduals(object, uncertainty=None, legend=False):
     @return: matplotlib plot object
     """
     object = object["anndata"]
-    rawdata = object.X
+    # if groups is not None:
+    #
+    # rawdata = object.X
     if uncertainty is None:
         uncertainty = np.where(rawdata * 0.1 > 0.1, rawdata * 0.1, 0.1)
     uncertainty = np.array(uncertainty)
@@ -634,6 +634,36 @@ def plotPatternMarkers(data, patternmarkers=None, groups = None, patternPalette=
                         row_colors=patternPalette, col_colors=samplePalette, cbar_pos=legend_pos)
     plt.show()
     return hm
+
+
+def plotUMAP(result, genes_in_rows=True):
+    print("not implemented")
+    if not isinstance(result, anndata):
+        result=result["anndata"]
+    if genes_in_rows:
+        # scanpy needs genes in columns, cells in rows
+        result = result.transpose()
+    import scanpy as sc
+    # set up environment
+    sc.settings.verbosity = 3  # verbosity: errors (0), warnings (1), info (2), hints (3)
+    sc.logging.print_header()
+    sc.settings.set_figure_params(dpi=80, facecolor='white')
+    # result.var_names_make_unique()
+    # filter genes and cells
+    sc.pl.highest_expr_genes(result, n_top=20, )
+    sc.pp.filter_cells(result, min_genes=200)
+    sc.pp.filter_genes(result, min_cells=3)
+    sc.pp.log1p(result)
+    sc.pp.highly_variable_genes(result, min_mean=0.0125, max_mean=3, min_disp=0.5)
+    result = result[:, result.var.highly_variable]
+    sc.pp.scale(result, max_value=10)
+    sc.tl.pca(result, svd_solver='arpack')
+    sc.pp.neighbors(result, min_dist=0.6, n_neighbors=15)
+    sc.tl.umap(result)
+    sc.pl.umap(result, color=['ITGAX'])
+    sc.tl.leiden(result)
+
+
 
 
 # convert matrix object to numpy array

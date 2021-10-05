@@ -74,11 +74,11 @@ adata.obs_names = table["symbol"]
 labelfile = "data/pheno.txt"
 table = pd.read_table(labelfile)
 majorCluster = table["majorCluster"]
-# adata.var_names = majorCluster
+adata.var_names = majorCluster
 params = CoParams(path)
 
 setParams(params, {
-            'nIterations': 100,
+            'nIterations': 1000,
             'seed': 42,
             'nPatterns': 5,
             'useSparseOptimization': True
@@ -86,3 +86,5 @@ setParams(params, {
 
 result = CoGAPS(path, params)
 plot(result, groups=majorCluster)
+
+result
