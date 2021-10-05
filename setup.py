@@ -107,7 +107,6 @@ class BuildExt(build_ext):
     def build_extensions(self):
         ct = self.compiler.compiler_type
         opts = self.c_opts.get(ct, [])
-        opts.append("-mmacosx-version-min=10.9")
         opts.append("-I ./src/CoGAPS/src/include/")
         opts.append(("-Lsrc"))
         if ct == 'unix':
