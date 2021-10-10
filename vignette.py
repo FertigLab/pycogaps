@@ -1,4 +1,5 @@
 # import pycogaps
+import distributed
 from PyCoGAPS import *
 print("This vignette was built using pycogaps version", getVersion())
 
@@ -78,11 +79,19 @@ adata.var_names = majorCluster
 params = CoParams(path)
 
 setParams(params, {
-            'nIterations': 1000,
+            'nIterations': 10000,
             'seed': 42,
-            'nPatterns': 5,
+            'nPatterns': 10,
             'useSparseOptimization': True
         })
+
+start = time.time()
+if __name__ == '__main__':
+    params.setDistributedParams(nSets=10)
+    result = CoGAPS(path, params, None)
+end = time.time()
+print("TIME:", end - start)
+
 
 result = CoGAPS(path, params)
 plot(result, groups=majorCluster)

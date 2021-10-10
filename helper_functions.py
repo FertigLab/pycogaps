@@ -248,7 +248,7 @@ def patternBoxPlot(obj, groups):
     samples = obj.var
     samplenames = list(set(obj.var_names))
     patterns = list(obj.var.columns)
-    for i in np.arange(len(patterns)):
+    for i in np.arange(0,4):
         thispattern = samples[patterns[i]]
         data = []
         for name in samplenames:
@@ -256,12 +256,12 @@ def patternBoxPlot(obj, groups):
         df = pd.DataFrame(data)
         df = df.transpose()
         df.columns = samplenames
-        ax = plt.subplot((len(patterns)/2)+1,len(patterns)/2,i+1)
+        ax = plt.subplot(2,2,i+1)
         ax.set_title(patterns[i])
         ax.set_xlabel("Groups")
         ax.set_ylabel("Amplitude")
         plt.tight_layout()
-        df.boxplot(ax=ax, rot=20, fontsize="small")
+        df.boxplot(ax=ax, rot=20, fontsize=6)
     return df
 
 
@@ -607,7 +607,17 @@ def plotPatternMarkers(data, patternmarkers=None, groups = None, patternPalette=
         for i in range(len(patternkeys)):
             palette = np.concatenate((palette, np.repeat(patternPalette[i], len(patternmarkers["PatternMarkers"][patternkeys[i]]))))
         patternPalette = palette
-    markers = np.concatenate(list(patternmarkers["PatternMarkers"].values()))
+    if groups is not None:
+        top = []
+        markers = patternmarkers["PatternMarkers"]
+        keys=markers.keys()
+        for key in keys:
+            top.append(markers[key][1:20])
+        top=np.transpose(top)
+        # top.columns = patterns[1:10]
+        markers = [item for sublist in top for item in sublist]
+    else:
+        markers = np.concatenate(list(patternmarkers["PatternMarkers"].values()))
     plotinfo = data[data.obs_names.isin(markers)]
     plotdata = plotinfo.X
     markerlabels = plotinfo.obs_names
@@ -645,6 +655,7 @@ def plotUMAP(result, genes_in_rows=True):
         result = result.transpose()
     import scanpy as sc
     # set up environment
+    patterns = list(result.obs.columns)
     sc.settings.verbosity = 3  # verbosity: errors (0), warnings (1), info (2), hints (3)
     sc.logging.print_header()
     sc.settings.set_figure_params(dpi=80, facecolor='white')
@@ -658,9 +669,9 @@ def plotUMAP(result, genes_in_rows=True):
     result = result[:, result.var.highly_variable]
     sc.pp.scale(result, max_value=10)
     sc.tl.pca(result, svd_solver='arpack')
-    sc.pp.neighbors(result, min_dist=0.6, n_neighbors=15)
+    sc.pp.neighbors(result,  n_neighbors=15)
     sc.tl.umap(result)
-    sc.pl.umap(result, color=['ITGAX'])
+    sc.pl.umap(result, color=patterns)
     sc.tl.leiden(result)
 
 
