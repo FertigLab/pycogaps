@@ -14,7 +14,7 @@ params = CoParams(path)
 
 setParams(params, {"seed": 0,
                     "nIterations": 10000,
-                    "nPatterns": 3,
+                    "nPatterns": 10,
                     "useSparseOptimization": True,
                     "hdfKey": "counts",
                    "hdfColKey": "geneNames",

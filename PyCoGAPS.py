@@ -8,7 +8,23 @@ from helper_functions import *
 from subset_data import *
 from distributed import *
 import sys
+
 sys.setrecursionlimit(10000)
+
+print("""\
+
+______      _____       _____   ___  ______  _____ 
+| ___ \    /  __ \     |  __ \ / _ \ | ___ \/  ___|
+| |_/ /   _| /  \/ ___ | |  \// /_\ \| |_/ /\ `--. 
+|  __/ | | | |    / _ \| | __ |  _  ||  __/  `--. |
+| |  | |_| | \__/\ (_) | |_\ \| | | || |    /\__/ /
+\_|   \__, |\____/\___/ \____/\_| |_/\_|    \____/ 
+       __/ |                                       
+      |___/                                        
+
+
+                    """)
+
 
 class CoParams:
     '''
@@ -16,6 +32,7 @@ class CoParams:
     self.cogaps : dictionary of additional parameters (not in GapsParameters)
     @param matrix is an anndata object containing supplied data matrix
     '''
+
     def __init__(self, path=None, matrix=None, transposeData=False, hdfKey=None, hdfRowKey=None, hdfColKey=None):
         if matrix is not None:
             self.gaps = GapsParameters(pycogaps.Matrix(matrix.X))
@@ -35,24 +52,24 @@ class CoParams:
             raise Exception('initialize with path= or params=')
 
         self.coparams = {'cut': self.gaps.nPatterns,
-                            'nSets': 4,
-                            'minNS': None,
-                            'maxNS': None,
-                            'explicitSets': None,
-                            'samplingAnnotation': None,
-                            'samplingWeight': None,
-                            'subsetIndices': None,
-                            'subsetDim': 0,
-                            'geneNames': adata.obs_names,
-                            'sampleNames': adata.var_names,
-                            'fixedPatterns': None,
-                            'distributed': "genome-wide",
-                            'hdfKey': hdfKey,
-                            'hdfRowKey': hdfRowKey,
-                            'hdfColKey': hdfColKey,
-                            'useSparseOptimization': None,
-                            'transposeData': transposeData,
-                        }
+                         'nSets': 4,
+                         'minNS': None,
+                         'maxNS': None,
+                         'explicitSets': None,
+                         'samplingAnnotation': None,
+                         'samplingWeight': None,
+                         'subsetIndices': None,
+                         'subsetDim': 0,
+                         'geneNames': adata.obs_names,
+                         'sampleNames': adata.var_names,
+                         'fixedPatterns': None,
+                         'distributed': "genome-wide",
+                         'hdfKey': hdfKey,
+                         'hdfRowKey': hdfRowKey,
+                         'hdfColKey': hdfColKey,
+                         'useSparseOptimization': None,
+                         'transposeData': transposeData,
+                         }
         self.coparams['minNS'] = math.ceil(self.coparams['cut'] / 2)
         self.coparams['maxNS'] = self.coparams['minNS'] + self.coparams['nSets']
 
@@ -110,7 +127,7 @@ class CoParams:
             print('minNS: ', self.coparams['minNS'])
             print('maxNS: ', self.coparams['maxNS'])
             print('\n')
-        
+
     # print all GapsParameters 
     def printAllParams(self):
         self.gaps.print()
@@ -164,7 +181,8 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
     # convert data to anndata and matrix obj
     if isinstance(path, str):
         if params is not None:
-            adata = toAnndata(path, params.coparams['hdfKey'], params.coparams['hdfRowKey'], params.coparams['hdfColKey'], transposeData=transposeData)
+            adata = toAnndata(path, params.coparams['hdfKey'], params.coparams['hdfRowKey'],
+                              params.coparams['hdfColKey'], transposeData=transposeData)
         else:
             adata = toAnndata(path, transposeData=transposeData)
     else:
@@ -202,7 +220,7 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
         prm = getDimNames(adata, prm)
 
     # check data input
-    checkData(adata, prm.gaps, uncertainty) 
+    checkData(adata, prm.gaps, uncertainty)
     checkInputs(uncertainty, prm)
 
     startupMessage(prm, path)
@@ -223,7 +241,7 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
 # TODO: should we pass uncertainty into runCogaps?
 
 
-def GapsResultToAnnData (gapsresult:GapsResult, adata, prm:CoParams):
+def GapsResultToAnnData(gapsresult: GapsResult, adata, prm: CoParams):
     # need to subset matrices based on which dimension we're in...
     if prm.coparams['subsetDim'] == 1:
         Amean = toNumpy(gapsresult.Amean)[prm.coparams["subsetIndices"], :]
@@ -238,7 +256,7 @@ def GapsResultToAnnData (gapsresult:GapsResult, adata, prm:CoParams):
     pattern_labels = ["Pattern" + str(i) for i in range(1, prm.gaps.nPatterns + 1)]
     # load adata obs and var from Amean and Pmean results
     if len(Pmean.shape) > 2:
-        Pmean = Pmean[0,:,:]
+        Pmean = Pmean[0, :, :]
         Psd = Psd[0, :, :]
 
     adata.obs = pd.DataFrame(data=Amean, index=adata.obs_names, columns=pattern_labels)
@@ -328,4 +346,3 @@ def setParam(paramobj: CoParams, whichParam, value):
 
 def getParam(paramobj, whichParam):
     return getattr(paramobj, whichParam)
-
