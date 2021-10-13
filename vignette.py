@@ -1,7 +1,7 @@
 # import pycogaps
 import distributed
-from PyCoGAPS import *
-print("This vignette was built using pycogaps version", getVersion())
+# from PyCoGAPS import *
+# print("This vignette was built using pycogaps version", getVersion())
 
 # Running CoGAPS with default parameters
 # replace with the path to your data, or use this provided example
@@ -61,6 +61,7 @@ print("This vignette was built using pycogaps version", getVersion())
 # subset data / cluster by groups
 from PyCoGAPS import *
 import pickle
+import scanpy as sc
 print("This vignette was built using pycogaps version", getVersion())
 
 # Running CoGAPS with default parameters
@@ -73,27 +74,30 @@ path = "data/GSE98638_HCC.TCell.S5063.count.txt"
 table = pd.read_table(path)
 adata = anndata.AnnData(table.iloc[:, 2:])
 adata.obs_names = table["symbol"]
+sc.pp.log1p(adata)
 labelfile = "data/pheno.txt"
 table = pd.read_table(labelfile)
 majorCluster = table["majorCluster"]
-adata.var_names = majorCluster
+# adata.var_names = majorCluster
 params = CoParams(path)
 
 setParams(params, {
-            'nIterations': 100,
+            'nIterations': 50000,
             'seed': 42,
             'nPatterns': 10,
             'useSparseOptimization': True
         })
 
-start = time.time()
 if __name__ == '__main__':
     import distributed
-    params.setDistributedParams(nSets=10)
+    params.setDistributedParams()
+    start = time.time()
     result = distributed.distributedCoGAPS(adata, params, None)
+    end = time.time()
+    print("TIME:", end - start)
+    print("Pickling...")
     pickle.dump(result, open("./data/50kresult.pkl", "wb"))
-end = time.time()
-print("TIME:", end - start)
+    print("Pickling complete!")
 
 # unpickled = pickle.load(open("./data/testresult.pkl", "rb"))
 
