@@ -24,7 +24,7 @@ if __name__ == '__main__':
 # import pickle
 # # params.gaps.print()
 # print("Now attempting to pickle GapsParameters object.....")
-# pickle.dump(params.gaps, open("./data/save.p", "wb"))
+# pickle.dump(params.gaps, open("./data/save.p", "wb"))d
 # print("Done. Now attempting to unpickle...")
-# unpickled = pickle.load(open("./data/save.p", "rb"))
+# d
 # unpickled.print()

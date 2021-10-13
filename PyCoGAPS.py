@@ -6,13 +6,12 @@ import pycogaps
 import anndata
 from helper_functions import *
 from subset_data import *
-from distributed import *
+# from distributed import *
 import sys
 
 sys.setrecursionlimit(10000)
 
 print("""\
-
 ______      _____       _____   ___  ______  _____ 
 | ___ \    /  __ \     |  __ \ / _ \ | ___ \/  ___|
 | |_/ /   _| /  \/ ___ | |  \// /_\ \| |_/ /\ `--. 
@@ -21,8 +20,6 @@ ______      _____       _____   ___  ______  _____
 \_|   \__, |\____/\___/ \____/\_| |_/\_|    \____/ 
        __/ |                                       
       |___/                                        
-
-
                     """)
 
 
@@ -241,7 +238,7 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
 # TODO: should we pass uncertainty into runCogaps?
 
 
-def GapsResultToAnnData(gapsresult: GapsResult, adata, prm: CoParams):
+def GapsResultToAnnData(gapsresult, adata, prm: CoParams):
     # need to subset matrices based on which dimension we're in...
     if prm.coparams['subsetDim'] == 1:
         Amean = toNumpy(gapsresult.Amean)[prm.coparams["subsetIndices"], :]

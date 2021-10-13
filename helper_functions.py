@@ -380,7 +380,7 @@ def plotResiduals(object, uncertainty=None, legend=False, groups=None, ids=None)
     object = object["anndata"]
     # if groups is not None:
     #
-    # rawdata = object.X
+    rawdata = object.X
     if uncertainty is None:
         uncertainty = np.where(rawdata * 0.1 > 0.1, rawdata * 0.1, 0.1)
     uncertainty = np.array(uncertainty)
@@ -595,9 +595,9 @@ def plotPatternMarkers(data, patternmarkers=None, groups = None, patternPalette=
                 palette = np.concatenate((palette, np.repeat(mpl.colors.to_hex(samplePalette[i]), grplst.count(groupkeys[i]))))
             samplePalette = palette
     if patternPalette is None:
-        thiscmap = sns.color_palette("Spectral")
         palette = []
         patternkeys = list(patternmarkers["PatternMarkers"].keys())
+        thiscmap = sns.color_palette("Spectral", len(patternkeys))
         for i in range(len(patternkeys)):
             palette = np.concatenate((palette, np.repeat(mpl.colors.to_hex(thiscmap[i]), len(patternmarkers["PatternMarkers"][patternkeys[i]]))))
         patternPalette = palette
@@ -612,19 +612,35 @@ def plotPatternMarkers(data, patternmarkers=None, groups = None, patternPalette=
         markers = patternmarkers["PatternMarkers"]
         keys=markers.keys()
         for key in keys:
-            top.append(markers[key][1:20])
+            top.append(markers[key][1:15])
         top=np.transpose(top)
         # top.columns = patterns[1:10]
         markers = [item for sublist in top for item in sublist]
+        markers = [x for x in markers if str(x) != 'nan']
+        if len(groups) == len(data.var_names):
+            data.var_names = groups
+        else:
+            warnings.warn("length of groups does not match number of samples, aborting...")
+            return
+        samples = data.var
+        markermatrix = []
+        for group in groups:
+            grplst = []
+            for marker in markers:
+                print(group, marker)
+                grplst.append(np.average(data[marker, group].X).tolist())
+            markermatrix.append(grplst)
+
+
+        samplenames = list(set(data.var_names))
+        patterns = list(data.var.columns)
     else:
         markers = np.concatenate(list(patternmarkers["PatternMarkers"].values()))
-    plotinfo = data[data.obs_names.isin(markers)]
-    plotdata = plotinfo.X
-    markerlabels = plotinfo.obs_names
-    if groups is not None:
-        samplelabels = groups
-    else:
+        plotinfo = data[data.obs_names.isin(markers)]
+        plotdata = plotinfo.X
+        markerlabels = plotinfo.obs_names
         samplelabels = data[markers].var_names
+
     if scale not in ["row", "column", "none"]:
         warnings.warn("warning: scale must be one of \"row\", \"column\", or \"none\". data will not be scaled in "
                       "this plot")
@@ -669,10 +685,10 @@ def plotUMAP(result, genes_in_rows=True):
     result = result[:, result.var.highly_variable]
     sc.pp.scale(result, max_value=10)
     sc.tl.pca(result, svd_solver='arpack')
-    sc.pp.neighbors(result,  n_neighbors=15)
+    sc.pp.neighbors(result)
     sc.tl.umap(result)
     sc.pl.umap(result, color=patterns)
-    sc.tl.leiden(result)
+
 
 
 
