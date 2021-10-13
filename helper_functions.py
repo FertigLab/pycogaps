@@ -12,7 +12,6 @@ from scipy.stats import zscore
 import warnings
 from PyCoGAPS import *
 import os
-mpl.use('tkagg')
 
 
 
