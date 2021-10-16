@@ -136,11 +136,10 @@ def patternMatch(allpatterns, params):
     maxNS = params.coparams["maxNS"]
     print("MAXNS", maxNS)
     def splitcluster(list, index, minNS):
-        print("LIST", list)
-        print("INDEX",index)
-        split = corcut(list[:,index], 2, minNS)
+        idx = list.index(index)
+        split = corcut(list[idx], 2, minNS)
         print("Length of split", len(split))
-        list[index.columns[1]] = split[0]
+        list[idx] = split[0]
         if len(split) > 1:
             list.append(split[1])
         return list
@@ -191,12 +190,12 @@ def corcut(allpatterns, cut, minNS):
         warnings.warn("NaN values in correlation of patterns... Aborting")
         return
     clusters = AgglomerativeClustering(affinity="precomputed", linkage="average", n_clusters=cut).fit(dist)
-    clustid = [None] * cut
+    clustid = []
     for id in set(clusters.labels_):
         if np.count_nonzero(clusters.labels_ == id) >= minNS:
             indices = [a for a, x in enumerate(clusters.labels_) if x == id]
             thislist = allpatterns.iloc[:, indices]
-            clustid[id] = thislist
+            clustid.append(thislist)
         else:
             warnings.warn("cluster did not meet minNS threshold and will be excluded")
     # print("CORCUT cluster IDs:", clustid)
