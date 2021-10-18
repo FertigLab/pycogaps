@@ -24,13 +24,27 @@ ______      _____       _____   ___  ______  _____
 
 
 class CoParams:
-    '''
-    self.gaps : GapsParameters object
-    self.cogaps : dictionary of additional parameters (not in GapsParameters)
-    @param matrix is an anndata object containing supplied data matrix
-    '''
+    """ Encapsulates all parameters for PyCoGAPS.
+
+    """
 
     def __init__(self, path=None, matrix=None, transposeData=False, hdfKey=None, hdfRowKey=None, hdfColKey=None):
+        """ Initializes CoParams object. 
+            self.gaps : GapsParameters object
+            self.cogaps : dictionary of additional parameters (not in GapsParameters)
+
+        Args:
+            path (str, optional): Path to data. Defaults to None.
+            matrix (anndata, optional): AnnData object containing supplied data matrix. Defaults to None.
+            transposeData (bool, optional): Expects genes x samples. Defaults to False.
+            hdfKey (str, optional): For reading .h5 files. Defaults to None.
+            hdfRowKey (str, optional): For reading .h5 files. Defaults to None.
+            hdfColKey (str, optional): For reading .h5 files. Defaults to None.
+
+        Raises:
+            Exception: If path or params not passed as an argument.
+        """        
+
         if matrix is not None:
             self.gaps = GapsParameters(pycogaps.Matrix(matrix.X))
             adata = matrix
@@ -71,6 +85,15 @@ class CoParams:
         self.coparams['maxNS'] = self.coparams['minNS'] + self.coparams['nSets']
 
     def setDistributedParams(self, nSets=None, cut=None, minNS=None, maxNS=None):
+        """ Sets parameters for running distributed CoGAPS.
+
+        Args:
+            nSets (int, optional): Number of sets to break data into. Defaults to None.
+            cut (int, optional): Number of branches at which to cut dendrogram used in pattern matching. Defaults to None.
+            minNS (int, optional): [description]. Minimum of individual set contributions a cluster must contain. Defaults to None.
+            maxNS (int, optional): [description]. Maximum of individual set contributions a cluster can contain. Defaults to None.
+        """        
+
         print("setting distributed parameters - call this again if you change nPatterns")
         if self.coparams['distributed'] != "genome-wide":
             print("if you wish to perform genome-wide distributed cogaps, please run setParams(params, "
@@ -95,18 +118,36 @@ class CoParams:
     # samplingWeight is a dictionary
     # can use: dict(zip(names, weights))
     def setAnnotationWeights(self, annotation, weight):
+        """ Set annotation weights for distributed CoGAPS.
+
+        Args:
+            annotation (str list): Specify categories along the rows (cols) to use for weighted sampling.
+            weight (int list): Weights associated with samplingAnnotation
+        """    
+
         self.coparams['samplingAnnotation'] = annotation
         self.coparams['samplingWeight'] = weight
 
     def setFixedPatterns(self, fixedPatterns, whichMatrixFixed):
+        """ Fix either 'A' or 'P' matrix to given values.
+
+        Args:
+            fixedPatterns (arr): Fix either 'A' or 'P' matrix to these values, 
+            in the context of distributed CoGAPS, the first phase is skipped and 
+            fixedPatterns is used for all sets - allowing manual pattern matching, 
+            as well as fixed runs of standard CoGAPS.
+            whichMatrixFixed (str): Either 'A' or 'P', indicating which matrix is fixed
+        """ 
+
         self.coparams['fixedPatterns'] = fixedPatterns
         self.coparams['whichMatrixFixed'] = whichMatrixFixed
         self.gaps.useFixedPatterns = True
         self.gaps.fixedPatterns = pycogaps.Matrix(fixedPatterns)
         self.gaps.whichMatrixFixed = whichMatrixFixed
 
-    # print standard and sparsity parameters
     def printParams(self):
+        """ Print standard and sparsity parameters, and distributed if set.
+        """        
         print('\n-- Standard Parameters --')
         print('nPatterns: ', self.gaps.nPatterns)
         print('nIterations: ', self.gaps.nIterations)
@@ -125,8 +166,9 @@ class CoParams:
             print('maxNS: ', self.coparams['maxNS'])
             print('\n')
 
-    # print all GapsParameters 
     def printAllParams(self):
+        """ Print all GapsParameters.
+        """        
         self.gaps.print()
 
 
@@ -135,25 +177,34 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
            checkpointInterval=0, checkpointInFile="", transposeData=False,
            BPPARAM=None, workerID=1, asynchronousUpdates=None, nSnapshots=0,
            snapshotPhase='sampling'):
-    """
-    Python wrapper to run CoGAPS via bindings
-    @param path: path to data
-    @param params: GapsParameters object 
-    @param nThreads: number of threads to use
-    @param messages: whether to print messages
-    @param outputFrequency:
-    @param uncertainty:
-    @param checkpointOutFile: path to where checkpoint info should be written
-    @param checkpointInterval: how often to make a checkpoint
-    @param checkpointInFile:
-    @param transposeData:
-    @param BPPARAM:
-    @param workerID:
-    @param asynchronousUpdates:
-    @param nSnapshots:
-    @param snapshotPhase: one of "sampling", "equilibration", "all"
-    @return: a CogapsResult object
-    """
+    """ Python wrapper to run CoGAPS via bindings
+
+    Args:
+        path (str): Path to data. 
+        params (CoParams, optional): CoParams object of parameters. Defaults to None.
+        nThreads (int, optional): Number of threads to use. Defaults to 1.
+        messages (bool, optional): Whether to print messages. Defaults to True.
+        outputFrequency (int, optional): How often to output messages. Defaults to 1000.
+        uncertainty (arr, optional): Optional uncertainty matrix. Defaults to None.
+        checkpointOutFile (str, optional): Path to where checkpoint info should be written. Defaults to "".
+        checkpointInterval (int, optional): How often to make a checkpoint. Defaults to 0.
+        checkpointInFile (str, optional): Path to existing checkpoint file to run CoGAPS from. Defaults to "".
+        transposeData (bool, optional): Expects genes x samples. Defaults to False.
+        BPPARAM ([type], optional): BiocParallel backend . Defaults to None.
+        workerID (int, optional): If calling CoGAPS in parallel the worker ID can be specified,
+        only worker 1 prints output and each worker outputs when it finishes, this
+        is not neccesary when using the default parallel methods (i.e. distributed
+        CoGAPS) but only when the user is manually calling CoGAPS in parallel. Defaults to 1.
+        asynchronousUpdates (bool, optional): Enable asynchronous updating which allows for multi-threaded runs. Defaults to None.
+        nSnapshots (int, optional): How many snapshots to take in each phase, setting this to 0 disables snapshots. Defaults to 0.
+        snapshotPhase (str, optional): One of "sampling", "equilibration", "all". Defaults to 'sampling'.
+
+    Raises:
+        Exception: If transposeData=True is not passed as an argument to both CoParams and CoGAPS.
+
+    Returns:
+        CogapsResult: A CogapsResult object.
+    """           
 
     # check OpenMP support
     if isCompiledWithOpenMPSupport() is False:
@@ -235,10 +286,17 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
     return result
 
 
-# TODO: should we pass uncertainty into runCogaps?
-
-
 def GapsResultToAnnData(gapsresult, adata, prm: CoParams):
+    """ Converts a CogapsResult object to anndata object.
+
+    Args:
+        gapsresult (CogapsResult): Dictionary result object.
+        adata (anndata): Anndata object populated by CoGAPS.
+        prm (CoParams): CoParams object.
+
+    Returns:
+        anndata: An anndata object.
+    """    
     # need to subset matrices based on which dimension we're in...
     if prm.coparams['subsetDim'] == 1:
         Amean = toNumpy(gapsresult.Amean)[prm.coparams["subsetIndices"], :]
@@ -264,35 +322,74 @@ def GapsResultToAnnData(gapsresult, adata, prm: CoParams):
 
 
 def GapsParameters(path):
+    """ Returns C++ GapsParameters object.
+
+    Args:
+        path (str): Path to data.
+
+    Returns:
+        GapsParameters: A GapsParameters object.
+    """    
     return pycogaps.GapsParameters(path)
 
 
 def getBuildReport():
+    """ Returns information about how the package was compiled, i.e. which
+    compiler/version was used, which compile time options were enabled, etc...
+
+    Returns:
+        str: String containing build report.
+    """    
     return pycogaps.getBuildReport()
 
 
 def isCheckpointsEnabled():
+    """ Check if package was built with checkpoints enabled
+
+    Returns:
+        bool: true/false if checkpoints are enabled
+    """    
     return pycogaps.isCheckpointsEnabled()
 
 
 def isCompiledWithOpenMPSupport():
+    """ Check if compiler supported OpenMP
+
+    Returns:
+        bool: true/false if OpenMP was supported
+    """    
     return pycogaps.isCompiledWithOpenMPSupport()
 
 
 def getFileInfo(path):
+    """ Get info of inputted file.
+
+    Args:
+        path (str): Path to data.
+
+    Returns:
+        str: string of file info.
+    """    
     return pycogaps.getFileInfo(path)
 
 
 def current_milli_time():
+    """ Return current time in milliseconds.
+
+    Returns:
+        int: Current time in milliseconds.
+    """    
     return round(time.time() * 1000)
 
 
 def setParams(paramobj: CoParams, list):
-    """
+    """ Set CoParams from a list.
 
-    @param paramobj: a GapsParameters object
-    @param list: key:value pairings for each parameter you wish to set
-    """
+    Args:
+        paramobj (CoParams): CoParams object.
+        list (dict): Dictionary of parameter, value pairings for each parameter you wish to set.
+    """    
+
     for (k, v) in list.items():
         setParam(paramobj, k, v)
 
@@ -300,13 +397,17 @@ def setParams(paramobj: CoParams, list):
 # class CogapsParams
 # constructor has default values for each parameter
 def setParam(paramobj: CoParams, whichParam, value):
-    """
+    """ Sets CoParams parameters.
 
-    @param paramobj: a GapsParameters object
-    @param whichParam: the name of the parameter you wish to change
-    @param value: the value to set whichParam as
-    @return: nothing paramobj will be modified
-    """
+    Args:
+        paramobj (CoParams): a CoParams object
+        whichParam ([type]): the name of the parameter you wish to change
+        value ([type]): the value to set whichParam as
+
+    Returns:
+        CoParams: the modified CoParams object.
+    """    
+
     coparam_params = ['hdfKey', 'hdfRowKey', 'hdfColKey', 'explicitSets', 'subsetDim', 'geneNames', 'sampleNames']
     if whichParam == "alpha":
         paramobj.gaps.alphaA = value
@@ -342,4 +443,13 @@ def setParam(paramobj: CoParams, whichParam, value):
 
 
 def getParam(paramobj, whichParam):
+    """ Get parameter info and values.
+
+    Args:
+        paramobj (CoParams): a CoParams object.
+        whichParam (str): which parameter to get the info of.
+
+    Returns:
+        [type]: the value of the parameter.
+    """    
     return getattr(paramobj, whichParam)
