@@ -16,10 +16,33 @@ import os
 
 
 def supported(file):
+    """ Checks whether file is supported type
+
+    Args:
+        file (str): path to data
+
+    Returns:
+        bool: true/false if file is supported
+    """    
     return file.lower().endswith((".tsv", ".csv", ".mtx", ".h5ad", ".h5", ".gct", ".txt"))
 
 
 def checkData(adata, params, uncertainty=None):
+    """ Check validity of inputted data
+
+    Args:
+        adata (anndata): data as anndata object
+        params (CoParams): CoParams object
+        uncertainty (arr, optional): optional uncertainty matrix. Defaults to None.
+
+    Raises:
+        Exception: If NA values are present in data
+        Exception: If data is not numeric
+        Exception: If negative values are in data matrix
+        Exception: If negative values in uncertainty matrix
+        Warning: If small values in uncertainty matrix
+        Exception: If nPatterns is greater than dimensions of data
+    """    
     data = adata.X
 
     if np.isnan(data).any():
@@ -38,6 +61,23 @@ def checkData(adata, params, uncertainty=None):
 
 
 def toAnndata(file, hdf_counts_key=None, hdf_dim1_key=None, hdf_dim2_key=None, transposeData=False):
+    """ Converts file to anndata object
+
+    Args:
+        file (str): path to data
+        hdf_counts_key (str, optional): if .h5 data inputted. Defaults to None.
+        hdf_dim1_key (str, optional): if .h5 data inputted. Defaults to None.
+        hdf_dim2_key (str, optional): if .h5 data inputted. Defaults to None.
+        transposeData (bool, optional): if data should be transposed. Defaults to False.
+
+    Raises:
+        Exception: if unsupported data type
+        Exception: if dataset name from hdf file is not provided to CoParams
+
+    Returns:
+        anndata: anndata object
+    """   
+
     if not supported(file):
         raise Exception("unsupported data type")
     if file.lower().endswith(".csv"):
@@ -83,6 +123,18 @@ def toAnndata(file, hdf_counts_key=None, hdf_dim1_key=None, hdf_dim2_key=None, t
 
 
 def checkInputs(uncertainty, allParams):
+    """ Check validity of inputs to CoGAPS.
+
+    Args:
+        uncertainty (arr): uncertainty matrix
+        allParams (CoParams): CoParams object
+
+    Raises:
+        Exception: If unsupported file extension provided for uncertainty matrix.
+        Exception: If default uncertainty not used with useSparseOptimization=True
+        Exception: If CoGAPS was built with checkpoints disabled
+        Exception: If checkpoints not supported for distributed CoGAPS
+    """    
     if uncertainty is not None and not supported(uncertainty):
             raise Exception("unsupported file extension for uncertainty")
     if uncertainty is not None and allParams.coparams["useSparseOptimization"] is True:
@@ -108,6 +160,15 @@ def ncolHelper(data):
 
 
 def getGeneNames(data, transpose):
+    """ Return gene names
+
+    Args:
+        data (anndata): data as matrix
+        transpose (bool): if data was transposed
+
+    Returns:
+        list: list of names
+    """    
     if transpose:
         return getSampleNames(data, False)
     names = data.obs_names
@@ -118,6 +179,15 @@ def getGeneNames(data, transpose):
 
 
 def getSampleNames(data, transpose):
+    """ Return sample names
+
+    Args:
+        data (anndata): data as matrix
+        transpose (bool): if data was transposed
+
+    Returns:
+        list: list of names
+    """  
     if transpose:
         return getGeneNames(data, False)
     names = data.var_names
@@ -130,6 +200,15 @@ def getSampleNames(data, transpose):
 
 def getDimNames(data, allParams):
     # support both path and anndata object as data input
+    """ Get dimension names
+
+    Args:
+        data (arr): data as matrix
+        allParams (CoParams): CoParams object
+
+    Returns:
+        CoParams: updated CoParams object
+    """  
     if isinstance(data, str):
         if not supported(data):
             raise Exception("unsupported data type")
@@ -168,6 +247,12 @@ def getDimNames(data, allParams):
     return (allParams)
 
 def startupMessage(params, path):
+    """ Message to display at startup
+
+    Args:
+        params (CoParams): CoParams object
+        path (str): path to data
+    """    
     print("\nThis is ", end='')
     getVersion()
 
@@ -185,6 +270,11 @@ def startupMessage(params, path):
 
 
 def show(obj: anndata):
+    """ Concluding message after CoGAPS completes run
+
+    Args:
+        obj (anndata): anndata object
+    """    
     nfeatures = obj.n_obs
     nsamples = obj.n_vars
     npatterns = len(obj.obs_keys())
@@ -194,6 +284,17 @@ def show(obj: anndata):
 
 
 def plot(obj, groups=None, title=None):
+    """ Plots how patterns vary across samples
+
+    Args:
+        obj (CogapsResult): CogapsResult object
+        groups (str list, optional): list of groups. Defaults to None.
+        title (str, optional): title of plot. Defaults to None.
+
+    Returns:
+        fig: figure of plot
+    """    
+    
     obj = obj["anndata"]
     if groups is not None:
         if len(groups) == len(obj.var_names):
@@ -238,6 +339,16 @@ def plot(obj, groups=None, title=None):
 
 
 def patternBoxPlot(obj, groups):
+    """ generate a boxplot where each subplot displays amplitudes for each group for each pattern
+
+    Args:
+        obj (CogapsResult): CogapsResult object
+        groups (str list, optional): list of groups. Defaults to None.
+
+    Returns:
+        fig: figure of plot
+    """    
+    
     obj = obj['anndata']
     if len(groups) == len(obj.var_names):
         obj.var_names = groups
@@ -265,31 +376,76 @@ def patternBoxPlot(obj, groups):
 
 
 def getFeatureLoadings(object: anndata):
+    """ Get feature loadings matrix
+
+    Args:
+        object (anndata): anndata object
+
+    Returns:
+        arr: array of matrix
+    """    
     return object.obs
 
 
 def getAmplitudeMatrix(object):
+    """ Get amplitude matrix
+
+    Args:
+        object (anndata): anndata object
+
+    Returns:
+        arr: array of matrix
+    """  
     return object.obs
 
 
 def getSampleFactors(object):
+    """ Get sample factors matrix
+
+    Args:
+        object (anndata): anndata object
+
+    Returns:
+        arr: array of matrix
+    """  
     return object.var
 
 
 def getPatternMatrix(object):
+    """ Get pattern matrix
+
+    Args:
+        object (anndata): anndata object
+
+    Returns:
+        arr: array of matrix
+    """  
     return object.var
 
-# TODO need to access chisq through anndata
 def getMeanChiSq(object):
+    """ get mean chi sq
+
+    Args:
+        object (CogapsResult): CogapsResult object
+
+    Returns:
+        [type]: mean chi sq value
+    """    
     object = object["GapsResult"]
     return object.meanChiSq
 
 
 def getVersion():
+    """ Prints version of PyCoGAPS package
+
+    Returns:
+        str: version number
+    """    
     version = pkg_resources.require("pycogaps")[0].version
     print("pycogaps version ", version)
     return version
 
+'''
 # TODO need to access original params through anndata
 def getOriginalParameters(object: GapsResult):
     print("Not yet implemented")
@@ -314,7 +470,7 @@ def getCorrelationToMeanPattern(object):
 def getSubsets(object):
     print("Not yet implemented")
     return
-
+'''
 
 def calcZ(object: anndata, whichMatrix):
     if whichMatrix in "sampleFactors":
