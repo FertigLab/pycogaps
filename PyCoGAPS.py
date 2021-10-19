@@ -424,6 +424,9 @@ def setParam(paramobj: CoParams, whichParam, value):
         elif (value is not None) and (value is not False):
             print("if you wish to perform genome-wide distributed cogaps, please run setParams(params, "
                   "\"distributed\", ""\"genome-wide\")")
+        else:
+            paramobj.gaps.runningDistributed = False
+            paramobj.coparams['distributed'] = None
     elif whichParam in ("nSets", "cut", "minNS", "maxNS"):
         paramobj.gaps.runningDistributed = True
         print("please set \'", whichParam, "\' with setDistributedParams")
