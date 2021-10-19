@@ -3,6 +3,18 @@ from PyCoGAPS import *
 
 # explicitSets either list of indices or names
 def sampleWithExplicitSets(allParams, data):
+    """ Sample with user provided explicit sets
+
+    Args:
+        allParams (CoParams): a CoParams object
+        data (anndata): anndata object of data
+
+    Raises:
+        Exception: If some named genes in explicitSets not found
+
+    Returns:
+        list: list of subsets
+    """    
     explicit_sets = allParams.coparams['explicitSets']
     if all(isinstance(item, int) for item in explicit_sets):
         print("using provided indexed subsets")
@@ -24,12 +36,15 @@ def sampleWithExplicitSets(allParams, data):
 
 
 def sampleWithAnnotationWeights(allParams, setSize):
-    '''
-    subset rows (cols) proportional to the user provided weights
-    @param allParams list of all CoGAPS parameters
-    @param setSize the size of each subset of the total
-    @return list of subsets
-    '''
+    """ subset rows (cols) proportional to the user provided weights
+
+    Args:
+        allParams (CoParams): CoParams object
+        setSize (int): size of each subset of the total
+
+    Returns:
+        list: list of subsets
+    """    
 
     # samplingWeight is a dictionary (name: weight)
     weight = allParams.coparams['samplingWeight']
@@ -56,13 +71,17 @@ def sampleWithAnnotationWeights(allParams, setSize):
 
 
 def sampleUniformly(allParams, total, setSize):
-    '''
-    subset data by uniformly partitioning rows (cols)
-    @param allParams list of all CoGAPS parameters
-    @param total total number of rows (cols) that are being paritioned
-    @param setSize the size of each subset of the total
-    @return list of subsets
-    '''
+    """ subset data by uniformly partitioning rows (cols)
+
+    Args:
+        allParams (CoParams): CoParams object
+        total (int): total number of rows (cols) that are being paritioned
+        setSize (int): size of each subset of the total
+
+    Returns:
+        list: list of subsets
+    """    
+
     sets = [None] * (allParams.coparams['nSets'])
     remaining = np.arange(1,total)
     for n in range(allParams.coparams['nSets'] - 1):
@@ -74,6 +93,19 @@ def sampleUniformly(allParams, total, setSize):
 
 
 def createSets(data, allParams):
+    """ either genes or samples or partitioned depending on the type
+    of distributed CoGAPS (i.e. genome-wide or single-cell)
+
+    Args:
+        data (anndata): anndata object of data
+        allParams (CoParams): CoParams object
+
+    Raises:
+        Exception: If nSets does not match number of explicit sets given
+
+    Returns:
+        list: list of sets
+    """    
     subsetRows = allParams.gaps.transposeData != allParams.coparams['distributed'] == "genome-wide"
     if subsetRows:
         total = nrowHelper(data)
