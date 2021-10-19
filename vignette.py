@@ -1,5 +1,5 @@
 # import pycogaps
-import distributed
+#import distributed
 # from PyCoGAPS import *
 # print("This vignette was built using pycogaps version", getVersion())
 
@@ -82,7 +82,7 @@ majorCluster = table["majorCluster"]
 params = CoParams(path)
 
 setParams(params, {
-            'nIterations': 50000,
+            'nIterations': 1000,
             'seed': 42,
             'nPatterns': 10,
             'useSparseOptimization': True
@@ -96,7 +96,7 @@ if __name__ == '__main__':
     end = time.time()
     print("TIME:", end - start)
     print("Pickling...")
-    pickle.dump(result, open("./data/50kresult.pkl", "wb"))
+    pickle.dump(result, open("./data/10kresult.pkl", "wb"))
     print("Pickling complete!")
 
 # unpickled = pickle.load(open("./data/testresult.pkl", "rb"))
