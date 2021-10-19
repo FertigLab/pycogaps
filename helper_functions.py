@@ -473,6 +473,15 @@ def getSubsets(object):
 '''
 
 def calcZ(object: anndata, whichMatrix):
+    """ Calculates the Z-score for each element based on input mean and standard deviation matrices
+
+    Args:
+        object (anndata): Anndata result object
+        whichMatrix (str): either "featureLoadings" or "sampleFactors" indicating which matrix to calculate the z-score for
+
+    Returns:
+        arr: matrix of z scores
+    """    
     if whichMatrix in "sampleFactors":
         mean = object.var
         stddev = object.uns["asd"]
@@ -489,6 +498,15 @@ def calcZ(object: anndata, whichMatrix):
 
 
 def reconstructGene(object: anndata, genes=None):
+    """[summary]
+
+    Args:
+        object (anndata): Anndata result object
+        genes (int, optional): an index of the gene or genes of interest. Defaults to None.
+
+    Returns:
+        arr: the D' estimate of a gene or set of genes
+    """    
     D = np.dot(object.obs, np.transpose(object.var))
     if genes is not None:
         D = D[genes, ]
@@ -496,19 +514,23 @@ def reconstructGene(object: anndata, genes=None):
 
 
 def binaryA(object, threshold, nrows="all", cluster=False):
-    """
-    plots a binary heatmap with each entry representing whether
+    """ plots a binary heatmap with each entry representing whether
     that position in the A matrix has a value greater than (black)
     or lesser than (white) the specified threshold * the standard
     deviation for that element
-    @param cluster: True or False, whether rows should be clustered
-    (results in huge black and white blocks)
-    @param object: GapsResult object
-    @param threshold: threshold to compare to A/Asd
-    @param nrows: how many rows should be plotted (for very long
-    and skinny feature matrices)
-    @return: matplotlib plot object
-    """
+
+    Args:
+        object (CogapsResult): A CogapsResult object
+        threshold (float): threshold to compare A/Asd
+        nrows (str, optional): how many rows should be plotted (for very long
+        and skinny feature matrices). Defaults to "all".
+        cluster (bool, optional): True or False, whether rows should be clustered
+        (results in huge black and white blocks). Defaults to False.
+
+    Returns:
+        fig: a matplotlib plot object
+    """    
+
     object = object["anndata"]
     binA = calcZ(object, whichMatrix="featureLoadings")
     if nrows != "all":
@@ -526,12 +548,19 @@ def binaryA(object, threshold, nrows="all", cluster=False):
 
 
 def plotResiduals(object, uncertainty=None, legend=False, groups=None, ids=None):
-    """
-    generate a residual plot
-    @param object: AnnData object
-    @param uncertainty: original SD matrix with which GAPS was run
-    @return: matplotlib plot object
-    """
+    """ Generate a residual plot
+
+    Args:
+        object (CogapsResult): A CogapsResult object
+        uncertainty (arr, optional): original SD matrix with which GAPS was run. Defaults to None.
+        legend (bool, optional): Add legend to plot. Defaults to False.
+        groups (list, optional): group genes for plotting. Defaults to None.
+        ids (list, optional): [description]. Defaults to None.
+
+    Returns:
+        fig: matplotlib figure
+    """   
+
     object = object["anndata"]
     # if groups is not None:
     #
@@ -551,18 +580,47 @@ def plotResiduals(object, uncertainty=None, legend=False, groups=None, ids=None)
 
 
 def unitVector(n, length):
+    """ Return unit vector of length with value 1 at pos n
+
+    Args:
+        n (int): pos of value 1
+        length (int): length of unit vector
+
+    Returns:
+        arr: returns numpy array
+    """    
     vec = np.repeat(0, length)
     vec[n] = 1
     return vec
 
 
 def patternMarkers(adata, threshold='all', lp=None, axis=1):
+    """ calculate the most associated pattern for each gene
+
+    Args:
+        adata (anndata): anndata result object
+        threshold (str, optional): the type of threshold to be used. The default "all" will
+        distribute genes into pattern with the lowest ranking. The "cut" thresholds
+        by the first gene to have a lower ranking, i.e. better fit to, a pattern.. Defaults to 'all'.
+        lp (arr, optional): a vector of weights for each pattern to be used for finding
+        markers. If NA markers for each pattern of the A matrix will be used.. Defaults to None.
+        axis (int, optional): either 0 or 1, specifying if pattern markers should be calculated using
+        the rows of the data (1) or the columns of the data (2). Defaults to 1.
+
+    Raises:
+        Exception: If threshold is not 'cut' or 'all'
+        Exception: If lp length is not equal to number of patterns
+        Exception: If axis is not either 0 or 1
+
+    Returns:
+        dict: A dictionary of PatternMarkers, PatternMarkerRanks, PatternMarkerScores
+    """    
     if threshold.lower() not in ["cut", "all"]:
         raise Exception("threshold must be either 'cut' or 'all'")
     if lp is not None and (np.size(lp) != adata.obs.shape[1]):
         raise Exception("lp length must equal the number of patterns")
     if axis not in [1, 2]:
-        raise Exception("axis must be either 1 or 2")
+        raise Exception("axis must be either 0 or 1")
 
     if axis == 1:
         resultMatrix = adata.obs
@@ -615,9 +673,25 @@ def patternMarkers(adata, threshold='all', lp=None, axis=1):
 
 
 def calcCoGAPSStat(object, sets, whichMatrix='featureLoadings', numPerm=1000):
+    """ calculates a statistic to determine if a pattern is enriched in a
+    a particular set of measurements or samples.
+
+    Args:
+        object (CogapsResult): a CogapsResult object
+        sets (list): list of sets of measurements/samples
+        whichMatrix (str, optional): either "featureLoadings" or "sampleFactors" indicating which matrix
+        to calculate the statistics. Defaults to 'featureLoadings'.
+        numPerm (int, optional): number of permutations to use when calculatin p-value. Defaults to 1000.
+
+    Raises:
+        Exception: If sets are not a list of measurements or samples
+
+    Returns:
+        dict: dict of gene set statistics for each column of A
+    """    
 
     if not isinstance(sets, list):
-        raise Exception("Sets must be a list of either measurements of samples")
+        raise Exception("Sets must be a list of either measurements or samples")
 
     zMatrix = calcZ(object['anndata'], whichMatrix)
 
@@ -647,6 +721,23 @@ def calcCoGAPSStat(object, sets, whichMatrix='featureLoadings', numPerm=1000):
 
 
 def calcGeneGSStat(object, GStoGenes, numPerm, Pw=None, nullGenes=False):
+    """ calculates the probability that a gene
+    listed in a gene set behaves like other genes in the set within
+    the given data set
+
+    Args:
+        object (CogapsResult): a CogapsResult object
+        GStoGenes (list): list with gene sets
+        numPerm (int): number of permutations for null
+        Pw (arr, optional): weight on genes. Defaults to None.
+        nullGenes (bool, optional): logical indicating gene adjustment. Defaults to False.
+
+    Raises:
+        Exception: If weighting is invalid
+
+    Returns:
+        dataframe: gene similiarity statistic
+    """    
     featureLoadings = toNumpy(object['GapsResult'].Amean)
     
     adata = object['anndata']
@@ -694,6 +785,23 @@ def calcGeneGSStat(object, GStoGenes, numPerm, Pw=None, nullGenes=False):
 
 
 def computeGeneGSProb(object, GStoGenes, numPerm=500, Pw=None, PwNull=False):
+    """ Computes the p-value for gene set membership using the CoGAPS-based
+    statistics developed in Fertig et al. (2012).  This statistic refines set
+    membership for each candidate gene in a set specified in \code{GSGenes} by
+    comparing the inferred activity of that gene to the average activity of the
+    set.
+
+    Args:
+        object (CogapsResult): a CogapsResult object
+        GStoGenes (list): list with gene sets
+        numPerm (int, optional): number of permutations for null. Defaults to 500.
+        Pw ([type], optional): weight on genes. Defaults to None.
+        PwNull (bool, optional): logical indicating gene adjustment. Defaults to False.
+
+    Returns:
+        arr: A vector of length GSGenes containing the p-values of set membership
+        for each gene containined in the set specified in GSGenes.
+    """    
 
     featureLoadings = toNumpy(object['GapsResult'].Amean)
     adata = object['anndata']
@@ -721,18 +829,27 @@ def computeGeneGSProb(object, GStoGenes, numPerm=500, Pw=None, PwNull=False):
 def plotPatternMarkers(data, patternmarkers=None, groups = None, patternPalette=None,
                        samplePalette=None, colorscheme="coolwarm",
                        colDendrogram=True, rowDendrogram=False, scale="row", legend_pos=None):
-    """
-    @param data: an anndata object, which should be your original data annotated with CoGAPS results
-    @param patternmarkers: list of markers for each pattern, as determined by the "patternMarkers(data)" function
-    @param patternPalette: a list of colors to be used for each pattern. if None, colors will be set automatically
-    @param samplePalette: a list of colors to be used for each sample. if None, colors will be set automatically
-    @param colorscheme: string indicating which color scheme should be used within the heatmap. more options at https://seaborn.pydata.org/tutorial/color_palettes.html
-    @param colDendrogram: Whether or not to draw a column dendrogram, default true
-    @param rowDendrogram: Whether or not to draw a row dendrogram, default false
-    @param scale: whether you want data to be scaled by row, column, or none. default is row
-    @param legend_pos: string indicating legend position, or none (no legend). default is none
-)    @return: a clustergrid instance
-    """
+    """ Plots pattern markers of most associated pattern for each gene.
+
+    Args:
+        data (anndata):  an anndata object, which should be your original data annotated with CoGAPS results
+        patternmarkers (list, optional): list of markers for each pattern, as determined by the "patternMarkers(data)" function. Defaults to None.
+        groups (list, optional): list of genes to group. Defaults to None.
+        patternPalette (list, optional): a list of colors to be used for each pattern. 
+        if None, colors will be set automatically. Defaults to None.
+        samplePalette (list, optional): a list of colors to be used for each sample. 
+        if None, colors will be set automatically. Defaults to None.
+        colorscheme (str, optional): string indicating which color scheme should be used within the heatmap. 
+        more options at https://seaborn.pydata.org/tutorial/color_palettes.html. Defaults to "coolwarm".
+        colDendrogram (bool, optional):  Whether or not to draw a column dendrogram, default true. Defaults to True.
+        rowDendrogram (bool, optional): Whether or not to draw a row dendrogram, default false. Defaults to False.
+        scale (str, optional): whether you want data to be scaled by row, column, or none. Defaults to "row".
+        legend_pos (str, optional): string indicating legend position, or none (no legend). Defaults to None.
+    
+    Returns:
+        fig: a clustergrid instance
+    """    
+
     data = data["anndata"]
     if patternmarkers is None:
         patternmarkers=patternMarkers(data)
@@ -818,6 +935,12 @@ def plotPatternMarkers(data, patternmarkers=None, groups = None, patternPalette=
 
 
 def plotUMAP(result, genes_in_rows=True):
+    """ Create a UMAP plot
+
+    Args:
+        result (anndata or CogapsResult): An anndata object of result or CogapsResult object
+        genes_in_rows (bool, optional): Scanpy needs genes in columns, cells in rows. Defaults to True.
+    """    
     print("not implemented")
     if not isinstance(result, anndata):
         result=result["anndata"]
@@ -850,6 +973,14 @@ def plotUMAP(result, genes_in_rows=True):
 
 # convert matrix object to numpy array
 def toNumpy(matrix):
+    """ Convert matrix object to numpy array
+
+    Args:
+        matrix (Matrix): a Matrix object
+
+    Returns:
+        arr: a numpy array
+    """    
     all_vecdata = np.empty((matrix.nRow(), matrix.nCol()))
     for i in range(matrix.nCol()):
         vector = matrix.getCol(i)

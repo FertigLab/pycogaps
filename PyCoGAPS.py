@@ -401,7 +401,7 @@ def setParam(paramobj: CoParams, whichParam, value):
 
     Args:
         paramobj (CoParams): a CoParams object
-        whichParam ([type]): the name of the parameter you wish to change
+        whichParam (str): the name of the parameter you wish to change
         value ([type]): the value to set whichParam as
 
     Returns:
