@@ -28,14 +28,16 @@ def distributedCoGAPS(path, params, uncertainty=None):
     if params.coparams["fixedPatterns"] is None:
         print("Running Across Subsets...\n\n")
         with multiprocessing.get_context("spawn").Pool(processes=len(sets)) as pool:
-            # make a list of parameters for each function call so they can easily be mapped to processes
+        
+    # make a list of parameters for each function call so they can easily be mapped to processes
             paramlst = []
             for i in range(len(sets)):
                 paramlst.append([data, params, i, sets[i], None])
 
-            result = pool.map(callInternalCoGAPS, paramlst)
+            result = pool.imap(callInternalCoGAPS, paramlst)
             pool.close()
             pool.join()
+            result=list(result)
 
             if params.coparams['distributed'] == "genome-wide":
                 unmatched = []
@@ -60,9 +62,10 @@ def distributedCoGAPS(path, params, uncertainty=None):
         paramlst = []
         for i in range(len(sets)):
             paramlst.append([data, params, i, sets[i], None])
-        finalresult = pool.map(callInternalCoGAPS, paramlst)
+        finalresult = pool.imap(callInternalCoGAPS, paramlst)
         pool.close()
         pool.join()
+        finalresult=list(finalresult)
 
     stitched = stitchTogether(finalresult, params, sets)
     finalresult = finalresult[0]
