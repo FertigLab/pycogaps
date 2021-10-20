@@ -96,7 +96,7 @@ if __name__ == '__main__':
     end = time.time()
     print("TIME:", end - start)
     print("Pickling...")
-    pickle.dump(result, open("./data/100result.pkl", "wb"))
+    pickle.dump(result, open("./data/testresult.pkl", "wb"))
     print("Pickling complete!")
 
 # unpickled = pickle.load(open("./data/testresult.pkl", "rb"))
