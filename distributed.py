@@ -69,10 +69,16 @@ def distributedCoGAPS(path, params, uncertainty=None):
 
     stitched = stitchTogether(finalresult, params, sets)
     finalresult = finalresult[0]
-    finalresult["GapsResult"].Amean = pycogaps.Matrix(np.array(stitched["Amean"]))
-    finalresult["GapsResult"].Asd = pycogaps.Matrix(np.array(stitched["Asd"]))
-    finalresult["GapsResult"].Pmean = pycogaps.Matrix(np.array(stitched["Pmean"]))
-    finalresult["GapsResult"].Psd = pycogaps.Matrix(np.array(stitched["Psd"]))
+    if params.coparams["distributed"] == "genome-wide":
+        finalresult["GapsResult"].Amean = pycogaps.Matrix(np.array(result[0]["GapsResult"].Amean))
+        finalresult["GapsResult"].Asd = pycogaps.Matrix(np.array(result[0]["GapsResult"].Asd))
+        finalresult["GapsResult"].Pmean = pycogaps.Matrix(np.array(stitched["Pmean"]))
+        finalresult["GapsResult"].Psd = pycogaps.Matrix(np.array(stitched["Psd"]))
+    else:
+        finalresult["GapsResult"].Amean = pycogaps.Matrix(np.array(stitched["Amean"]))
+        finalresult["GapsResult"].Asd = pycogaps.Matrix(np.array(stitched["Asd"]))
+        finalresult["GapsResult"].Pmean = pycogaps.Matrix(np.array(result[0]["GapsResult"].Pmean))
+        finalresult["GapsResult"].Psd = pycogaps.Matrix(np.array(result[0]["GapsResult"].Psd))
     return finalresult
 
 
@@ -139,7 +145,11 @@ def patternMatch(allpatterns, params):
     maxNS = params.coparams["maxNS"]
     print("MAXNS", maxNS)
     def splitcluster(list, index, minNS):
-        idx = list.index(index)
+        try:
+            idx = list.index(index)
+        except ValueError:
+            print("cluster not found...")
+            return None
         split = corcut(list[idx], 2, minNS)
         print("Length of split", len(split))
         list[idx] = split[0]
