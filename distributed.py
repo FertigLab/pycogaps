@@ -67,16 +67,21 @@ def distributedCoGAPS(path, params, uncertainty=None):
         pool.join()
         finalresult=list(finalresult)
 
-    stitched = stitchTogether(finalresult, params, sets)
+    stitched = stitchTogether(finalresult, result,  params, sets)
     finalresult = finalresult[0]
+    gapsresult = pycogaps.GapsResult
     if params.coparams["distributed"] == "genome-wide":
-        print("AMEAN",np.array(result[0]["GapsResult"].Amean))
-        finalresult["GapsResult"].Amean = pycogaps.Matrix(np.array(result[0]["GapsResult"].Amean))
-        finalresult["GapsResult"].Asd = pycogaps.Matrix(np.array(result[0]["GapsResult"].Asd))
-        finalresult["anndata"].obs = np.array(result[0]["GapsResult"].Amean)
-        finalresult["anndata"].uns["asd"] = np.array(result[0]["GapsResult"].Asd)
-        finalresult["GapsResult"].Pmean = pycogaps.Matrix(np.array(stitched["Pmean"]))
-        finalresult["GapsResult"].Psd = pycogaps.Matrix(np.array(stitched["Psd"]))
+        gapsresult.Amean = stitched["Amean"]
+        gapsresult.Asd = stitched["Asd"]
+        gapsresult.Pmean = stitched["Pmean"]
+        gapsresult.Psd = stitched["Psd"]
+        # print("AMEAN",np.array(result[0]["GapsResult"].Amean))
+        # finalresult["GapsResult"].Amean = pycogaps.Matrix(np.array(result[0]["GapsResult"].Amean))
+        # finalresult["GapsResult"].Asd = pycogaps.Matrix(np.array(result[0]["GapsResult"].Asd))
+        # finalresult["anndata"].obs = np.array(result[0]["GapsResult"].Amean)
+        # finalresult["anndata"].uns["asd"] = np.array(result[0]["GapsResult"].Asd)
+        # finalresult["GapsResult"].Pmean = pycogaps.Matrix(np.array(stitched["Pmean"]))
+        # finalresult["GapsResult"].Psd = pycogaps.Matrix(np.array(stitched["Psd"]))
     else:
         finalresult["GapsResult"].Amean = pycogaps.Matrix(np.array(stitched["Amean"]))
         finalresult["GapsResult"].Asd = pycogaps.Matrix(np.array(stitched["Asd"]))
@@ -84,7 +89,10 @@ def distributedCoGAPS(path, params, uncertainty=None):
         finalresult["anndata"].uns["psd"] = np.array(result[0]["GapsResult"].Psd)
         finalresult["GapsResult"].Pmean = pycogaps.Matrix(np.array(result[0]["GapsResult"].Pmean))
         finalresult["GapsResult"].Psd = pycogaps.Matrix(np.array(result[0]["GapsResult"].Psd))
-    return finalresult
+    return {
+        "GapsResult": gapsresult,
+        "anndata": PyCoGAPS.GapsResultToAnnData(gapsresult, data, params)
+    }
 
 
 def callInternalCoGAPS(paramlst):
@@ -152,9 +160,6 @@ def patternMatch(allpatterns, params):
     def splitcluster(list, index, minNS):
         #try:
         idx = list.index(index)
-        #except ValueError:
-         #   print("cluster not found...")
-          #  return None
         split = corcut(list[idx], 2, minNS)
         print("Length of split", len(split))
         list[idx] = split[0]
@@ -223,7 +228,7 @@ def corcut(allpatterns, cut, minNS):
     return clustid
 
 
-def stitchTogether(result, params, sets):
+def stitchTogether(finalresult, result, params, sets):
     """
     concatenate final results across subsets
     @param result: list of CogapsResult objects
@@ -234,16 +239,25 @@ def stitchTogether(result, params, sets):
     print("Stitching results together...")
     if params.coparams["distributed"] == "genome-wide":
         # combine A matrices
-        Amean = pd.DataFrame()
-        Asd = pd.DataFrame()
+        df1 = []
+        df2 = []
         for r in result:
-            df1 = r["anndata"].obs
-            df2 = r["anndata"].uns["asd"]
-            Amean = pd.concat([df1, Amean])
-            Asd = pd.concat([df2, Asd])
+            df1.append(np.array(r["GapsResult"].Amean))
+            df2.append(r["GapsResult"].Asd)
+        Amean = pd.concat(df1)
+        Asd = pd.concat(df2)
+        setindices = [s for st in sets for s in st]
+        if(Amean.shape[0] == len(setindices)):
+            indices = np.arange(1, len(setindices))
+            if(indices.sort() == setindices.sort()):
+                reorder = list(set(indices).intersection(setindices))
+                Amean.reindex(reorder)
+                Asd.reindex(reorder)
         # copy P matrix.. same for all sets
-        Pmean = result[0]["anndata"].var
-        Psd = result[0]["anndata"].uns["psd"]
+        Pmean = finalresult[0]["Pmean"]
+        Psd = finalresult[0]["Psd"]
+        Amean = pycogaps.Matrix(np.array(Amean))
+        Asd = pycogaps.Matrix(np.array(Asd))
     else:
         Pmean = pd.DataFrame()
         Psd = pd.DataFrame()

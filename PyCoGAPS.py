@@ -12,6 +12,7 @@ import sys
 sys.setrecursionlimit(10000)
 
 print("""\
+
 ______      _____       _____   ___  ______  _____ 
 | ___ \    /  __ \     |  __ \ / _ \ | ___ \/  ___|
 | |_/ /   _| /  \/ ___ | |  \// /_\ \| |_/ /\ `--. 
@@ -19,7 +20,8 @@ ______      _____       _____   ___  ______  _____
 | |  | |_| | \__/\ (_) | |_\ \| | | || |    /\__/ /
 \_|   \__, |\____/\___/ \____/\_| |_/\_|    \____/ 
        __/ |                                       
-      |___/                                        
+      |___/             
+                                 
                     """)
 
 
@@ -313,7 +315,6 @@ def GapsResultToAnnData(gapsresult, adata, prm: CoParams):
     if len(Pmean.shape) > 2:
         Pmean = Pmean[0, :, :]
         Psd = Psd[0, :, :]
-
     adata.obs = pd.DataFrame(data=Amean, index=adata.obs_names, columns=pattern_labels)
     adata.var = pd.DataFrame(data=Pmean, index=adata.var_names, columns=pattern_labels)
     adata.uns["asd"] = pd.DataFrame(data=Asd, index=adata.obs_names, columns=pattern_labels)
