@@ -70,13 +70,18 @@ def distributedCoGAPS(path, params, uncertainty=None):
     stitched = stitchTogether(finalresult, params, sets)
     finalresult = finalresult[0]
     if params.coparams["distributed"] == "genome-wide":
+        print("AMEAN",np.array(result[0]["GapsResult"].Amean))
         finalresult["GapsResult"].Amean = pycogaps.Matrix(np.array(result[0]["GapsResult"].Amean))
         finalresult["GapsResult"].Asd = pycogaps.Matrix(np.array(result[0]["GapsResult"].Asd))
+        finalresult["anndata"].obs = np.array(result[0]["GapsResult"].Amean)
+        finalresult["anndata"].uns["asd"] = np.array(result[0]["GapsResult"].Asd)
         finalresult["GapsResult"].Pmean = pycogaps.Matrix(np.array(stitched["Pmean"]))
         finalresult["GapsResult"].Psd = pycogaps.Matrix(np.array(stitched["Psd"]))
     else:
         finalresult["GapsResult"].Amean = pycogaps.Matrix(np.array(stitched["Amean"]))
         finalresult["GapsResult"].Asd = pycogaps.Matrix(np.array(stitched["Asd"]))
+        finalresult["anndata"].var = np.array(result[0]["GapsResult"].Pmean)
+        finalresult["anndata"].uns["psd"] = np.array(result[0]["GapsResult"].Psd)
         finalresult["GapsResult"].Pmean = pycogaps.Matrix(np.array(result[0]["GapsResult"].Pmean))
         finalresult["GapsResult"].Psd = pycogaps.Matrix(np.array(result[0]["GapsResult"].Psd))
     return finalresult
@@ -145,11 +150,11 @@ def patternMatch(allpatterns, params):
     maxNS = params.coparams["maxNS"]
     print("MAXNS", maxNS)
     def splitcluster(list, index, minNS):
-        try:
-            idx = list.index(index)
-        except ValueError:
-            print("cluster not found...")
-            return None
+        #try:
+        idx = list.index(index)
+        #except ValueError:
+         #   print("cluster not found...")
+          #  return None
         split = corcut(list[idx], 2, minNS)
         print("Length of split", len(split))
         list[idx] = split[0]
@@ -166,6 +171,9 @@ def patternMatch(allpatterns, params):
 
     while len(indx) > 0:
         clusters = splitcluster(clusters, indx[0], params.coparams["minNS"])
+        #if clusters is None:
+        #    break
+        #clusters = [c for c in clusters if c is not None]
         indx = [c for c in clusters if toolarge(c)]
         print("SHAPE OF INDX:", len(indx))
         # # print("INDX:", indx)
