@@ -76,20 +76,14 @@ def distributedCoGAPS(path, params, uncertainty=None):
         gapsresult.Asd = stitched["Asd"]
         gapsresult.Pmean = stitched["Pmean"]
         gapsresult.Psd = stitched["Psd"]
-        # print("AMEAN",np.array(result[0]["GapsResult"].Amean))
-        # finalresult["GapsResult"].Amean = pycogaps.Matrix(np.array(result[0]["GapsResult"].Amean))
-        # finalresult["GapsResult"].Asd = pycogaps.Matrix(np.array(result[0]["GapsResult"].Asd))
-        # finalresult["anndata"].obs = np.array(result[0]["GapsResult"].Amean)
-        # finalresult["anndata"].uns["asd"] = np.array(result[0]["GapsResult"].Asd)
-        # finalresult["GapsResult"].Pmean = pycogaps.Matrix(np.array(stitched["Pmean"]))
-        # finalresult["GapsResult"].Psd = pycogaps.Matrix(np.array(stitched["Psd"]))
     else:
-        finalresult["GapsResult"].Amean = pycogaps.Matrix(np.array(stitched["Amean"]))
-        finalresult["GapsResult"].Asd = pycogaps.Matrix(np.array(stitched["Asd"]))
-        finalresult["anndata"].var = np.array(result[0]["GapsResult"].Pmean)
-        finalresult["anndata"].uns["psd"] = np.array(result[0]["GapsResult"].Psd)
-        finalresult["GapsResult"].Pmean = pycogaps.Matrix(np.array(result[0]["GapsResult"].Pmean))
-        finalresult["GapsResult"].Psd = pycogaps.Matrix(np.array(result[0]["GapsResult"].Psd))
+        print("Jeanette fix this")
+        # finalresult["GapsResult"].Amean = pycogaps.Matrix(np.array(stitched["Amean"]))
+        # finalresult["GapsResult"].Asd = pycogaps.Matrix(np.array(stitched["Asd"]))
+        # finalresult["anndata"].var = np.array(result[0]["GapsResult"].Pmean)
+        # finalresult["anndata"].uns["psd"] = np.array(result[0]["GapsResult"].Psd)
+        # finalresult["GapsResult"].Pmean = pycogaps.Matrix(np.array(result[0]["GapsResult"].Pmean))
+        # finalresult["GapsResult"].Psd = pycogaps.Matrix(np.array(result[0]["GapsResult"].Psd))
     return {
         "GapsResult": gapsresult,
         "anndata": PyCoGAPS.GapsResultToAnnData(gapsresult, data, params)
