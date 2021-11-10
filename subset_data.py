@@ -83,7 +83,7 @@ def sampleUniformly(allParams, total, setSize):
     """    
 
     sets = [None] * (allParams.coparams['nSets'])
-    remaining = np.arange(1,total)
+    remaining = np.arange(0,total)
     for n in range(allParams.coparams['nSets'] - 1):
         selected = np.random.choice(list(remaining), setSize, replace=False)
         sets[n] = np.sort(selected)
