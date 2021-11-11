@@ -76,7 +76,7 @@ class CoParams:
                          'geneNames': adata.obs_names,
                          'sampleNames': adata.var_names,
                          'fixedPatterns': None,
-                         'distributed': "genome-wide",
+                         'distributed': None,
                          'hdfKey': hdfKey,
                          'hdfRowKey': hdfRowKey,
                          'hdfColKey': hdfColKey,
@@ -425,6 +425,8 @@ def setParam(paramobj: CoParams, whichParam, value):
         elif (value is not None) and (value is not False):
             print("if you wish to perform genome-wide distributed cogaps, please run setParams(params, "
                   "\"distributed\", ""\"genome-wide\")")
+            paramobj.coparams['distributed'] = 'genome-wide'
+            paramobj.gaps.runningDistributed = True
         else:
             paramobj.gaps.runningDistributed = False
             paramobj.coparams['distributed'] = None
