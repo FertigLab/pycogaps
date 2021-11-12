@@ -189,6 +189,15 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
            checkpointInterval=0, checkpointInFile="", transposeData=False,
            BPPARAM=None, workerID=1, asynchronousUpdates=None, nSnapshots=0,
            snapshotPhase='sampling'):
+            """ Python wrapper to run either standardCoGAPS or distributedCoGAPS.
+
+            Args:
+                See standardCoGAPS Args.
+
+            Returns:
+                CogapsResult: A CogapsResult object.
+            """
+
 
             if params.coparams['distributed'] == 'genome-wide':
                 result = distributedCoGAPS(path, params, uncertainty=None)
