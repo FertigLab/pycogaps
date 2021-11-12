@@ -82,23 +82,22 @@ majorCluster = table["majorCluster"]
 params = CoParams(path)
 
 setParams(params, {
-            'nIterations': 100,
+            'nIterations': 5,
             'seed': 42,
-            'nPatterns': 10,
-            'useSparseOptimization': True
+            'nPatterns': 5,
+            'useSparseOptimization': True,
+            'distributed': 'genome-wide'
         })
 
 if __name__ == '__main__':
-    import distributed
-    params.setDistributedParams()
     start = time.time()
-    result = distributed.distributedCoGAPS(adata, params, None)
+    # params.setDistributedParams()
+    result = CoGAPS(adata, params)
     end = time.time()
     print("TIME:", end - start)
     print("Pickling...")
-    pickle.dump(result, open("./data/100result.pkl", "wb"))
+    pickle.dump(result, open("./data/200result.pkl", "wb"))
     print("Pickling complete!")
+    plot(result, groups=majorCluster)
 
 # unpickled = pickle.load(open("./data/testresult.pkl", "rb"))
-
-
