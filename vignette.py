@@ -21,7 +21,7 @@ majorCluster = table["majorCluster"]
 params = CoParams(path)
 
 setParams(params, {
-            'nIterations': 5000,
+            'nIterations': 10,
             'seed': 42,
             'nPatterns': 10,
             'useSparseOptimization': True,
