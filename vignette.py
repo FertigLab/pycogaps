@@ -21,9 +21,9 @@ majorCluster = table["majorCluster"]
 params = CoParams(path)
 
 setParams(params, {
-            'nIterations': 5,
+            'nIterations': 5000,
             'seed': 42,
-            'nPatterns': 5,
+            'nPatterns': 10,
             'useSparseOptimization': True,
             'distributed': 'genome-wide'
         })
