@@ -21,7 +21,7 @@ majorCluster = table["majorCluster"]
 params = CoParams(path)
 
 setParams(params, {
-            'nIterations': 10,
+            'nIterations': 30000,
             'seed': 42,
             'nPatterns': 10,
             'useSparseOptimization': True,
@@ -31,7 +31,6 @@ setParams(params, {
 if __name__ == '__main__':
     start = time.time()
     # params.setDistributedParams()
-    print('NTHREADS: ', params.coparams['nThreads'])
     result = CoGAPS(adata, params)
     end = time.time()
     print("TIME:", end - start)

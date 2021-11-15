@@ -211,11 +211,11 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
             return result
 
 
-def standardCoGAPS(path, params, nThreads, messages,
-                    outputFrequency, uncertainty, checkpointOutFile,
-                    checkpointInterval, checkpointInFile, transposeData,
-                    BPPARAM, workerID, asynchronousUpdates, nSnapshots,
-                    snapshotPhase):
+def standardCoGAPS(path, params=None, nThreads=1, messages=True,
+           outputFrequency=1000, uncertainty=None, checkpointOutFile="",
+           checkpointInterval=0, checkpointInFile="", transposeData=False,
+           BPPARAM=None, workerID=1, asynchronousUpdates=None, nSnapshots=0,
+           snapshotPhase='sampling'):
     """ Python wrapper to run CoGAPS via bindings
 
     Args:
