@@ -31,11 +31,12 @@ setParams(params, {
 if __name__ == '__main__':
     start = time.time()
     # params.setDistributedParams()
+    print('NTHREADS: ', params.coparams['nThreads'])
     result = CoGAPS(adata, params)
     end = time.time()
     print("TIME:", end - start)
     print("Pickling...")
-    pickle.dump(result, open("./data/200result.pkl", "wb"))
+    pickle.dump(result, open("./data/30kresult.pkl", "wb"))
     print("Pickling complete!")
     plot(result, groups=majorCluster)
 
