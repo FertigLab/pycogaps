@@ -37,9 +37,9 @@ if __name__ == '__main__':
     result = CoGAPS(path, params)
     end = time.time()
     print("TIME:", end - start)
-    # print("Pickling...")
-    # pickle.dump(result, open("./data/10result.pkl", "wb"))
-    # print("Pickling complete!")
+    print("Pickling...")
+    pickle.dump(result, open("./data/10result.pkl", "wb"))
+    print("Pickling complete!")
     # plot(result, groups=majorCluster)
 
 # unpickled = pickle.load(open("./data/testresult.pkl", "rb"))
