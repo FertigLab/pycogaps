@@ -41,5 +41,9 @@ if __name__ == '__main__':
     pickle.dump(result, open("./data/10result.pkl", "wb"))
     print("Pickling complete!")
     # plot(result, groups=majorCluster)
+    import boto3
+    s3 = boto3.client('s3')
+    with open('./data/10result.pkl', 'rb') as data:
+        s3.upload_fileobj(data, 'pycogaps', 'pycogapsresult.txt')
 
 # unpickled = pickle.load(open("./data/testresult.pkl", "rb"))
