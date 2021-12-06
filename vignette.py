@@ -11,6 +11,9 @@ if __name__ == '__main__':
     s3 = boto3.client('s3')
     with open('data/GSE98638_HCC.TCell.S5063.count.txt', 'wb') as f:
         s3.download_fileobj('pycogaps', 'GSE98638_HCC.TCell.S5063.count.txt', f)
+    
+    with open('data/pheno.txt', 'wb') as f:
+        s3.download_fileobj('pycogaps', 'pheno.txt', f)
 
     path = "data/GSE98638_HCC.TCell.S5063.count.txt"
 
