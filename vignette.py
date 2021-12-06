@@ -1,7 +1,10 @@
+print("checkpoint 1")
 if __name__ == '__main__':
+    print("checkpoint 2")
     from PyCoGAPS import *
     import pickle
     import scanpy as sc
+    print("checkpoint 3")
     import boto3
     print("This vignette was built using pycogaps version", getVersion())
     
