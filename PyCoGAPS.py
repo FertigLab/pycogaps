@@ -432,7 +432,7 @@ def callInternalCoGAPS(paramlst):
     params.coparams['subsetIndices'] = subsetIndices
     params.gaps.workerID = workerID
     params.gaps.asynchronousUpdates = False
-    params.gaps.maxThreads = 1
+#     params.gaps.maxThreads = 1
     print("Calling internal CoGAPS...\n")
     gapsresult = standardCoGAPS(adata, params, uncertainty, transposeData=params.coparams["transposeData"])
 
