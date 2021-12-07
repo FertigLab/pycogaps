@@ -30,7 +30,7 @@ if __name__ == '__main__':
     params = CoParams(path)
 
     setParams(params, {
-        'nIterations': 50000,
+        'nIterations': 1000,
         'seed': 42,
         'nPatterns': 10,
         'useSparseOptimization': True,
@@ -44,7 +44,7 @@ if __name__ == '__main__':
     print("TIME:", end - start)
             
     print("Pickling...")
-    pickle.dump(result, open("./data/50kresultfinal.pkl", "wb"))
+    pickle.dump(result, open("./data/10khccresult.pkl", "wb"))
     print("Pickling complete!")
     with open('./data/50kresult.pkl', 'rb') as data:
-        s3.upload_fileobj(data, 'pycogaps', '50kresult.pkl')
+        s3.upload_fileobj(data, 'pycogaps', '10khccresult.pkl')
