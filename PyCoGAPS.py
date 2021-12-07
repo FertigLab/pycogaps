@@ -349,12 +349,11 @@ def distributedCoGAPS(path, params, uncertainty=None):
             paramlst = []
             for i in range(len(sets)):
                 paramlst.append([data, params, i, sets[i], uncertainty])
-
             result = pool.imap(callInternalCoGAPS, paramlst)
             pool.close()
             pool.join()
             result = list(result)
-
+            print("POOL IS NOW CLOSED")
             if params.coparams['distributed'] == "genome-wide":
                 unmatched = map(lambda x: np.array(x["GapsResult"].Pmean), result)
             else:
@@ -404,6 +403,7 @@ def distributedCoGAPS(path, params, uncertainty=None):
 
 def callInternalCoGAPS(paramlst):
     # take out parameters passed as a list to the worker process
+    print("IN CALL INTERNAL COGAPS")
     path = paramlst[0]
     params = paramlst[1]
     workerID = paramlst[2]
@@ -428,7 +428,7 @@ def callInternalCoGAPS(paramlst):
         params.coparams['sampleNames'] = samplesubset
         adata = adata[samplesubset, :]
         params.coparams['subsetDim'] = 2
-
+       
     params.coparams['subsetIndices'] = subsetIndices
     params.gaps.workerID = workerID
     params.gaps.asynchronousUpdates = False
@@ -440,6 +440,7 @@ def callInternalCoGAPS(paramlst):
 
 
 def findConsensusMatrix(unmatched, params):
+    print("FINDING CONSENSUS MATRIX")
     allpatterns = pd.DataFrame(np.hstack(unmatched))
     comb = expandgrid(range(params.coparams["nSets"]), range(params.gaps.nPatterns))
     comb = list(comb.values())
@@ -461,11 +462,13 @@ def expandgrid(*itrs):
 
 
 def patternMatch(allpatterns, params):
+    print("IN PATTERNMATCH")
     clusters = corcut(allpatterns, params.coparams["cut"], params.coparams["minNS"])
     maxNS = params.coparams["maxNS"]
     # print("MAXNS", maxNS)
 
     def splitcluster(allpatterns, index, minNS):
+        print("IN SPLIT CLUSTER")
         # print("LIST", allpatterns)
         # print("INDEX", index)
         for i in np.arange(len(allpatterns)):
@@ -515,7 +518,7 @@ def patternMatch(allpatterns, params):
 
 
 def corrToMeanPattern(cluster):
-
+    print("IN CORR TO MEAN PATTERN")
     # print("cluster:", cluster)
     cluster = cluster.dropna()
     meanpat = cluster.mean(axis=1)
