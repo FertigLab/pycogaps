@@ -32,7 +32,7 @@ if __name__ == '__main__':
     setParams(params, {
         'nIterations': 1000,
         'seed': 42,
-        'nPatterns': 10,
+        'nPatterns': 5,
         'useSparseOptimization': True,
         'distributed': "genome-wide",
     })
