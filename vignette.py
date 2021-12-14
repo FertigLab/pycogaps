@@ -30,21 +30,21 @@ if __name__ == '__main__':
     params = CoParams(path)
 
     setParams(params, {
-        'nIterations': 1000,
+        'nIterations': 30000,
         'seed': 42,
-        'nPatterns': 5,
+        'nPatterns': 10,
         'useSparseOptimization': True,
         'distributed': "genome-wide",
     })
 
     start = time.time()
-    params.setDistributedParams()
+    params.setDistributedParams(nSets=10, minNS=8, maxNS=23)
     result = CoGAPS(path, params)
     end = time.time()
     print("TIME:", end - start)
             
     print("Pickling...")
-    pickle.dump(result, open("./data/10khccresult.pkl", "wb"))
+    pickle.dump(result, open("./data/30khccresult.pkl", "wb"))
     print("Pickling complete!")
-    with open('./data/50kresult.pkl', 'rb') as data:
-        s3.upload_fileobj(data, 'pycogaps', '10khccresult.pkl')
+    with open('./data/30khccresult.pkl', 'rb') as data:
+        s3.upload_fileobj(data, 'pycogaps', '30khccresult.pkl')
