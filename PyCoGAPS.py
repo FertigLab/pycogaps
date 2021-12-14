@@ -520,7 +520,7 @@ def patternMatch(allpatterns, params):
 def corrToMeanPattern(cluster):
     print("IN CORR TO MEAN PATTERN")
     # print("cluster:", cluster)
-    cluster = cluster.dropna()
+    cluster = cluster.fillna(0)
     meanpat = cluster.mean(axis=1)
     corrmat = []
     for column in cluster:
