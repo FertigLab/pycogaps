@@ -27,7 +27,7 @@ if __name__ == '__main__':
     majorCluster = table["majorCluster"]
     adata.var_names = majorCluster
 
-    params = CoParams(adata)
+    params = CoParams(matrix=adata)
 
     setParams(params, {
         'nIterations': 30000,
