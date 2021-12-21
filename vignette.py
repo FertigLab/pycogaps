@@ -27,7 +27,7 @@ if __name__ == '__main__':
     majorCluster = table["majorCluster"]
     adata.var_names = majorCluster
 
-    params = CoParams(path)
+    params = CoParams(adata)
 
     setParams(params, {
         'nIterations': 30000,
@@ -39,7 +39,7 @@ if __name__ == '__main__':
 
     start = time.time()
     params.setDistributedParams(nSets=10, minNS=8, maxNS=23)
-    result = CoGAPS(path, params)
+    result = CoGAPS(adata, params)
     end = time.time()
     print("TIME:", end - start)
             
