@@ -17,8 +17,13 @@ if __name__ == '__main__':
 
     path = "data/GSE98638_HCC.TCell.S5063.count.txt"
 
-    table = pd.read_table(path)
-    adata = anndata.AnnData(table.iloc[:, 2:])
+    '''
+    - read in data as .txt file and convert to anndata
+    - must make sure the data inputted into pd.DataFrame is a numpy array
+    '''
+    pd_table = pd.read_table(path)
+    table = pd.DataFrame(data=pd_table.values, index=pd_table.index, columns=pd_table.columns)
+    adata = anndata.AnnData(table.iloc[:,2:]) 
     adata.obs_names = table["symbol"]
     sc.pp.log1p(adata)
 
