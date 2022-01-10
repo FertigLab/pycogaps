@@ -267,6 +267,7 @@ def standardCoGAPS(path, params=None, nThreads=1, messages=True,
 
     # convert data to anndata and matrix obj
     if isinstance(path, str):
+        
         if params is not None:
             adata = toAnndata(path, params.coparams['hdfKey'], params.coparams['hdfRowKey'],
                               params.coparams['hdfColKey'], transposeData=transposeData)
@@ -275,6 +276,10 @@ def standardCoGAPS(path, params=None, nThreads=1, messages=True,
     else:
         adata = path
 
+    # print('=== DEBUG MATRIX CONVERSION IN STANDARD COGAPS ===')
+    # print('orig data matrix: ', adata.X[0:2])
+    # print('data matrix conversion: ', toNumpy(matrix))
+    # print('=== END DEBUG MATRIX CONVERSION IN STANDARD COGAPS ===')
     matrix = pycogaps.Matrix(adata.X)
 
     if params is None:
@@ -353,10 +358,21 @@ def distributedCoGAPS(path, params, uncertainty=None):
             pool.close()
             pool.join()
             result = list(result)
-            print("POOL IS NOW CLOSED")
+            # print("POOL IS NOW CLOSED")
             if params.coparams['distributed'] == "genome-wide":
                 # unmatched = map(lambda x: toNumpy(x["GapsResult"].Pmean), result)
-                unmatched = map(lambda x: x['anndata'].var.to_numpy(), result)
+                # unmatched = map(lambda x: x['anndata'].var.to_numpy(), result)
+                # print('=== DEBUG UNMATCHED PATTERNS ===')
+                # print('unmatched map: ', unmatched)
+                # allpatterns = pd.DataFrame(np.hstack(unmatched))
+                # print('allpatterns from map: ', allpatterns)
+                # unmatched = np.empty((len(result), result[0]['anndata'].var.shape[1]))
+                unmatched = np.array(result[0]['anndata'].var)
+                for i in range(1, len(result)):
+                    arr = np.array(result[i]['anndata'].var)
+                    unmatched = np.append(unmatched, arr, axis=1)
+                # print('unmatched np arr: ', unmatched)
+                # print('allpatterns from np arr: ', pd.DataFrame(unmatched))
             else:
                 # unmatched = map(lambda x: toNumpy(x["GapsResult"].Amean), result)
                 unmatched = map(lambda x: x["anndata"].obs.to_numpy(), result)
@@ -365,12 +381,14 @@ def distributedCoGAPS(path, params, uncertainty=None):
     else:
         matched = params.gaps.fixedPatterns
 
-    print('=== DEBUG FIXED PATTERNS ===')
-    print('orig matched consenus: ', matched["consensus"].shape)
-    print('=== END DEBUG')
     params.gaps.nPatterns = matched["consensus"].shape[1]
     params.gaps.useFixedPatterns = True
+    print('=== DEBUG MATRIX FP ===')
     params.gaps.fixedPatterns = pycogaps.Matrix(matched["consensus"])
+    print('np FP: ', matched["consensus"])
+    print('Matrix FP: ', toNumpy(params.gaps.fixedPatterns))
+    print('=== END DEBUG ===')
+
     # print("FIXED PATTERNS\n", matched["consensus"])
     if params.coparams["distributed"] == "genome-wide":
         params.gaps.whichMatrixFixed = "P"
@@ -390,12 +408,6 @@ def distributedCoGAPS(path, params, uncertainty=None):
     stitched = stitchTogether(finalresult, result, params, sets)
     gapsresult = pycogaps.GapsResult
     if params.coparams["distributed"] == "genome-wide":
-        print('=== DEBUG MATRIX ===')
-        print('Amean orig: ', stitched["Amean"][-1,:])
-        print('Amean Matrix conversion: ', toNumpy(pycogaps.Matrix(stitched["Amean"])[-1,:]))
-        print('Pmean orig: ', stitched["Pmean"][-1,:])
-        print('Pmean Matrix conversion: ', toNumpy(pycogaps.Matrix(stitched["Pmean"])[-1,:]))
-        print('=== END DEBUG MATRIX ===')
         gapsresult.Amean = pycogaps.Matrix((stitched["Amean"]))
         gapsresult.Asd = pycogaps.Matrix((stitched["Asd"]))
         gapsresult.Pmean = pycogaps.Matrix((stitched["Pmean"]))
@@ -409,7 +421,8 @@ def distributedCoGAPS(path, params, uncertainty=None):
 
     return {
         "GapsResult": gapsresult,
-        "anndata": GapsResultToAnnData(gapsresult, data, params)
+        "anndata": GapsResultToAnnData(gapsresult, data, params),
+        'stitched': stitched
     }
 
 
@@ -453,9 +466,10 @@ def callInternalCoGAPS(paramlst):
 
 def findConsensusMatrix(unmatched, params):
     # print("FINDING CONSENSUS MATRIX")
-    allpatterns = pd.DataFrame(np.hstack(unmatched))
+    # allpatterns = pd.DataFrame(np.hstack(unmatched))
+    allpatterns = pd.DataFrame(unmatched)
     comb = expandgrid(range(params.coparams["nSets"]), range(params.gaps.nPatterns))
-    comb = np.array(comb.values())
+    comb = list(comb.values())
     comb = pd.DataFrame(comb)
     comb = pd.DataFrame.transpose(comb)
     comb = comb.to_numpy()
@@ -507,24 +521,25 @@ def patternMatch(allpatterns, params):
 
     # print("AFTER SPlITTING--CLUSTERS\n", clusters)
     # create matrix of mean patterns - weighted by correlation to mean pattern
-    meanpatterns = []
+    
+    meanpatterns = np.empty((len(clusters[0]), len(clusters)))
     for i in range(len(clusters)):
         cluster = clusters[i]
         if cluster is not None:
             cr = np.array(corrToMeanPattern(cluster))**3
-            meanpat = []
+            meanpat = np.empty((cluster.shape[0]))
             for row in range(cluster.shape[0]):
-                avg = np.average(cluster.iloc[row], weights=cr)
-                # print(avg)
-                meanpat.append(avg)
-            meanpatterns.append(np.array(meanpat))
-    meanpatterns = pd.DataFrame(np.array(meanpatterns))
-    meanpatterns = meanpatterns.transpose()
+                meanpat[row] = np.average(cluster.iloc[row], weights=cr)
+            meanpatterns[:,i] = meanpat
+    meanpatterns = np.divide(meanpatterns, np.max(meanpatterns, axis=0))
+    meanpatterns = pd.DataFrame(data=meanpatterns)
+    
     # print("MEAN PATTERNS\n", meanpatterns)
     # returned patterns after scaling max to 1
     result = {
         "clustered": clusters,
-        "consensus": meanpatterns.apply(lambda x: x / x.max())
+        # "consensus": meanpatterns.apply(lambda x: x / x.max())
+        'consensus': meanpatterns
     }
     return result
 
@@ -553,13 +568,23 @@ def stitchTogether(finalresult, result, params, sets):
     print("Stitching results together...")
     if params.coparams["distributed"] == "genome-wide":
 
-        Amean = pd.DataFrame()
-        Asd = pd.DataFrame()
-        for r in finalresult:
-            df1 = pd.DataFrame(np.array(r["anndata"].obs))
-            df2 = pd.DataFrame(np.array(r["anndata"].uns['asd']))
-            Amean = pd.concat([df1, Amean], axis=0)
-            Asd = pd.concat([df2, Asd], axis=0)
+        # Amean = pd.DataFrame()
+        # Asd = pd.DataFrame()
+        # for r in finalresult:
+        #     df1 = pd.DataFrame(np.array(r["anndata"].obs))
+        #     df2 = pd.DataFrame(np.array(r["anndata"].uns['asd']))
+        #     Amean = pd.concat([df1, Amean], axis=0)
+        #     Asd = pd.concat([df2, Asd], axis=0)
+        # Pmean = np.array(finalresult[0]['anndata'].var)
+        # Psd = np.array(finalresult[0]['anndata'].uns['psd'])
+
+        Amean = np.array(finalresult[0]['anndata'].obs)
+        Asd = np.array(finalresult[0]['anndata'].uns['asd'])
+        for r in finalresult[1:]:
+            df1 = np.array(r["anndata"].obs)
+            df2 = np.array(r["anndata"].uns['asd'])
+            Amean = np.append(Amean, df1, axis=0)
+            Asd = np.append(Asd, df2, axis=0)
         Pmean = np.array(finalresult[0]['anndata'].var)
         Psd = np.array(finalresult[0]['anndata'].uns['psd'])
 
