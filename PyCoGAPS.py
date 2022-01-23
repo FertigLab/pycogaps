@@ -729,7 +729,7 @@ def setParam(paramobj: CoParams, whichParam, value):
         CoParams: the modified CoParams object.
     """    
 
-    coparam_params = ['hdfKey', 'hdfRowKey', 'hdfColKey', 'explicitSets', 'subsetDim', 'geneNames', 'sampleNames']
+    coparam_params = ['hdfKey', 'hdfRowKey', 'hdfColKey', 'explicitSets', 'subsetDim', 'geneNames', 'sampleNames', 'subsetIndices']
     if whichParam == "alpha":
         paramobj.gaps.alphaA = value
         paramobj.gaps.alphaP = value
@@ -737,7 +737,8 @@ def setParam(paramobj: CoParams, whichParam, value):
         paramobj.gaps.maxGibbsMassA = value
         paramobj.gaps.maxGibbsMassP = value
     elif whichParam in coparam_params:
-        paramobj.coparams[whichParam] = value
+        if value is not None:
+            paramobj.coparams[whichParam] = value
     elif whichParam in "distributed":
         if value == "genome-wide":
             paramobj.gaps.runningDistributed = True
@@ -758,7 +759,7 @@ def setParam(paramobj: CoParams, whichParam, value):
         print("please set \'", whichParam, "\' with setAnnotationWeights")
         return
     elif whichParam in ("fixedPatterns", "whichMatrixFixed"):
-        print("please set \'", whichParam, "\' with setFixedPatterns")
+        # print("please set \'", whichParam, "\' with setFixedPatterns")
         return
     elif whichParam in "singleCell":
         print(whichParam, " has been deprecated, this parameter will be ignored")
