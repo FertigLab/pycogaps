@@ -7,15 +7,15 @@ if __name__ == '__main__':
     params = CoParams(path)
 
     setParams(params, {
-        'nIterations': 5000,
-        'seed': 42,
-        'nPatterns': 10,
-        'useSparseOptimization': True,
+        'nIterations': 1000,
+        'seed': 0,
+        'nPatterns': 3,
+        # 'useSparseOptimization': True,
         'distributed': "genome-wide",
     })
 
     start = time.time()
-    params.setDistributedParams(nSets=10, minNS=8, maxNS=23)
+    params.setDistributedParams(nSets=4, minNS=2, maxNS=6, cut=3)
     result = CoGAPS(path, params)
     end = time.time()
     print("TIME:", end - start)
