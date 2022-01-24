@@ -21,21 +21,11 @@ This package, PyCoGAPS, presents a unified python interface, with a parallel, ef
 4. [ Citing CoGAPS ](#4-citing-cogaps)
 
 
-
-
-# **1. Installation**
-```
-git clone https://github.com/FertigLab/pycogaps --recursive
-cd pycogaps
-pip3 install . 
-OR
-python3 setup.py install
-```
 # **2. Usage**
 Please follow the steps below to run the PyCoGAPS vignette:
 1. Install docker at https://docs.docker.com/desktop/mac/install/ 
 2. Open docker
-3. Copy the commands and paste in terminal to run CoGAPS with default parameters and dataset (Tested via Mac OX)
+3. Copy the commands and paste in terminal (Tested via Mac OX)
 
 ```
 docker pull ashleyt2000/pycogaps:docker_pycogaps
@@ -49,7 +39,7 @@ cd ..
 docker run -v $PWD:$PWD ashleyt2000/pycogaps:docker_pycogaps $PWD/params.yaml
 
 ```
-
+This produces a CoGAPS run on a simple dataset with default parameters.
 ```
 This is pycogaps version  0.0.1
 Running Standard CoGAPS on GIST.csv (1363 genes and 9 samples) with parameters: 
@@ -83,37 +73,27 @@ While CoGAPS is running it periodically prints status messages. For example, `20
 In order to analyze your desired data, we'll need to input it and modify the default parameters before running CoGAPS. All parameter values can be modified directly in the 'params.yaml' file already downloaded earlier. 
 
 ```python
-# create a CoParams object
-params = CoParams(path)
+## This file holds all parameters to be passed into PyCoGAPS.
+## To modify default parameters, simply replace parameter values below with user-specified values, and save file. 
 
-# set desired parameters
-setParam(params, "nPatterns", 7) 
-# and/or:
-setParams(params, {
-            'nIterations': 1500,
-            'seed': 42,
-            'nPatterns': 7,
-        })
+# RELATIVE path to data
+path: data/GIST.csv
 
-result = CoGAPS(path, params)
-```
+# result output file name (output saved as a .pkl file)
+result_file: result.pkl
 
-```
-This is pycogaps version  0.0.1
-Running Standard CoGAPS on GIST.csv (1363 genes and 9 samples) with parameters: 
+standard_params:
+  # number of patterns CoGAPS will learn
+  nPatterns: 7
+  # number of iterations for each phase of the algorithm
+  nIterations: 1000
+  # random number generator seed
+  seed: 0
+  # speeds up performance with sparse data (roughly >80% of data is zero), note this can only be used with the default uncertainty
+  useSparseOptimization: False
+ 
+... 
 
--- Standard Parameters --
-nPatterns:  7
-nIterations:  1500
-seed:  42
-sparseOptimization:  False
-
--- Sparsity Parameters --
-alpha: 0.01
-maxGibbsMass:  100.0
-
-GapsResult result object with 1363 features and 9 samples
-7 patterns were learned
 ```
 
 <details>
