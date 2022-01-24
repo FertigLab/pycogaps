@@ -1,7 +1,7 @@
 ## This file holds all parameters to be passed into PyCoGAPS.
 ## To modify default parameters, simply replace parameter values below with user-specified values, and save file. 
 
-# RELATIVE path to data
+# RELATIVE path to data -- make sure to move your data into the created data/ folder
 path: data/GIST.csv
 
 # result output file name (output saved as a .pkl file)
@@ -59,11 +59,11 @@ distributed_params:
   # number of sets to break data into
   nSets: 4
   # number of branches at which to cut dendrogram used in pattern matching
-  cut: 3
+  cut: null
   # minimum of individual set contributions a cluster must contain
-  minNS: 2
+  minNS: null
   # maximum of individual set contributions a cluster can contain
-  maxNS: 6
+  maxNS: null
   # specify subsets by index or name
   explicitSets: null
   # specify categories along the rows (cols) to use for weighted sampling
