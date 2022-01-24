@@ -12,6 +12,7 @@ if __name__ == '__main__':
 
     # get parameter file from command line input
     params_file = sys.argv[1]
+    output_file = sys.argv[2]
 
     # read parameter file
     with open(params_file, "r") as file:
@@ -51,7 +52,8 @@ if __name__ == '__main__':
 
     # save CoGAPS result
     print("Pickling...", end='\r')
-    pickle.dump(result, open(prm['result_file'], "wb"))
+    # pickle.dump(result, open(prm['result_file'], "wb"))
+    pickle.dump(result, open(output_file, "wb"))
     print("Pickling complete!")
 
     if aws_prm['useAWS']:
