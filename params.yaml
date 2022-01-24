@@ -9,7 +9,7 @@ result_file: result.pkl
 
 standard_params:
   # number of patterns CoGAPS will learn
-  nPatterns: 3
+  nPatterns: 7
   # number of iterations for each phase of the algorithm
   nIterations: 1000
   # random number generator seed

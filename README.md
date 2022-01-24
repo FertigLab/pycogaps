@@ -37,6 +37,18 @@ To import the python CoGAPS package:
 ```python
 from PyCoGAPS import *
 ```
+1. Install docker at https://docs.docker.com/desktop/mac/install/ 
+2. Open docker
+3. Execute the following commands
+
+```
+docker pull ashleyt2000/pycogaps:docker_pycogaps
+mkdir PyCoGAPS
+cd PyCoGAPS
+curl -O https://raw.githubusercontent.com/FertigLab/pycogaps/master/params.yaml
+docker run -v $PWD:$PWD ashleyt2000/pycogaps:docker_pycogaps $PWD/params.yaml
+
+```
 
 ## 2.1 Running CoGAPS with Default Parameters
 The only required argument to CoGAPS is the path to the data. This can be a *.csv, .tsv, .mtx, .h5, or .h5ad* file containing the data.
