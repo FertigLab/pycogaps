@@ -1,5 +1,5 @@
 if __name__ == '__main__':
-    from PyCoGAPS import *
+    from PyCoGAPS.pycogaps_main import *
     import pickle
     print("This vignette was built using pycogaps version", getVersion())
 
@@ -11,16 +11,16 @@ if __name__ == '__main__':
         'seed': 0,
         'nPatterns': 3,
         # 'useSparseOptimization': True,
-        'distributed': "genome-wide",
+        # 'distributed': "genome-wide",
     })
 
     start = time.time()
-    params.setDistributedParams(nSets=4, minNS=2, maxNS=6, cut=3)
+    # params.setDistributedParams(nSets=4, minNS=2, maxNS=6, cut=3)
     result = CoGAPS(path, params)
     end = time.time()
     print("TIME:", end - start)
             
-    print("Pickling...")
+    print("Pickling...", end='\r')
     pickle.dump(result, open("./data/simple_vig.pkl", "wb"))
     print("Pickling complete!")
  
