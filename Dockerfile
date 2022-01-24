@@ -15,6 +15,6 @@ RUN python3 ./setup.py install --user
 
 ENTRYPOINT ["python", "./vignette_from_args.py"]
 
-CMD ["params.yaml", "result.pkl"]
+CMD ["params.yaml"]
 
 
