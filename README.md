@@ -85,7 +85,7 @@ Please follow the steps below to run PyCoGAPS with custom parameters:
 1. Open `params.yaml` with any text or code editor
 2. Modify the desired parameters
 3. Save file
-4. Copy the command and paste in terminal to run (as you did earlier):
+4. Copy the command and paste in terminal:
 ```
 docker run -v $PWD:$PWD ashleyt2000/pycogaps:docker_pycogaps $PWD/params.yaml
 ```
@@ -121,7 +121,7 @@ standard_params:
 
 - Standard Parameters
   - `nPatterns` number of patterns CoGAPS will learn
-  -  `nIterations` number of iterations for each phase of the algorithm
+  - `nIterations` number of iterations for each phase of the algorithm
   - `seed` random number generator seed
   - `sparseOptimization` speeds up performance with sparse data (roughly >80% of data is zero), note this can only be used with the default uncertainty
 
@@ -182,9 +182,17 @@ standard_params:
 </details>
 
 ## 2.3 Breaking Down the Return Object from CoGAPS
-CoGAPS returns a dictionary of the result as two representations: an `anndata` object and `GapsResult` object. For simplicity and relevancy, we will only consider the `anndata` object. CoGAPS stores the lower dimensional representation of the samples (P matrix) in the `.var` slot and the weight of the features (A matrix) in the `.obs` slot. The standard deviation across sample points for each matrix are stored in the `.uns` slots.
+CoGAPS saves the result in a pickle file, which is a serialized Python object. It stores a dictionary of the result as two representations: an `anndata` object and `GapsResult` object. For simplicity and relevancy, we will only consider the `anndata` object. CoGAPS stores the lower dimensional representation of the samples (P matrix) in the `.var` slot and the weight of the features (A matrix) in the `.obs` slot. The standard deviation across sample points for each matrix are stored in the `.uns` slots.
 
 ```python
+import pickle
+
+# path to your result file
+pkl_path = "./output/result.pkl"
+
+# this unpickles the result object for use
+result = pickle.load(open(pkl_path, "rb"))
+
 # this retrieves the anndata result object
 result["anndata"]
 ```
@@ -193,9 +201,6 @@ result["anndata"]
 
 [anndata result]: https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/anndata-result.png "anndata result object"
 
-```
-TODO: get mean chi sq, get orig params, get version
-```
 
 ## 2.4 Visualizing Output
 The result object can be passed on to the analysis and plotting functions provided in the package. 
