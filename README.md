@@ -70,9 +70,13 @@ While CoGAPS is running it periodically prints status messages. For example, `20
 
 ## 2.2 Running CoGAPS with Custom Parameters
 
-In order to analyze your desired data, we'll need to input it and modify the default parameters before running CoGAPS. All parameter values can be modified directly in the 'params.yaml' file already downloaded earlier. 
+In order to analyze your desired data, we'll need to input it and modify the default parameters before running CoGAPS. All parameter values can be modified directly in the 'params.yaml' file already downloaded earlier. A snippet of 'params.yaml' is shown below, where we have changed each default parameter value to our own specified value.
 
-```python
+A few important notes about the parameters:
+- path: make sure to move your data into the 'data/' folder you created earlier, keep path set to 'data/{your-datafile-name}'
+- don't put quotes around strings
+
+```
 ## This file holds all parameters to be passed into PyCoGAPS.
 ## To modify default parameters, simply replace parameter values below with user-specified values, and save file. 
 
@@ -129,11 +133,6 @@ standard_params:
   - `asynchronousUpdates` enable asynchronous updating which allows for multi-threaded runs
   - `nSnapshots` how many snapshots to take in each phase, setting this to 0 disables snapshots
   - `snapshotPhase` which phase to take snapsjots in e.g. "equilibration", "sampling", "all"
-
-```python
-# run config arguments can be passed as an argument to CoGAPS
-result = CoGAPS(path, params, messages=False, outputFrequency=250)
-```
 
 </details>
 
