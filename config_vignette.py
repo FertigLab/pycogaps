@@ -1,5 +1,7 @@
 if __name__ == '__main__':
-    from PyCoGAPS import *
+    from PyCoGAPS.parameters import *
+    from PyCoGAPS.pycogaps_main import CoGAPS
+
     import yaml
     import pickle
     print("This vignette was built using pycogaps version", getVersion())
@@ -41,7 +43,7 @@ if __name__ == '__main__':
     result = CoGAPS(prm['path'], params)
 
     # save CoGAPS result
-    print("Pickling...")
+    print("Pickling...", end='\r')
     pickle.dump(result, open(prm['result_file'], "wb"))
     print("Pickling complete!")
 
