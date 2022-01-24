@@ -22,6 +22,7 @@ This package, PyCoGAPS, presents a unified Python interface, with a parallel, ef
 
 
 # **1. Usage**
+## 1.1 Running CoGAPS with Default Parameters
 Please follow the steps below to run the PyCoGAPS vignette:
 1. Install docker at https://docs.docker.com/desktop/mac/install/ 
 2. Open docker
