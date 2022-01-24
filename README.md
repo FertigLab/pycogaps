@@ -2,26 +2,26 @@
 
 Coordinated Gene Activity in Pattern Sets (CoGAPS) implements a Bayesian MCMC matrix factorization algorithm, GAPS, and links it to gene set statistic methods to infer biological process activity. It can be used to perform sparse matrix factorization on any data, and when this data represents biomolecules, to do gene set analysis.
 
-This package, PyCoGAPS, presents a unified python interface, with a parallel, efficient underlying implementation in C++.
+This package, PyCoGAPS, presents a unified Python interface, with a parallel, efficient underlying implementation in C++.
 
 # **Table of Contents**
 
-1. [ Installation ](#1-installation)
-2. [ Usage ](#2-usage)  
-  2.1 [ Running CoGAPS with Default Parameters ](#21-running-cogaps-with-default-parameters)  
-  2.2 [ Running CoGAPS with Custom Parameters ](#22-running-cogaps-with-custom-parameters)  
+1. [ Usage ](#1-usage)  
+  1.1 [ Running CoGAPS with Default Parameters ](#11-running-cogaps-with-default-parameters)  
+  1.2 [ Running CoGAPS with Custom Parameters ](#12-running-cogaps-with-custom-parameters) 
+  1.3 [ Running CoGAPS in Parallel ](#13-running-cogaps-in-parallel)
+2. [ Analyzing the Result ]  
   2.3 [ Breaking Down the Return Object from CoGAPS ](#23-breaking-down-the-return-object-from-cogaps)  
   2.4 [ Visualizing Output ](#24-visualizing-output)        
-  2.5 [ Running CoGAPS in Parallel ](#25-running-cogaps-in-parallel)
-3. [ Additional Features of CoGAPS ](#3-additional-features-of-cogaps)  
-  3.1 [ Checkpoint System: Saving/Loading CoGAPS Runs ](#31-checkpoint-system-savingloading-cogaps-runs)  
+2. [ Additional Features of CoGAPS ](#2-additional-features-of-cogaps)  
+  3.1 [ Checkpoint System: Saving/Loading CoGAPS Runs ](#21-checkpoint-system-savingloading-cogaps-runs)  
   3.2 [ Transposing Data ](#32-transposing-data)  
   3.3 [ Passing Uncertainty Matrix ](#33-passing-uncertainty-matrix)  
   3.4 [ Distributed CoGAPS ](#34-distributed-cogaps)  
 4. [ Citing CoGAPS ](#4-citing-cogaps)
 
 
-# **2. Usage**
+# **1. Usage**
 Please follow the steps below to run the PyCoGAPS vignette:
 1. Install docker at https://docs.docker.com/desktop/mac/install/ 
 2. Open docker
@@ -77,7 +77,7 @@ PyCoGAPS
 │   └── result.pkl
 ```
 
-## 2.2 Running CoGAPS with Custom Parameters
+## 1.2 Running CoGAPS with Custom Parameters
 
 In order to analyze your desired data, we'll need to input it and modify the default parameters before running CoGAPS. All parameter values can be modified directly in the `params.yaml` file already downloaded earlier. 
 
@@ -172,7 +172,7 @@ standard_params:
 
 - Additional Parameters
   - `subsetIndices` set of indices to use from the data
-  - `subsetDim` which dimension (1=rows, 2=cols) to subset
+  - `subsetDim` which dimension (0=rows, 1=cols) to subset
   - `geneNames` vector of names of genes in data
   - `sampleNames` vector of names of samples in data
   - `fixedPatterns` fix either 'A' or 'P' matrix to these values, in the context of distributed CoGAPS, the first phase is skipped and `fixedPatterns` is used for all sets allowing manual pattern matching, as well as fixed runs of standard CoGAPS
@@ -181,7 +181,67 @@ standard_params:
 
 </details>
 
-## 2.3 Breaking Down the Return Object from CoGAPS
+
+## 2.3 Running CoGAPS in Parallel
+Non-Negative Matrix Factorization algorithms typically require long computation times and CoGAPS is no exception. In order to scale CoGAPS up to the size of data sets seen in practice we need to take advantage of modern hardware and parallelize the algorithm.
+
+### 2.3.1 Multi-Threaded Parallelization
+The simplest way to run CoGAPS in parallel is to modify the `nThreads` parameter in `params.yaml`. This allows the underlying algorithm to run on multiple threads and has no effect on the mathematics of the algorithm i.e. this is still standard CoGAPS. The precise number of threads to use depends on many things like hardware and data size. The best approach is to play around with different values and see how it effects the estimated time.
+
+A snippet of `params.yaml` is shown below where `nThreads` parameter is modified.
+
+```
+## This file holds all parameters to be passed into PyCoGAPS.
+## To modify default parameters, simply replace parameter values below with user-specified values, and save file. 
+...
+
+run_params:
+  # maximum number of threads to run on
+  nThreads: 4
+```
+
+Note this method relies on CoGAPS being compiled with OpenMP support, use `buildReport` to check.
+```python
+print(getBuildReport())
+```
+
+### 2.3.2 Distributed CoGAPS
+For large datasets (greater than a few thousand genes or samples) the multi-threaded parallelization isn’t enough. It is more efficient to break up the data into subsets and perform CoGAPS on each subset in parallel, stitching the results back together at the end (Stein-O’Brien et al. (2017)).
+
+In order to use these extensions, some additional parameters are required, specifically modifying the `distributed_params` in `params.yaml`. We first need to set`distributed`  to be `genome-wide.` Next, `nSets` specifies the number of subsets to break the data set into. `cut`, `minNS`, and `maxNS` control the process of matching patterns across subsets and in general should not be changed from defaults. More information about these parameters can be found in the original papers. 
+
+A snippet of `params.yaml` is shown below where `distributed_params` parameters are modified.
+
+```
+## This file holds all parameters to be passed into PyCoGAPS.
+## To modify default parameters, simply replace parameter values below with user-specified values, and save file. 
+...
+
+distributed_params:
+  #  either null or genome-wide
+  distributed: genome-wide
+  # number of sets to break data into
+  nSets: 4
+  # number of branches at which to cut dendrogram used in pattern matching
+  cut: null
+  # minimum of individual set contributions a cluster must contain
+  minNS: null
+  # maximum of individual set contributions a cluster can contain
+  maxNS: null
+  # specify subsets by index or name
+  explicitSets: null
+  # specify categories along the rows (cols) to use for weighted sampling
+  samplingAnnotation: null
+  # weights associated with  samplingAnnotation
+  samplingWeight: null
+```
+
+Setting `nSets` requires balancing available hardware and run time against the size of your data. In general, `nSets` should be less than or equal to the number of nodes/cores that are available. If that is true, then the more subsets you create, the faster CoGAPS will run - however, some robustness can be lost when the subsets get too small. The general rule of thumb is to set `nSets` so that each subset has between 1000 and 5000 genes or cells. 
+
+
+# **2. Analyzing Result **
+
+## 2.1 Breaking Down the Return Object from CoGAPS
 CoGAPS saves the result in a pickle file, which is a serialized Python object. It stores a dictionary of the result as two representations: an `anndata` object and `GapsResult` object. For simplicity and relevancy, we will only consider the `anndata` object. CoGAPS stores the lower dimensional representation of the samples (P matrix) in the `.var` slot and the weight of the features (A matrix) in the `.obs` slot. The standard deviation across sample points for each matrix are stored in the `.uns` slots.
 
 ```python
@@ -202,20 +262,20 @@ result["anndata"]
 [anndata result]: https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/anndata-result.png "anndata result object"
 
 
-## 2.4 Visualizing Output
+## 2.2 Visualizing Output
 The result object can be passed on to the analysis and plotting functions provided in the package. 
 
-2.4.1 [ Default Plot ](#241-default-plot)  
-2.4.2 [ Residuals Plot ](#242-residuals-plot)  
-2.4.3 [ Pattern Markers Plot ](#243-pattern-markers-plot)  
-2.4.4 [ Binary Plot ](#244-binarya-plot)  
-2.4.5 [ Calculate CoGAPS Statistics ](#245-calculate-cogaps-statistics)  
-2.4.6 [ Calculate Gene GSS Statistic ](#246-calculate-gene-gss-statistic)  
-2.4.7 [ Calculate Gene GS Probability ](#247-calculate-gene-gs-probability)  
+2.2.1 [ Default Plot ](#241-default-plot)  
+2.2.2 [ Residuals Plot ](#242-residuals-plot)  
+2.2.3 [ Pattern Markers Plot ](#243-pattern-markers-plot)  
+2.2.4 [ Binary Plot ](#244-binarya-plot)  
+2.2.5 [ Calculate CoGAPS Statistics ](#245-calculate-cogaps-statistics)  
+2.2.6 [ Calculate Gene GSS Statistic ](#246-calculate-gene-gss-statistic)  
+2.2.7 [ Calculate Gene GS Probability ](#247-calculate-gene-gs-probability)  
 
 
 
-### 2.4.1 Default Plot
+### 2.2.1 Default Plot
 By default, the `plot` function displays how the patterns vary across the samples.
 
 ```python
@@ -227,7 +287,7 @@ plot(result)
 
 [show]: https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/res_show.png "show result function"
 
-### 2.4.2 Residuals Plot
+### 2.2.2 Residuals Plot
 `plotResiduals` calculates residuals and produces a heatmap.
 
 ```python
@@ -239,7 +299,7 @@ plotResiduals(result)
 [plot residuals]: https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/plot_residuals.png "plot residuals"
 
 
-### 2.4.3 Pattern Markers Plot
+### 2.2.3 Pattern Markers Plot
 `plotPatternMarkers` plots a heatmap of the original data clustered by the pattern markers statistic, which computes the most associated pattern for each gene.
 
 ```python
@@ -250,7 +310,7 @@ plotPatternMarkers(result, legend_pos=None)
 
 [plot pm]: https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/plot_pm.png "plot pattern markers"
 
-### 2.4.4 Binary Plot
+### 2.2.4 Binary Plot
 `binaryA` creates a binarized heatmap of the A matrix in which the value is 1 if the value in Amean is greater
 than `threshold * Asd` and 0 otherwise.
 
@@ -271,7 +331,7 @@ binaryA(result, threshold=3, cluster=True)
 
 [plot binaryA cluster]: https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/binaryA_cluster.png "plot binary hm, cluster"
 
-### 2.4.5 Calculate CoGAPS Statistics
+### 2.2.5 Calculate CoGAPS Statistics
 `calcCoGAPSStat` calculates a statistic to determine if a pattern is enriched in a a particular set of measurements or samples.
 
 ```python
@@ -298,7 +358,7 @@ Pattern2 -0.294
 Pattern3 -0.422}
 ```
 
-### 2.4.6 Calculate Gene GSS Statistic
+### 2.2.6 Calculate Gene GSS Statistic
 `calcGeneGSStat` calculates the probability that a gene listed in a gene set behaves like other genes in the set within the given data set.
 
 ```python
@@ -310,7 +370,7 @@ Hs.101174  0.422955
 Hs.1012    0.391747
 ```
 
-### 2.4.7 Compute Gene GS Probability
+### 2.2.7 Compute Gene GS Probability
 
 `computeGeneGSProb` computes the p-value for gene set membership using the CoGAPS-based statistics developed in Fertig et al. (2012). This statistic refines set membership for each candidate gene in a set specified in GSGenes by comparing the inferred activity of that gene to the average activity of the set.
 
@@ -322,40 +382,6 @@ stats = computeGeneGSProb(result, GStoGenes=['Hs.101174', 'Hs.1012'])
 Hs.101174  0.617193
 Hs.1012    0.887583
 ```
-
-
-## 2.5 Running CoGAPS in Parallel
-Non-Negative Matrix Factorization algorithms typically require long computation times and CoGAPS is no exception. In order to scale CoGAPS up to the size of data sets seen in practice we need to take advantage of modern hardware and parallelize the algorithm.
-
-### 2.5.1 Multi-Threaded Parallelization
-The simplest way to run CoGAPS in parallel is to provide the `nThreads` argument to CoGAPS. This allows the underlying algorithm to run on multiple threads and has no effect on the mathematics of the algorithm i.e. this is still standard CoGAPS. The precise number of threads to use depends on many things like hardware and data size. The best approach is to play around with different values and see how it effects the estimated time.
-
-```python
-result = CoGAPS(path, nThreads=1, nIterations=10000, seed=5)
-```
-
-Note this method relies on CoGAPS being compiled with OpenMP support, use `buildReport` to check.
-```python
-print(getBuildReport())
-```
-
-### 2.5.2 Distributed CoGAPS
-For large datasets (greater than a few thousand genes or samples) the multi-threaded parallelization isn’t enough. It is more efficient to break up the data into subsets and perform CoGAPS on each subset in parallel, stitching the results back together at the end (Stein-O’Brien et al. (2017)).
-
-In order to use these extensions, some additional parameters are required. We first need to set CoParam's `distributed` parameter to be `genome-wide` using `setParam`. Next, `nSets` specifies the number of subsets to break the data set into. `cut`, `minNS`, and `maxNS` control the process of matching patterns across subsets and in general should not be changed from defaults. More information about these parameters can be found in the original papers. These parameters need to be set with a different function, `setDistributedParameters`, than `setParam` since they depend on each other. Here we only set `nSets` (always required), but we have the option to pass the other parameters as well.
-
-```python
-# first, set distributed param to "genome-wide"
-setParam(params, "distributed", "genome-wide")
-
-# then, set other params such as nSets, cut, minNS, maxNS
-params.setDistributedParameters(nSets=3)
-
-# last, call CoGAPS as usual
-result = CoGAPS(path, params)
-```
-
-Setting `nSets` requires balancing available hardware and run time against the size of your data. In general, `nSets` should be less than or equal to the number of nodes/cores that are available. If that is true, then the more subsets you create, the faster CoGAPS will run - however, some robustness can be lost when the subsets get too small. The general rule of thumb is to set `nSets` so that each subset has between 1000 and 5000 genes or cells. We will see an example of this on real data in the next two sections.
 
 # **3. Additional Features of CoGAPS**
 
