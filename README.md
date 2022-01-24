@@ -161,6 +161,9 @@ Setting `nSets` requires balancing available hardware and run time against the s
 # **3. Analyzing the PyCoGAPS Result**
 
 ## **Breaking Down the Return Object from CoGAPS**
+
+<img src="https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/anndata-result.png" alt="anndata result obj" width="300" align="right">
+
 CoGAPS saves the result in a pickle file, which is a serialized Python object. It stores a dictionary of the result as two representations: an `anndata` object and `GapsResult` object. For simplicity and relevancy, we will only consider the `anndata` object. CoGAPS stores the lower dimensional representation of the samples (P matrix) in the `.var` slot and the weight of the features (A matrix) in the `.obs` slot. The standard deviation across sample points for each matrix are stored in the `.uns` slots.
 
 ```python
@@ -175,11 +178,6 @@ result = pickle.load(open(pkl_path, "rb"))
 # this retrieves the anndata result object
 result["anndata"]
 ```
-
-![alt text][anndata result] 
-
-[anndata result]: https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/anndata-result.png "anndata result object"
-
 
 ## **Visualizing Output**
 The result object can be passed on to the analysis and plotting functions provided in the package. 
@@ -208,20 +206,13 @@ plot(result)
 
 ### **II. Residuals Plot**
 
-<img src="https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/plot_residuals.png" alt="plot residuals" width="500" align="right">
+<img src="https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/plot_residuals.png" alt="plot residuals" width="300" align="right">
 
 `plotResiduals` calculates residuals and produces a heatmap.
 
 ```python
 plotResiduals(result)
 ```
-
-
-
-![alt text][plot residuals] 
-
-[plot residuals]: https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/plot_residuals.png "plot residuals"
-
 
 ### **III. Pattern Markers Plot**
 `plotPatternMarkers` plots a heatmap of the original data clustered by the pattern markers statistic, which computes the most associated pattern for each gene.
