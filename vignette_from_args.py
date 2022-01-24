@@ -3,6 +3,7 @@ This file runs PyCoGAPS using user-specified parameter inputs from params.yml
 '''
 
 if __name__ == '__main__':
+    from PyCoGAPS.config import *
     from PyCoGAPS.parameters import *
     from PyCoGAPS.pycogaps_main import CoGAPS
 
@@ -12,7 +13,10 @@ if __name__ == '__main__':
 
     # get parameter file from command line input
     params_file = sys.argv[1]
-    outdir = '/'.join(params_file.split('/')[:-1]) + '/'
+    PWD = '/'.join(params_file.split('/')[:-1]) + '/'   # leveraging $PWD tag in the run line
+    outdir = PWD + 'output/'
+    if not os.path.exists(outdir):
+        os.mkdir(outdir)
 
     # read parameter file
     with open(params_file, "r") as file:
@@ -27,7 +31,8 @@ if __name__ == '__main__':
             s3.download_fileobj(aws_prm['downloadBucket'], aws_prm['downloadKey'], f)
     
     # create CoParams object
-    params = CoParams(path=prm['path'], transposeData=prm['run_params']['transposeData'], 
+    # Note: since path=PWD+prm['path'], the path supplied in param.yaml must be relative to the working directory
+    params = CoParams(path=PWD+prm['path'], transposeData=prm['run_params']['transposeData'], 
                       hdfKey=prm['additional_params']['hdfKey'], hdfRowKey=prm['additional_params']['hdfRowKey'],
                       hdfColKey=prm['additional_params']['hdfColKey'])
     
@@ -53,7 +58,7 @@ if __name__ == '__main__':
     # save CoGAPS result
     print("Pickling...", end='\r')
     # pickle.dump(result, open(prm['result_file'], "wb"))
-    pickle.dump(result, open(outdir + prm['result_file'], "wb"))
+    pickle.dump(result, open(outdir+prm['result_file'], "wb"))
     print("Pickling complete!")
 
     if aws_prm['useAWS']:

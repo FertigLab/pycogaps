@@ -1,8 +1,8 @@
 ## This file holds all parameters to be passed into PyCoGAPS.
 ## To modify default parameters, simply replace parameter values below with user-specified values, and save file. 
 
-# path to data
-path: ./data/GIST.csv
+# RELATIVE path to data
+path: data/GIST.csv
 
 # result output file name (output saved as a .pkl file)
 result_file: result.pkl
