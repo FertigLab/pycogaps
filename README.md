@@ -201,7 +201,7 @@ By default, the `plot` function displays how the patterns vary across the sample
 # plot result object returned from CoGAPS
 plot(result)
 ```
-<img src="https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/res_show.png" alt="show result function" width="300">
+<img src="https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/res_show.png" alt="show result function" width="400" align="center">
 
 
 
@@ -209,7 +209,7 @@ plot(result)
 
 ### **II. Residuals Plot**
 
-<img src="https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/plot_residuals.png" alt="plot residuals" width="300" align="right">
+<img src="https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/plot_residuals.png" alt="plot residuals" width="400" align="center">
 
 
 `plotResiduals` calculates residuals and produces a heatmap.
@@ -218,10 +218,6 @@ plot(result)
 plotResiduals(result)
 ```
 
-
-
-
-
 ### **III. Pattern Markers Plot**
 `plotPatternMarkers` plots a heatmap of the original data clustered by the pattern markers statistic, which computes the most associated pattern for each gene.
 
@@ -229,7 +225,7 @@ plotResiduals(result)
 plotPatternMarkers(result, legend_pos=None)
 ```
 
-<img src="https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/plot_pm.png" alt="plot pattern markers" width="300">
+<img src="https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/plot_pm.png" alt="plot pattern markers" width="400" align="center">
 
 
 ### **IV. Binary Plot**
@@ -240,7 +236,7 @@ than `threshold * Asd` and 0 otherwise.
 binaryA(result, threshold=3)
 ```
 
-<img src="https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/binaryA.png" alt="plot binary hm" width="300">
+<img src="https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/binaryA.png" alt="plot binary hm" width="400" align="center">
 
 
 ```python
@@ -248,7 +244,7 @@ binaryA(result, threshold=3)
 binaryA(result, threshold=3, cluster=True)
 ```
 
-<img src="https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/binaryA_cluster.png" alt="plot binary hm, cluster" width="300">
+<img src="https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/binaryA_cluster.png" alt="plot binary hm, cluster" width="400" align="center">
 
 
 
