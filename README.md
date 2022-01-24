@@ -67,6 +67,15 @@ While CoGAPS is running it periodically prints status messages. For example, `20
 
 </details>
 
+It also sets up your working directory to be in the `PyCoGAPS` folder with the following structure and files:
+```
+PyCoGAPS
+├── data
+│   └── GIST.csv
+├── params.yaml
+├── output
+│   └── result.pkl
+```
 
 ## 2.2 Running CoGAPS with Custom Parameters
 
