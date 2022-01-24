@@ -162,7 +162,7 @@ Setting `nSets` requires balancing available hardware and run time against the s
 
 ## **Breaking Down the Return Object from CoGAPS**
 
-<img src="https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/anndata-result.png" alt="anndata result obj" width="400" align="right">
+<img src="https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/anndata-result.png" alt="anndata result obj" width="300" align="right">
 
 CoGAPS saves the result in a pickle file, which is a serialized Python object. It stores a dictionary of the result as two representations: an `anndata` object and `GapsResult` object. For simplicity and relevancy, we will only consider the `anndata` object. CoGAPS stores the lower dimensional representation of the samples (P matrix) in the `.var` slot and the weight of the features (A matrix) in the `.obs` slot. The standard deviation across sample points for each matrix are stored in the `.uns` slots.
 
@@ -178,6 +178,8 @@ result = pickle.load(open(pkl_path, "rb"))
 # this retrieves the anndata result object
 result["anndata"]
 ```
+
+
 
 ## **Visualizing Output**
 The result object can be passed on to the analysis and plotting functions provided in the package. 
@@ -202,15 +204,21 @@ plot(result)
 <img src="https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/res_show.png" alt="show result function" width="300">
 
 
+
+
+
 ### **II. Residuals Plot**
 
-<img src="https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/plot_residuals.png" alt="plot residuals" width="300">
 
 `plotResiduals` calculates residuals and produces a heatmap.
 
 ```python
 plotResiduals(result)
 ```
+
+<img src="https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/plot_residuals.png" alt="plot residuals" width="300" align="right">
+
+
 
 ### **III. Pattern Markers Plot**
 `plotPatternMarkers` plots a heatmap of the original data clustered by the pattern markers statistic, which computes the most associated pattern for each gene.
@@ -238,9 +246,11 @@ binaryA(result, threshold=3)
 binaryA(result, threshold=3, cluster=True)
 ```
 
-![alt text][plot binaryA cluster] 
+<img src="https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/binaryA_cluster.png" alt="plot binary hm, cluster" width="300">
 
-[plot binaryA cluster]: https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/binaryA_cluster.png "plot binary hm, cluster"
+
+
+
 
 ### **V. Calculate CoGAPS Statistics**
 `calcCoGAPSStat` calculates a statistic to determine if a pattern is enriched in a a particular set of measurements or samples.
