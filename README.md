@@ -8,13 +8,13 @@ This package, PyCoGAPS, presents a unified Python interface, with a parallel, ef
 
 1. [ Usage ](#1-usage)  
   1.1 [ Running CoGAPS with Default Parameters ](#11-running-cogaps-with-default-parameters)  
-  1.2 [ Running CoGAPS with Custom Parameters ](#12-running-cogaps-with-custom-parameters) 
-  1.3 [ Running CoGAPS in Parallel ](#13-running-cogaps-in-parallel)
-2. [ Analyzing the Result ]  
+  1.2 [ Running CoGAPS with Custom Parameters ](#12-running-cogaps-with-custom-parameters)  
+  1.3 [ Running CoGAPS in Parallel ](#13-running-cogaps-in-parallel)  
+2. [ Analyzing the Result ](#2-analyzing-the-result)  
   2.3 [ Breaking Down the Return Object from CoGAPS ](#23-breaking-down-the-return-object-from-cogaps)  
   2.4 [ Visualizing Output ](#24-visualizing-output)        
-2. [ Additional Features of CoGAPS ](#2-additional-features-of-cogaps)  
-  3.1 [ Checkpoint System: Saving/Loading CoGAPS Runs ](#21-checkpoint-system-savingloading-cogaps-runs)  
+3. [ Additional Features of CoGAPS ](#3-additional-features-of-cogaps)  
+  3.1 [ Checkpoint System: Saving/Loading CoGAPS Runs ](#31-checkpoint-system-savingloading-cogaps-runs)  
   3.2 [ Transposing Data ](#32-transposing-data)  
   3.3 [ Passing Uncertainty Matrix ](#33-passing-uncertainty-matrix)  
   3.4 [ Distributed CoGAPS ](#34-distributed-cogaps)  
@@ -192,7 +192,6 @@ A snippet of `params.yaml` is shown below where `nThreads` parameter is modified
 
 ```
 ## This file holds all parameters to be passed into PyCoGAPS.
-## To modify default parameters, simply replace parameter values below with user-specified values, and save file. 
 ...
 
 run_params:
@@ -214,7 +213,6 @@ A snippet of `params.yaml` is shown below where `distributed_params` parameters 
 
 ```
 ## This file holds all parameters to be passed into PyCoGAPS.
-## To modify default parameters, simply replace parameter values below with user-specified values, and save file. 
 ...
 
 distributed_params:
@@ -228,18 +226,12 @@ distributed_params:
   minNS: null
   # maximum of individual set contributions a cluster can contain
   maxNS: null
-  # specify subsets by index or name
-  explicitSets: null
-  # specify categories along the rows (cols) to use for weighted sampling
-  samplingAnnotation: null
-  # weights associated with  samplingAnnotation
-  samplingWeight: null
 ```
 
 Setting `nSets` requires balancing available hardware and run time against the size of your data. In general, `nSets` should be less than or equal to the number of nodes/cores that are available. If that is true, then the more subsets you create, the faster CoGAPS will run - however, some robustness can be lost when the subsets get too small. The general rule of thumb is to set `nSets` so that each subset has between 1000 and 5000 genes or cells. 
 
 
-# **2. Analyzing Result **
+# **2. Analyzing the Result**
 
 ## 2.1 Breaking Down the Return Object from CoGAPS
 CoGAPS saves the result in a pickle file, which is a serialized Python object. It stores a dictionary of the result as two representations: an `anndata` object and `GapsResult` object. For simplicity and relevancy, we will only consider the `anndata` object. CoGAPS stores the lower dimensional representation of the samples (P matrix) in the `.var` slot and the weight of the features (A matrix) in the `.obs` slot. The standard deviation across sample points for each matrix are stored in the `.uns` slots.
@@ -388,85 +380,90 @@ Hs.1012    0.887583
 ## 3.1 Checkpoint System: Saving/Loading CoGAPS Runs
 CoGAPS allows the user to save their progress throughout the run, and restart from the latest saved “checkpoint”. This is intended so that if the server crashes in the middle of a long run it doesn’t need to be restarted from the beginning. Set the `checkpointInterval` parameter to save checkpoints and pass a file name as `checkpointInFile` to load from a checkpoint.
 
-```python
-# enabling checkpoint system, saving CoGAPS run
-result1 = CoGAPS(mtx_path, params, checkpointInterval=100, checkpointOutFile="example.out", messages=False)
+A snippet of `params.yaml` is shown where we enable the checkpoint system, saving CoGAPS run.
+```
+## This file holds all parameters to be passed into PyCoGAPS.
+...
 
-# loading saved CoGAPS run
-result2 = CoGAPS(mtx_path, params, checkpointInFile="example.out", messages=False)
+run_params:
+  checkpointOutFile: gaps_checkpoint.out
+  # number of iterations between each checkpoint (set to 0 to disable checkpoints)
+  checkpointInterval: 250
+  # if this is provided, CoGAPS runs from the checkpoint contained in this file
+  checkpointInFile: null
+```
+
+A snippet of `params.yaml` is shown where we now load the saved CoGAPS checkpoint file to continue the run.
+```
+## This file holds all parameters to be passed into PyCoGAPS.
+...
+
+run_params:
+  checkpointOutFile: null
+  # number of iterations between each checkpoint (set to 0 to disable checkpoints)
+  checkpointInterval: null
+  # if this is provided, CoGAPS runs from the checkpoint contained in this file
+  checkpointInFile: gaps_checkpoint.out
 ```
 
 ## 3.2 Transposing Data
-If your data is stored as samples x genes, CoGAPS allows you to pass `transposeData=True` and will automatically read the transpose of your data to get the required genes x samples configuration. In order to transpose data, you must pass `transposeData=True` as an argument to both `CoGAPS()` and to `CoParams()`.
+If your data is stored as samples x genes, CoGAPS allows you to pass `transposeData: True` and will automatically read the transpose of your data to get the required genes x samples configuration. 
 
-```python
-# create CoParams object with transposeData argument
-params = CoParams(path, transposeData=True)
+A snippet of `params.yaml` is shown where we now load the saved CoGAPS checkpoint file to continue the run.
+```
+## This file holds all parameters to be passed into PyCoGAPS.
+...
 
-# run CoGAPS as usual, with transposeData argument
-result = CoGAPS(path, transposeData=True)
+run_params:
+  # T/F for transposing data while reading it in - useful for data that is stored as samples x genes since CoGAPS requires data to be genes x samples
+  transposeData: True
 ```
 
 ## 3.3 Passing Uncertainty Matrix
-In addition to providing the data, the user can also specify an uncertainty measurement - the standard deviation of each entry in the data matrix. By default, CoGAPS assumes that the standard deviation matrix is 10% of the data matrix. This is a reasonable heuristic to use, but for specific types of data you may be able to provide better information.
+In addition to providing the data, the user can also specify an uncertainty measurement - the standard deviation of each entry in the data matrix. By default, CoGAPS assumes that the standard deviation matrix is 10% of the data matrix. This is a reasonable heuristic to use, but for specific types of data you may be able to provide better information. Make sure to save your uncertainty file into the `data/` file.
 
-```python
-# run CoGAPS with custom uncertainty
-result = CoGAPS(path, params, uncertainty=GIST_uncertainty.csv)
+A snippet of `params.yaml` is shown where we now load the saved CoGAPS checkpoint file to continue the run.
+```
+## This file holds all parameters to be passed into PyCoGAPS.
+...
+
+run_params:
+  # uncertainty matrix - either a matrix or a supported file type
+  uncertainty: data/GIST_uncertainty.csv
 ```
 
 ## 3.4 Distributed CoGAPS
 
-3.4.1 [ Methods of Subsetting Data ](#341-methods-of-subsetting-data)  
-3.4.2 [ Additional Return Information ](#342-additional-return-information)  
-3.4.3 [ Manual Pipeline ](#343-manual-pipeline)  
+3.4.1 [ Methods of Subsetting Data ](#341-methods-of-subsetting-data)    
 
 ### 3.4.1 Methods of Subsetting Data
 The default method for subsetting the data is to uniformly break up the rows (cols) of the data. There is an alternative option where the user provides an annotation vector for the rownames (colnames) of the data and gives a weight to each category in the annotation vector. Equal sized subsets are then drawn by sampling all rows (cols) according to the weight of each category.
 
-```python
-# sampling with weights - use this example or replace with your data
-
-# list row names to set weights for
-names = ['IM00', 'IM02']
-# list weight corresponding to the row names
-wt = [2, 0.5]
-# dictionary format
-weight = dict(zip(names, wt))
-annotation = ['IM00', 'IM02', 'IM00']
-
-# call this method to set weights
-params.setAnnotationWeights(annotation=annotation, weights=weight)
-
-result = CoGAPS(path, params)
+A snippet of `params.yaml` is shown below where `distributed_params` parameters are modified to subset the data.
 ```
+## This file holds all parameters to be passed into PyCoGAPS.
+...
+
+distributed_params:
+  # specify categories along the rows (cols) to use for weighted sampling
+  samplingAnnotation: ['IM00', 'IM02', 'IM00']
+  # weights associated with  samplingAnnotation
+  samplingWeight: {'IM00': 2, 'IM02': 0.5}
+```
+
 
 Finally, the user can set `explicitSets` which is a list of character or numeric vectors indicating which names or indices of the data should be put into each set. Make sure to set nSets to the correct value before passing `explicitSets`.
 
-```python
-# running CoGAPS with given subsets - use this example or replace with your data
-
-sets = ['IM00', 'IM02']
-setParam(params, "explicitSets", sets)
-
-# call this method to set nSets
-params.setDistributedParams(nSets=len(sets))
-
-result = CoGAPS(path, params)
+A snippet of `params.yaml` is shown below where `distributed_params` parameters are modified to subset the data.
 ```
+## This file holds all parameters to be passed into PyCoGAPS.
+...
 
-### 3.4.2 Additional Return Information
-When running distributed CoGAPS, some additional metadata is returned that relates to the pattern matching process. This process is how CoGAPS stitches the results from each subset back together.
-
-```
-TODO: once implement unmatched patterns
-```
-
-### 3.4.3 Manual Pipeline
-CoGAPS allows for a custom process for matching the patterns together. If you have a result object from a previous run of Distributed CoGAPS, the unmatched patterns for each subset are found by calling `getUnmatchedPatterns`. Apply any method you like as long as the result is a matrix with the number of rows equal to the number of samples (genes) and the number of columns is equal to the number of patterns. Then pass the matrix to the `fixedPatterns` argument along with the original parameters for the GWCoGAPS/scCoGAPS run.
-
-```
-TODO: once implement unmatched patterns
+distributed_params:
+  # number of sets to break data into
+  nSets: 2
+  # specify subsets by index or name
+  explicitSets: ['IM00', 'IM02']
 ```
 
 # **4. Citing CoGAPS**
