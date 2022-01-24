@@ -4,7 +4,7 @@ Coordinated Gene Activity in Pattern Sets (CoGAPS) implements a Bayesian MCMC ma
 
 This package, PyCoGAPS, presents a unified Python interface, with a parallel, efficient underlying implementation in C++.
 
-# **Table of Contents**
+## **Table of Contents**
 
 1. [ Getting Started with PyCoGAPS ](#1-getting-started-with-pycogaps)
 2. [ Running PyCoGAPS on Your Data](#2-running-pycogaps-on-your-data)   
