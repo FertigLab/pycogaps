@@ -79,31 +79,27 @@ PyCoGAPS
 
 ## 2.2 Running CoGAPS with Custom Parameters
 
-In order to analyze your desired data, we'll need to input it and modify the default parameters before running CoGAPS. All parameter values can be modified directly in the `params.yaml` file already downloaded earlier. A snippet of `params.yaml` is shown below, where we have changed each default parameter value to our own specified value.
-
-A few important notes about the parameters:
-- path: make sure to move your data into the `data/` folder you created earlier, keep path set to `data/{your-datafile-name}`
-- don't put quotes around strings
+In order to analyze your desired data, we'll need to input it and modify the default parameters before running CoGAPS. All parameter values can be modified directly in the `params.yaml` file already downloaded earlier. A snippet of `params.yaml` is shown below, where we have changed some default parameter values to our own specified example values.
 
 ```
 ## This file holds all parameters to be passed into PyCoGAPS.
 ## To modify default parameters, simply replace parameter values below with user-specified values, and save file. 
 
-# RELATIVE path to data
-path: data/GIST.csv
+# RELATIVE path to data -- make sure to move your data into the created data/ folder
+path: data/liver_dataset.txt
 
-# result output file name (output saved as a .pkl file)
+# result output file name (output saved in the created output/ folder as a .pkl file)
 result_file: result.pkl
 
 standard_params:
   # number of patterns CoGAPS will learn
-  nPatterns: 7
+  nPatterns: 10
   # number of iterations for each phase of the algorithm
-  nIterations: 1000
+  nIterations: 5000
   # random number generator seed
   seed: 0
   # speeds up performance with sparse data (roughly >80% of data is zero), note this can only be used with the default uncertainty
-  useSparseOptimization: False
+  useSparseOptimization: True
  
 ... 
 
