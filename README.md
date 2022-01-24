@@ -208,15 +208,14 @@ plot(result)
 
 
 ### **II. Residuals Plot**
-
-<img src="https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/plot_residuals.png" alt="plot residuals" width="400" align="center">
-
-
 `plotResiduals` calculates residuals and produces a heatmap.
 
 ```python
 plotResiduals(result)
 ```
+
+<img src="https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/plot_residuals.png" alt="plot residuals" width="400" align="center">
+
 
 ### **III. Pattern Markers Plot**
 `plotPatternMarkers` plots a heatmap of the original data clustered by the pattern markers statistic, which computes the most associated pattern for each gene.
