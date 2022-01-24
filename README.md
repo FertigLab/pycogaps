@@ -209,6 +209,8 @@ plot(result)
 
 ### **II. Residuals Plot**
 
+<img src="https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/plot_residuals.png" alt="plot residuals" width="300" align="right">
+
 
 `plotResiduals` calculates residuals and produces a heatmap.
 
@@ -216,7 +218,7 @@ plot(result)
 plotResiduals(result)
 ```
 
-<img src="https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/plot_residuals.png" alt="plot residuals" width="300" align="right">
+
 
 
 
