@@ -212,7 +212,8 @@ plot(result)
 ```python
 plotResiduals(result)
 ```
-<img src="https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/plot_residuals.png" alt="plot residuals" width="100">
+
+<img src="https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/plot_residuals.png" alt="plot residuals" width="500" align="right">
 
 
 ![alt text][plot residuals] 
