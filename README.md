@@ -162,7 +162,7 @@ Setting `nSets` requires balancing available hardware and run time against the s
 
 ## **Breaking Down the Return Object from CoGAPS**
 
-<img src="https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/anndata-result.png" alt="anndata result obj" width="300" align="right">
+<img src="https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/anndata-result.png" alt="anndata result obj" width="400" align="right">
 
 CoGAPS saves the result in a pickle file, which is a serialized Python object. It stores a dictionary of the result as two representations: an `anndata` object and `GapsResult` object. For simplicity and relevancy, we will only consider the `anndata` object. CoGAPS stores the lower dimensional representation of the samples (P matrix) in the `.var` slot and the weight of the features (A matrix) in the `.obs` slot. The standard deviation across sample points for each matrix are stored in the `.uns` slots.
 
@@ -199,14 +199,12 @@ By default, the `plot` function displays how the patterns vary across the sample
 # plot result object returned from CoGAPS
 plot(result)
 ```
+<img src="https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/res_show.png" alt="show result function" width="300">
 
-![alt text][show] 
-
-[show]: https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/res_show.png "show result function"
 
 ### **II. Residuals Plot**
 
-<img src="https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/plot_residuals.png" alt="plot residuals" width="300" align="right">
+<img src="https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/plot_residuals.png" alt="plot residuals" width="300">
 
 `plotResiduals` calculates residuals and produces a heatmap.
 
@@ -221,9 +219,8 @@ plotResiduals(result)
 plotPatternMarkers(result, legend_pos=None)
 ```
 
-![alt text][plot pm] 
+<img src="https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/plot_pm.png" alt="plot pattern markers" width="300">
 
-[plot pm]: https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/plot_pm.png "plot pattern markers"
 
 ### **IV. Binary Plot**
 `binaryA` creates a binarized heatmap of the A matrix in which the value is 1 if the value in Amean is greater
@@ -233,9 +230,8 @@ than `threshold * Asd` and 0 otherwise.
 binaryA(result, threshold=3)
 ```
 
-![alt text][plot binaryA] 
+<img src="https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/binaryA.png" alt="plot binary hm" width="300">
 
-[plot binaryA]: https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/binaryA.png "plot binary hm"
 
 ```python
 # plotting clustered binary plot
