@@ -31,8 +31,11 @@ if __name__ == '__main__':
             s3.download_fileobj(aws_prm['downloadBucket'], aws_prm['downloadKey'], f)
     
     # create CoParams object
-    # Note: since path=PWD+prm['path'], the path supplied in param.yaml must be relative to the working directory
-    params = CoParams(path=PWD+prm['path'], transposeData=prm['run_params']['transposeData'], 
+
+    # Note: since data_path=PWD+prm['path'], the path supplied in param.yaml must be relative to the working directory
+    data_path = PWD+prm['path']
+    
+    params = CoParams(path=data_path, transposeData=prm['run_params']['transposeData'], 
                       hdfKey=prm['additional_params']['hdfKey'], hdfRowKey=prm['additional_params']['hdfRowKey'],
                       hdfColKey=prm['additional_params']['hdfColKey'])
     
@@ -53,7 +56,7 @@ if __name__ == '__main__':
         params.setDistributedParams(nSets=dist_prm['nSets'], cut=dist_prm['cut'], minNS=dist_prm['minNS'], maxNS=dist_prm['maxNS'])
 
     # run CoGAPS
-    result = CoGAPS(prm['path'], params)
+    result = CoGAPS(data_path, params)
 
     # save CoGAPS result
     print("Pickling...", end='\r')
