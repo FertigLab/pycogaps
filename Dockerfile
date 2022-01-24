@@ -11,6 +11,10 @@ RUN git pull
 
 RUN pip install -r requirements.txt --user
 
-CMD ["bash", "run_vignette.sh"]
+RUN python3 ./setup.py install --user
+
+ENTRYPOINT ["bash", "run_vignette.sh"]
+
+CMD ["params.yaml"]
 
 
