@@ -81,7 +81,11 @@ PyCoGAPS
 
 In order to analyze your desired data, we'll need to input it and modify the default parameters before running CoGAPS. All parameter values can be modified directly in the `params.yaml` file already downloaded earlier. 
 
-All you need to do is open `params.yaml` with any text or code editor, modify the desired parameters, and save file. Then, run with the command (as you did earlier):
+Please follow the steps below to run PyCoGAPS with custom parameters:
+1. Open `params.yaml` with any text or code editor
+2. Modify the desired parameters
+3. Save file
+4. Copy the command and paste in terminal to run (as you did earlier):
 ```
 docker run -v $PWD:$PWD ashleyt2000/pycogaps:docker_pycogaps $PWD/params.yaml
 ```
