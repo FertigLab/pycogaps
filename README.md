@@ -6,14 +6,14 @@ This package, PyCoGAPS, presents a unified Python interface, with a parallel, ef
 
 # **Table of Contents**
 
-1. Getting Started with CoGAPS
-2. Running CoGAPS on Your Data (Custom Parameters)
-3. Analyzing the CoGAPS Result
-4. Additional Features of CoGAPS     
-5. Citing CoGAPS
+1. [ Getting Started with PyCoGAPS ](#1-getting-started-with-pycogaps)
+2. [ Running PyCoGAPS on Your Data](#2-running-pycogaps-on-your-data)   
+3. [ Analyzing the PyCoGAPS Result ](#3-analyzing-the-pycogaps-result)
+4. [ Additional Features of PyCoGAPS ](#4-additional-features-of-pycogaps)     
+5. [ Citing PyCoGAPS ](#5-citing-pycogaps)
 
 
-# **1. Getting Started with CoGAPS**
+# **1. Getting Started with PyCoGAPS**
 We'll first begin with setting up your working environment and running CoGAPS on an example dataset with default parameters.
 
 Please follow the steps below to run the PyCoGAPS vignette:
@@ -66,7 +66,7 @@ PyCoGAPS
 │   └── result.pkl
 ```
 
-# **2. Running CoGAPS on Your Data**
+# **2. Running PyCoGAPS on Your Data**
 
 Now, you're ready to run CoGAPS for analysis on your own data with custom parameters. 
 
@@ -77,7 +77,7 @@ Please follow the steps below to run PyCoGAPS with custom parameters:
 2. Modify the `path` parameter value by replacing the default `data/GIST.csv` with `data/{your-datafile-name}`  
   **Note**: Make sure you have moved your data into the created `data/` folder
 2. Modify any additional desired parameters
-3. Save file
+3. Save the file
 4. Copy the command and paste in terminal:
 ```
 docker run -v $PWD:$PWD ashleyt2000/pycogaps:docker_pycogaps $PWD/params.yaml
@@ -93,7 +93,7 @@ A snippet of `params.yaml` is shown below, where we have changed some default pa
 # RELATIVE path to data -- make sure to move your data into the created data/ folder
 path: data/liver_dataset.txt
 
-# result output file name (output saved in the created output/ folder as a .pkl file)
+# result output file name 
 result_file: result.pkl
 
 standard_params:
@@ -158,7 +158,7 @@ distributed_params:
 Setting `nSets` requires balancing available hardware and run time against the size of your data. In general, `nSets` should be less than or equal to the number of nodes/cores that are available. If that is true, then the more subsets you create, the faster CoGAPS will run - however, some robustness can be lost when the subsets get too small. The general rule of thumb is to set `nSets` so that each subset has between 1000 and 5000 genes or cells. 
 
 
-# **3. Analyzing the CoGAPS Result**
+# **3. Analyzing the PyCoGAPS Result**
 
 ## **Breaking Down the Return Object from CoGAPS**
 CoGAPS saves the result in a pickle file, which is a serialized Python object. It stores a dictionary of the result as two representations: an `anndata` object and `GapsResult` object. For simplicity and relevancy, we will only consider the `anndata` object. CoGAPS stores the lower dimensional representation of the samples (P matrix) in the `.var` slot and the weight of the features (A matrix) in the `.obs` slot. The standard deviation across sample points for each matrix are stored in the `.uns` slots.
@@ -302,7 +302,7 @@ Hs.101174  0.617193
 Hs.1012    0.887583
 ```
 
-# **4. Additional Features of CoGAPS**
+# **4. Additional Features of PyCoGAPS**
 
 ## **Checkpoint System: Saving/Loading CoGAPS Runs**
 CoGAPS allows the user to save their progress throughout the run, and restart from the latest saved “checkpoint”. This is intended so that if the server crashes in the middle of a long run it doesn’t need to be restarted from the beginning. Set the `checkpointInterval` parameter to save checkpoints and pass a file name as `checkpointInFile` to load from a checkpoint.
@@ -388,7 +388,7 @@ distributed_params:
   explicitSets: ['IM00', 'IM02']
 ```
 
-# **4. Citing CoGAPS**
+# **5. Citing PyCoGAPS**
 If you use the CoGAPS package for your analysis, please cite Fertig et al. (2010)
 
 If you use the gene set statistic, please cite Ochs et al. (2009)
