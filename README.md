@@ -70,10 +70,10 @@ While CoGAPS is running it periodically prints status messages. For example, `20
 
 ## 2.2 Running CoGAPS with Custom Parameters
 
-In order to analyze your desired data, we'll need to input it and modify the default parameters before running CoGAPS. All parameter values can be modified directly in the 'params.yaml' file already downloaded earlier. A snippet of 'params.yaml' is shown below, where we have changed each default parameter value to our own specified value.
+In order to analyze your desired data, we'll need to input it and modify the default parameters before running CoGAPS. All parameter values can be modified directly in the 'params.yaml' file already downloaded earlier. A snippet of `params.yaml` is shown below, where we have changed each default parameter value to our own specified value.
 
 A few important notes about the parameters:
-- path: make sure to move your data into the 'data/' folder you created earlier, keep path set to 'data/{your-datafile-name}'
+- path: make sure to move your data into the `data/` folder you created earlier, keep path set to `data/{your-datafile-name}`
 - don't put quotes around strings
 
 ```
