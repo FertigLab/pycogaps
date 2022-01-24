@@ -32,10 +32,10 @@ OR
 python3 setup.py install
 ```
 # **2. Usage**
-Please follow the steps below to run the vignette program
+Please follow the steps below to run the PyCoGAPS vignette:
 1. Install docker at https://docs.docker.com/desktop/mac/install/ 
 2. Open docker
-3. Copy the commands and paste in terminal (Tested via Mac OX)
+3. Copy the commands and paste in terminal to run CoGAPS with default parameters and dataset (Tested via Mac OX)
 
 ```
 docker pull ashleyt2000/pycogaps:docker_pycogaps
@@ -50,16 +50,6 @@ docker run -v $PWD:$PWD ashleyt2000/pycogaps:docker_pycogaps $PWD/params.yaml
 
 ```
 
-## 2.1 Running CoGAPS with Default Parameters
-The only required argument to CoGAPS is the path to the data. This can be a *.csv, .tsv, .mtx, .h5, or .h5ad* file containing the data.
-
-```python 
-# replace with the path to your data, or use this provided example
-path = "./data/GIST.csv" 
-
-# run CoGAPS on your dataset
-result = CoGAPS(path)
-```
 ```
 This is pycogaps version  0.0.1
 Running Standard CoGAPS on GIST.csv (1363 genes and 9 samples) with parameters: 
@@ -90,7 +80,7 @@ While CoGAPS is running it periodically prints status messages. For example, `20
 
 ## 2.2 Running CoGAPS with Custom Parameters
 
-Most of the time we’ll want to set some parameters before running CoGAPS. Parameters are managed with a CoParams object. This object will store all parameters needed to run CoGAPS and provides a simple interface for viewing and setting the parameter values.
+In order to analyze your desired data, we'll need to input it and modify the default parameters before running CoGAPS. All parameter values can be modified directly in the 'params.yaml' file already downloaded earlier. 
 
 ```python
 # create a CoParams object
