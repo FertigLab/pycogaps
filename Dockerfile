@@ -13,7 +13,7 @@ RUN pip install -r requirements.txt --user
 
 RUN python3 ./setup.py install --user
 
-ENTRYPOINT ["bash", "run_vignette.sh"]
+ENTRYPOINT ["python", "./vignette_from_args.py"]
 
 CMD ["params.yaml"]
 
