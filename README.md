@@ -32,20 +32,20 @@ OR
 python3 setup.py install
 ```
 # **2. Usage**
-
-To import the python CoGAPS package:
-```python
-from PyCoGAPS import *
-```
+Please follow the steps below to run the vignette program
 1. Install docker at https://docs.docker.com/desktop/mac/install/ 
 2. Open docker
-3. Execute the following commands
+3. Copy the commands and paste in terminal (Tested via Mac OX)
 
 ```
 docker pull ashleyt2000/pycogaps:docker_pycogaps
 mkdir PyCoGAPS
 cd PyCoGAPS
 curl -O https://raw.githubusercontent.com/FertigLab/pycogaps/master/params.yaml
+mkdir data
+cd data
+curl -O https://raw.githubusercontent.com/FertigLab/pycogaps/master/data/GIST.csv
+cd ..
 docker run -v $PWD:$PWD ashleyt2000/pycogaps:docker_pycogaps $PWD/params.yaml
 
 ```
