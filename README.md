@@ -47,6 +47,7 @@ mkdir PyCoGAPS
 cd PyCoGAPS
 curl -O https://raw.githubusercontent.com/FertigLab/pycogaps/master/params.yaml
 docker run -v $PWD:$PWD ashleyt2000/pycogaps:docker_pycogaps $PWD/params.yaml
+
 ```
 
 ## 2.1 Running CoGAPS with Default Parameters
