@@ -250,8 +250,10 @@ def patternMarkers(adata, threshold='all', lp=None, axis=1):
 
     if axis == 1:
         resultMatrix = adata.obs
+        otherMatrix = adata.var
     else:
         resultMatrix = adata.var
+        otherMatrix = adata.obs
 
     # Replacing infinite with 0
     resultMatrix.replace([np.inf, -np.inf, np.nan], 0, inplace=True)
@@ -297,7 +299,7 @@ def patternMarkers(adata, threshold='all', lp=None, axis=1):
             pmax = np.nanmax(As.values, axis=1, keepdims=True)
             Arowmax = As / pmax
 
-            ssl = pd.DataFrame().reindex_like(As)
+            ssl = pd.DataFrame().reindex_like(As.drop_duplicates())
             import math
             for i in np.arange(As.shape[1]):
                 lp = np.repeat(0, As.shape[1])
@@ -305,32 +307,28 @@ def patternMarkers(adata, threshold='all', lp=None, axis=1):
                 def stat(x):
                     return (math.sqrt(np.matmul(np.transpose(x-lp), (x-lp))))
 
-                ssl.stat = Arowmax.apply(func=stat, axis=1)
+                ssl.stat = Arowmax.drop_duplicates().apply(func=stat, axis=1)
                 order = np.argsort(ssl.stat)
                 ssl["Pattern"+str(i+1)] = order.values
 
-            return ssl
+            return ssl[ssl >= 0]
 
-        simGenes = simplicityGENES(As=adata.obs, Ps=adata.var)
+        simGenes = simplicityGENES(As=resultMatrix, Ps=otherMatrix)
         nP = simGenes.shape[1]
-        patternMarkers = list()
+
 
         for i in np.arange(nP):
             # order gene names by significance for this pattern
             pname = "Pattern"+str(i+1)
-
             sortSim = simGenes[pname].sort_values().index
             sortedGenes = simGenes.loc[sortSim, :]
-
             globalmins = sortedGenes.min(axis=1)
             thispattern = simGenes.loc[sortSim, pname]
-            geneThresh = thispattern[thispattern > globalmins].min()
+
+            geneThresh = int(thispattern[thispattern > globalmins].min())
 
             markerGenes = sortSim[1:geneThresh]
-
-            patternMarkers.append(markerGenes)
-
-        markersByPattern = patternMarkers
+            markersByPattern[pname] = markerGenes.values
 
     elif threshold == "all":
         patternsByMarker = markerScores.columns[np.argmin(markerScores.values, axis=1)]
