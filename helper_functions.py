@@ -655,11 +655,56 @@ def patternMarkers(adata, threshold='all', lp=None, axis=1):
     rankCutoff = np.empty(markerRanks.shape[1])
     markersByPattern = {}
     if threshold == "cut":
-        for i in range(markerRanks.shape[1]):
-            patternRank = markerRanks.values[:, i]
-            rankCutoff[i] = np.max(patternRank[patternRank == np.amin(markerRanks, axis=1)])
-            markersByPattern['Pattern' + str(i + 1)] = (
-                markerRanks[markerRanks.values[:, i] > rankCutoff[i]]).index.values
+        def simplicityGENES(As, Ps):
+            # Using MinMaxScaler
+            As.replace([np.inf, -np.inf, np.nan], 0, inplace=True)
+            Ps.replace([np.inf, -np.inf, np.nan], 0, inplace=True)
+            from sklearn.preprocessing import MinMaxScaler
+            scaler = MinMaxScaler(feature_range=(0,1))
+            # Stack everything into a single column to scale by the global min / max
+            tmp = Ps.to_numpy().reshape(-1, 1)
+            scaled2 = scaler.fit_transform(tmp).reshape(Ps.shape)
+            pscale = pd.DataFrame(scaled2, index=Ps.index, columns=Ps.columns)
+            # TODO: figure out how to translate this: As < - sweep(As, 2, pscale, FUN="*")
+            # pmax is the most significant pattern for each gene
+            # Arowmax is the A matrix with every element divided by the max in the row
+            pmax = np.nanmax(As.values, axis=1, keepdims=True)
+            Arowmax = As / pmax
+
+            ssl = pd.DataFrame().reindex_like(As)
+            import math
+            for i in np.arange(As.shape[1]):
+                lp = np.repeat(0, As.shape[1])
+                lp[i] = 1
+                def stat(x):
+                    return (math.sqrt(np.matmul(np.transpose(x-lp), (x-lp))))
+
+                ssl.stat = Arowmax.apply(func=stat, axis=1)
+                order = np.argsort(ssl.stat)
+                ssl["Pattern"+str(i+1)] = order.values
+
+            return ssl
+
+        simGenes = simplicityGENES(As=adata.obs, Ps=adata.var)
+        nP = simGenes.shape[1]
+        patternMarkers = list()
+
+        for i in np.arange(nP):
+            # order gene names by significance for this pattern
+            pname = "Pattern"+str(i+1)
+
+            sortSim = simGenes[pname].sort_values().index
+            sortedGenes = simGenes.loc[sortSim, :]
+
+            globalmins = sortedGenes.min(axis=1)
+            thispattern = simGenes.loc[sortSim, pname]
+            geneThresh = thispattern[thispattern > globalmins].min()
+
+            markerGenes = sortSim[1:geneThresh]
+
+            patternMarkers.append(markerGenes)
+
+        markersByPattern = patternMarkers
 
     elif threshold == "all":
         patternsByMarker = markerScores.columns[np.argmin(markerScores.values, axis=1)]
