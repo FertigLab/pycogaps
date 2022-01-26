@@ -3,6 +3,7 @@ This file runs PyCoGAPS using user-specified parameter inputs from params.yml
 '''
 
 if __name__ == '__main__':
+    from PyCoGAPS.config import *
     from PyCoGAPS.parameters import *
     from PyCoGAPS.pycogaps_main import CoGAPS
 
@@ -10,8 +11,15 @@ if __name__ == '__main__':
     import pickle
     print("This vignette was built using pycogaps version", getVersion())
 
+    # get parameter file from command line input
+    params_file = sys.argv[1]
+    PWD = '/'.join(params_file.split('/')[:-1]) + '/'   # leveraging $PWD tag in the run line
+    outdir = PWD + 'output/'
+    if not os.path.exists(outdir):
+        os.mkdir(outdir)
+
     # read parameter file
-    with open("params.yaml", "r") as file:
+    with open(params_file, "r") as file:
         prm = yaml.safe_load(file)
     
     # if using AWS bucket server
@@ -23,7 +31,11 @@ if __name__ == '__main__':
             s3.download_fileobj(aws_prm['downloadBucket'], aws_prm['downloadKey'], f)
     
     # create CoParams object
-    params = CoParams(path=prm['path'], transposeData=prm['run_params']['transposeData'], 
+
+    # Note: since data_path=PWD+prm['path'], the path supplied in param.yaml must be relative to the working directory
+    data_path = PWD+prm['path']
+    
+    params = CoParams(path=data_path, transposeData=prm['run_params']['transposeData'], 
                       hdfKey=prm['additional_params']['hdfKey'], hdfRowKey=prm['additional_params']['hdfRowKey'],
                       hdfColKey=prm['additional_params']['hdfColKey'])
     
@@ -44,11 +56,12 @@ if __name__ == '__main__':
         params.setDistributedParams(nSets=dist_prm['nSets'], cut=dist_prm['cut'], minNS=dist_prm['minNS'], maxNS=dist_prm['maxNS'])
 
     # run CoGAPS
-    result = CoGAPS(prm['path'], params)
+    result = CoGAPS(data_path, params)
 
     # save CoGAPS result
     print("Pickling...", end='\r')
-    pickle.dump(result, open(prm['result_file'], "wb"))
+    # pickle.dump(result, open(prm['result_file'], "wb"))
+    pickle.dump(result, open(outdir+prm['result_file'], "wb"))
     print("Pickling complete!")
 
     if aws_prm['useAWS']:
