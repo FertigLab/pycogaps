@@ -1,5 +1,4 @@
 #! /bin/sh
 set -e
 
-python3 ./setup.py install --user
-python3 ./vignette.py --user
+python3 ./vignette_from_args.py --user
