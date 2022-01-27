@@ -166,7 +166,7 @@ Setting `nSets` requires balancing available hardware and run time against the s
 
 A dictionary of the result as two representations is stored: an `anndata` object and `GapsResult` object. For simplicity and relevancy, we will only consider the `anndata` object. CoGAPS stores the lower dimensional representation of the samples (P matrix) in the `.var` slot and the weight of the features (A matrix) in the `.obs` slot. The standard deviation across sample points for each matrix are stored in the `.uns` slots.
 
-## **Importing the Analysis Functions and Loading the Result Object**
+## **Analyzing the Result**
 In order to analyze the data, we'll import the built-in CoGAPS functions. To do this, we'll make a new folder, `analysis/` which will house the analysis file and outputs. 
 
 Make sure you're in the `PyCoGAPS` folder, and copy the following commands in terminal, which will save plots generated from the example data:
@@ -178,8 +178,7 @@ python3 analysis_functions.py ../output/result.pkl
 ```
 To analyze a different result, replace `../output/result.pkl` with the path to your desired result file in the command line.
 
-## **Analyzing the Output**
-The result object can be passed on to the analysis and plotting functions provided in the package. 
+Below details each of the analysis functions included in the package. 
 
 3.2.1 [ Default Plot ](#241-default-plot)  
 3.2.2 [ Residuals Plot ](#242-residuals-plot)  
