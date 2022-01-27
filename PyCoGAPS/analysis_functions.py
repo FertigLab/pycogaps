@@ -1,6 +1,7 @@
-from PyCoGAPS.config import *
-from PyCoGAPS.helper_functions import *
-
+import pandas as pd
+import numpy as np
+import anndata
+import warnings
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -43,6 +44,8 @@ def plot(obj, groups=None, title=None):
         plt.subplots_adjust(bottom=0.15)
         if title is not None:
             ax.set_title(title)
+        else:
+            ax.set_title('Patterns over Samples')
         plt.show()
         return fig
     else:
@@ -57,6 +60,8 @@ def plot(obj, groups=None, title=None):
         plt.ylabel("Relative Amplitude")
         if title is not None:
             ax.set_title(title)
+        else:
+            ax.set_title('Patterns over Samples')
         plt.show()
     return fig
 
@@ -66,7 +71,7 @@ def patternBoxPlot(obj, groups):
 
     Args:
         obj (CogapsResult): CogapsResult object
-        groups (str list, optional): list of groups. Defaults to None.
+        groups (str list): list of groups. 
 
     Returns:
         fig: figure of plot
@@ -110,10 +115,10 @@ def calcZ(object: anndata, whichMatrix):
     """    
     if whichMatrix in "sampleFactors":
         mean = object.var
-        stddev = object.uns["asd"]
+        stddev = object.uns["psd"]
     elif whichMatrix in "featureLoadings":
         mean = object.obs
-        stddev = object.uns["psd"]
+        stddev = object.uns["asd"]
     else:
         print('whichMatrix must be either \'featureLoadings\' or \'sampleFactors\'')
         return
@@ -169,6 +174,7 @@ def binaryA(object, threshold, nrows="all", cluster=False):
         hm = sns.clustermap(binA, cbar_pos=None)
     else:
         hm = sns.heatmap(binA, cbar=False)
+    plt.title('Binary Heatmap')
     plt.show()
     return hm
 
@@ -201,6 +207,7 @@ def plotResiduals(object, uncertainty=None, legend=False, groups=None, ids=None)
     residual = (rawdata - M) / uncertainty
     residual = pd.DataFrame(residual, columns=samplelabels, index=markerlabels)
     hm = sns.heatmap(residual, cmap="Spectral", cbar=legend)
+    plt.title('Residuals Plot')
     plt.show()
     return hm
 
@@ -407,7 +414,7 @@ def calcGeneGSStat(object, GStoGenes, numPerm, Pw=None, nullGenes=False):
     Returns:
         dataframe: gene similiarity statistic
     """    
-    featureLoadings = toNumpy(object['GapsResult'].Amean)
+    featureLoadings = object['anndata'].obs
     
     adata = object['anndata']
 
@@ -422,7 +429,7 @@ def calcGeneGSStat(object, GStoGenes, numPerm, Pw=None, nullGenes=False):
             raise Exception('Invalid weighting')
         gsStat = gsStat*Pw
     
-    stddev = toNumpy(object['GapsResult'].Asd)
+    stddev = object['anndata'].uns['asd']
     if 0 in stddev:
         print("zeros detected in the standard deviation matrix; they have been replaced by small values")
         stddev[stddev == 0] = 1 ** -6
@@ -472,7 +479,7 @@ def computeGeneGSProb(object, GStoGenes, numPerm=500, Pw=None, PwNull=False):
         for each gene containined in the set specified in GSGenes.
     """    
 
-    featureLoadings = toNumpy(object['GapsResult'].Amean)
+    featureLoadings = object['anndata'].obs
     adata = object['anndata']
     
     if Pw is None:
@@ -588,9 +595,9 @@ def plotPatternMarkers(data, patternmarkers=None, groups = None, patternPalette=
     if scale == "row":
         t = np.transpose(pd.DataFrame(plotdata))
         z = zscore(t)
-        plotdata_z = np.transpose(z)
+        plotdata_z = pd.DataFrame(np.transpose(z))
     elif scale == "column":
-        plotdata_z = zscore(pd.DataFrame(plotdata))
+        plotdata_z = pd.DataFrame(zscore(pd.DataFrame(plotdata)))
     else:
         plotdata_z = pd.DataFrame(plotdata)
     plotdata_z.columns = samplelabels
@@ -599,6 +606,7 @@ def plotPatternMarkers(data, patternmarkers=None, groups = None, patternPalette=
 
     hm = sns.clustermap(plotdata_z, cmap=colorscheme, row_cluster=rowDendrogram, col_cluster=colDendrogram,
                         row_colors=patternPalette, col_colors=samplePalette, cbar_pos=legend_pos)
+    plt.title('Pattern Markers Plot')
     plt.show()
     return hm
 
@@ -610,9 +618,7 @@ def plotUMAP(result, genes_in_rows=True):
         result (anndata or CogapsResult): An anndata object of result or CogapsResult object
         genes_in_rows (bool, optional): Scanpy needs genes in columns, cells in rows. Defaults to True.
     """    
-    print("not implemented")
-    if not isinstance(result, anndata):
-        result=result["anndata"]
+    result=result["anndata"]
     if genes_in_rows:
         # scanpy needs genes in columns, cells in rows
         result = result.transpose()
@@ -635,3 +641,22 @@ def plotUMAP(result, genes_in_rows=True):
     sc.pp.neighbors(result)
     sc.tl.umap(result)
     sc.pl.umap(result, color=patterns)
+
+if __name__ == '__main__':
+    import pickle
+    import sys
+    import matplotlib as mpl
+    mpl.use('tkagg')
+
+    # path to your result file, from command line
+    pkl_path = sys.argv[1]
+    
+    # this unpickles the result object for use
+    result = pickle.load(open(pkl_path, "rb"))
+
+    # call some of the plotting functions and save
+    plot(result)
+    binaryA(result, threshold=2)
+    plotPatternMarkers(result)
+    plotResiduals(result)
+    plotUMAP(result)
