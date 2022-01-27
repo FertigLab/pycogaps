@@ -94,7 +94,7 @@ A snippet of `params.yaml` is shown below, where we have changed some default pa
 path: data/liver_dataset.txt
 
 # result output file name 
-result_file: result.pkl
+result_file: liver_result.pkl
 
 standard_params:
   # number of patterns CoGAPS will learn
@@ -160,28 +160,25 @@ Setting `nSets` requires balancing available hardware and run time against the s
 
 # **3. Analyzing the PyCoGAPS Result**
 
-## **Breaking Down the Return Object from CoGAPS**
+## **Breaking Down the Result Object from CoGAPS**
 
-<img src="https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/anndata-result.png" alt="anndata result obj" width="300" align="right">
+<img src="https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/anndata-result.png" alt="anndata result obj" width="300" align="center">
 
-CoGAPS saves the result in a pickle file, which is a serialized Python object. It stores a dictionary of the result as two representations: an `anndata` object and `GapsResult` object. For simplicity and relevancy, we will only consider the `anndata` object. CoGAPS stores the lower dimensional representation of the samples (P matrix) in the `.var` slot and the weight of the features (A matrix) in the `.obs` slot. The standard deviation across sample points for each matrix are stored in the `.uns` slots.
+A dictionary of the result as two representations is stored: an `anndata` object and `GapsResult` object. For simplicity and relevancy, we will only consider the `anndata` object. CoGAPS stores the lower dimensional representation of the samples (P matrix) in the `.var` slot and the weight of the features (A matrix) in the `.obs` slot. The standard deviation across sample points for each matrix are stored in the `.uns` slots.
 
-```python
-import pickle
+## **Importing the Analysis Functions and Loading the Result Object**
+In order to analyze the data, we'll import the built-in CoGAPS functions. To do this, we'll make a new folder, `analysis/` which will house the analysis file and outputs. 
 
-# path to your result file
-pkl_path = "./output/result.pkl"
-
-# this unpickles the result object for use
-result = pickle.load(open(pkl_path, "rb"))
-
-# this retrieves the anndata result object
-result["anndata"]
+Make sure you're in the `PyCoGAPS` folder, and copy the following commands in terminal, which will save plots generated from the example data:
 ```
+mkdir analysis
+cd analysis
+curl -O https://github.com/FertigLab/pycogaps/blob/master/PyCoGAPS/analysis_functions.py
+python3 analysis_functions.py ../output/result.pkl
+```
+To analyze a different result, replace `../output/result.pkl` with the path to your desired result file in the command line.
 
-
-
-## **Visualizing Output**
+## **Analyzing the Output**
 The result object can be passed on to the analysis and plotting functions provided in the package. 
 
 3.2.1 [ Default Plot ](#241-default-plot)  
