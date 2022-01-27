@@ -178,6 +178,7 @@ python3 analysis_functions.py ../output/result.pkl
 ```
 To analyze a different result, replace `../output/result.pkl` with the path to your desired result file in the command line.
 
+## **More on the Analysis Functions**
 Below details each of the analysis functions included in the package. 
 
 3.2.1 [ Default Plot ](#241-default-plot)  
