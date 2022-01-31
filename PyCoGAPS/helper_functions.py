@@ -1,3 +1,5 @@
+import pandas as pd
+
 from PyCoGAPS.config import *
 
 import h5py
@@ -428,6 +430,22 @@ def GapsResultToAnnData(gapsresult, adata, prm):
     adata.var = pd.DataFrame(data=Pmean, index=adata.var_names, columns=pattern_labels)
     adata.uns["asd"] = pd.DataFrame(data=Asd, index=adata.obs_names, columns=pattern_labels)
     adata.uns["psd"] = pd.DataFrame(data=Psd, index=adata.var_names, columns=pattern_labels)
+    adata.uns["atomhistoryA"] = pd.Series(gapsresult.atomHistoryA)
+    adata.uns["atomhistoryP"] = pd.Series(gapsresult.atomHistoryP)
+    adata.uns["averageQueueLengthA"] = gapsresult.averageQueueLengthA
+    adata.uns["averageQueueLengthP"] = gapsresult.averageQueueLengthP
+    adata.uns["chisqHistory"] = pd.Series(gapsresult.chisqHistory)
+    adata.uns["equilibrationSnapshotsA"] = gapsresult.equilibrationSnapshotsA
+    adata.uns["equilibrationSnapshotsP"] = gapsresult.equilibrationSnapshotsP
+    adata.uns["meanChiSq"] = gapsresult.meanChiSq
+    adata.uns["meanPatternAssignment"] = gapsresult.meanPatternAssignment
+    adata.uns["pumpMatrix"] = gapsresult.pumpMatrix
+    adata.uns["samplingSnapshotsA"] = gapsresult.samplingSnapshotsA
+    adata.uns["samplingSnapshotsP"] = gapsresult.samplingSnapshotsP
+    adata.uns["seed"] = gapsresult.seed
+    adata.uns["totalRunningTime"] = gapsresult.totalRunningTime
+    adata.uns["totalUpdates"] = gapsresult.totalUpdates
+
     return adata
 
 

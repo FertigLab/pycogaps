@@ -106,26 +106,26 @@ def stitchTogether(finalresult, result, params, sets):
 
     print("Stitching results together...")
     if params.coparams["distributed"] == "genome-wide":
-        Amean = np.array(finalresult[0]['anndata'].obs)
-        Asd = np.array(finalresult[0]['anndata'].uns['asd'])
+        Amean = np.array(finalresult[0].obs)
+        Asd = np.array(finalresult[0].uns['asd'])
         for r in finalresult[1:]:
-            df1 = np.array(r["anndata"].obs)
-            df2 = np.array(r["anndata"].uns['asd'])
+            df1 = np.array(r.obs)
+            df2 = np.array(r.uns['asd'])
             Amean = np.append(Amean, df1, axis=0)
             Asd = np.append(Asd, df2, axis=0)
-        Pmean = np.array(finalresult[0]['anndata'].var)
-        Psd = np.array(finalresult[0]['anndata'].uns['psd'])
+        Pmean = np.array(finalresult[0].var)
+        Psd = np.array(finalresult[0].uns['psd'])
 
     else:
-        Pmean = np.array(finalresult[0]['anndata'].var)
-        Psd = np.array(finalresult[0]['anndata'].uns['psd'])
+        Pmean = np.array(finalresult[0].var)
+        Psd = np.array(finalresult[0].uns['psd'])
         for r in finalresult[1:]:
-            df1 = np.array(r["anndata"].var)
-            df2 = np.array(r["anndata"].uns['psd'])
+            df1 = np.array(r.var)
+            df2 = np.array(r.uns['psd'])
             Pmean = np.append(Pmean, df1, axis=0)
             Psd = np.append(Psd, df2, axis=0)
-        Pmean = np.array(finalresult[0]['anndata'].obs)
-        Psd = np.array(finalresult[0]['anndata'].uns['psd'])
+        Pmean = np.array(finalresult[0].obs)
+        Psd = np.array(finalresult[0].uns['psd'])
         
     reslist = {
         "Amean": Amean,
