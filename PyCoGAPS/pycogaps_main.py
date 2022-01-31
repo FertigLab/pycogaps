@@ -1,3 +1,5 @@
+import anndata
+
 from PyCoGAPS.config import *
 from PyCoGAPS.helper_functions import *
 from PyCoGAPS.subset_data import *
@@ -159,12 +161,9 @@ def standardCoGAPS(path, params=None, nThreads=1, messages=True,
 
     if prm.gaps.transposeData != prm.coparams["transposeData"]:
         raise Exception("make sure to pass transposeData=True argument in both CoParams() and CoGAPS()")
-    result = {
-        "GapsResult": gapsresultobj,
-        "anndata": GapsResultToAnnData(gapsresultobj, adata, prm)
-    }
-
-    show(result["anndata"])
+    # no longer returning the legacy formatted object
+    result = GapsResultToAnnData(gapsresultobj, adata, prm)
+    # show(result["anndata"])
     return result
 
 
@@ -197,14 +196,14 @@ def distributedCoGAPS(path, params, uncertainty=None):
             result = list(result)
             # print("POOL IS NOW CLOSED")
             if params.coparams['distributed'] == "genome-wide":
-                unmatched = np.array(result[0]['anndata'].var)
+                unmatched = np.array(result[0].var)
                 for i in range(1, len(result)):
-                    arr = np.array(result[i]['anndata'].var)
+                    arr = np.array(result[i].var)
                     unmatched = np.append(unmatched, arr, axis=1)
             else:
-                unmatched = np.array(result[0]['anndata'].obs)
+                unmatched = np.array(result[0].obs)
                 for i in range(1, len(result)):
-                    arr = np.array(result[i]['anndata'].obs)
+                    arr = np.array(result[i].obs)
                     unmatched = np.append(unmatched, arr, axis=1)
             print("Matching patterns across subsets...\n")
             matched = findConsensusMatrix(unmatched, params)
@@ -237,24 +236,44 @@ def distributedCoGAPS(path, params, uncertainty=None):
         finalresult = list(finalresult)
 
     stitched = stitchTogether(finalresult, result, params, sets)
-    gapsresult = pycogaps.GapsResult
-    if params.coparams["distributed"] == "genome-wide":
-        gapsresult.Amean = pycogaps.Matrix((stitched["Amean"]))
-        gapsresult.Asd = pycogaps.Matrix((stitched["Asd"]))
-        gapsresult.Pmean = pycogaps.Matrix((stitched["Pmean"]))
-        gapsresult.Psd = pycogaps.Matrix((stitched["Psd"]))
 
-    else:
-        gapsresult.Amean = pycogaps.Matrix((stitched["Amean"]))
-        gapsresult.Asd = pycogaps.Matrix((stitched["Asd"]))
-        gapsresult.Pmean = pycogaps.Matrix((stitched["Pmean"]))
-        gapsresult.Psd = pycogaps.Matrix((stitched["Psd"]))
 
-    return {
-        "GapsResult": gapsresult,
-        "anndata": GapsResultToAnnData(gapsresult, data, params),
-        'stitched': stitched
-    }
+    adata = anndata.AnnData(data.X)
+    adata.obs = pd.DataFrame(data=stitched["Amean"], index=data.obs_names)
+    adata.var = pd.DataFrame(data=stitched["Pmean"], index=adata.var_names)
+    adata.uns["asd"] = pd.DataFrame(data=stitched["Asd"], index=adata.obs_names)
+    adata.uns["psd"] = pd.DataFrame(data=stitched["Psd"], index=adata.var_names)
+    adata.uns["atomhistoryA"] = finalresult[0].uns["atomhistoryA"]
+    adata.uns["atomhistoryP"] = finalresult[0].uns["atomhistoryP"]
+    adata.uns["averageQueueLengthA"] = finalresult[0].uns["averageQueueLengthA"]
+    adata.uns["averageQueueLengthP"] = finalresult[0].uns["averageQueueLengthP"]
+    adata.uns["chisqHistory"] = finalresult[0].uns["chisqHistory"]
+    adata.uns["equilibrationSnapshotsA"] = finalresult[0].uns["equilibrationSnapshotsA"]
+    adata.uns["equilibrationSnapshotsP"] = finalresult[0].uns["equilibrationSnapshotsP"]
+    adata.uns["meanChiSq"] = finalresult[0].uns["meanChiSq"]
+    adata.uns["meanPatternAssignment"] = finalresult[0].uns["meanPatternAssignment"]
+    adata.uns["pumpMatrix"] = finalresult[0].uns["pumpMatrix"]
+    adata.uns["samplingSnapshotsA"] = finalresult[0].uns["samplingSnapshotsA"]
+    adata.uns["samplingSnapshotsP"] = finalresult[0].uns["samplingSnapshotsP"]
+    adata.uns["seed"] = finalresult[0].uns["seed"]
+    adata.uns["totalRunningTime"] = finalresult[0].uns["totalRunningTime"]
+    adata.uns["totalUpdates"] = finalresult[0].uns["totalUpdates"]
+
+    # gapsresult = pycogaps.GapsResult
+    # if params.coparams["distributed"] == "genome-wide":
+    #     gapsresult.Amean = pycogaps.Matrix((stitched["Amean"]))
+    #     gapsresult.Asd = pycogaps.Matrix((stitched["Asd"]))
+    #     gapsresult.Pmean = pycogaps.Matrix((stitched["Pmean"]))
+    #     gapsresult.Psd = pycogaps.Matrix((stitched["Psd"]))
+    #
+    # else:
+    #     gapsresult.Amean = pycogaps.Matrix((stitched["Amean"]))
+    #     gapsresult.Asd = pycogaps.Matrix((stitched["Asd"]))
+    #     gapsresult.Pmean = pycogaps.Matrix((stitched["Pmean"]))
+    #     gapsresult.Psd = pycogaps.Matrix((stitched["Psd"]))
+
+    return adata
+
 
 
 def callInternalCoGAPS(paramlst):
