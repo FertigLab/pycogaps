@@ -399,6 +399,21 @@ def toNumpy(matrix):
         all_vecdata[:, i] = vecdata
     return all_vecdata
 
+def toNumpyFromVector(vector):
+    """ Convert vector object to numpy array
+
+    Args:
+        vector (Matrix): a vector<Matrix> object
+
+    Returns:
+        arr: a numpy array
+    """    
+    arr = np.empty(len(vector))
+    for j in range(len(vector)):
+        matrix = getElement(vector, j)
+        arr[j] = toNumpy(matrix)
+    return arr
+
 def GapsResultToAnnData(gapsresult, adata, prm):
     """ Converts a CogapsResult object to anndata object.
 
@@ -432,21 +447,22 @@ def GapsResultToAnnData(gapsresult, adata, prm):
     adata.uns["psd"] = pd.DataFrame(data=Psd, index=adata.var_names, columns=pattern_labels)
     adata.uns["atomhistoryA"] = pd.Series(gapsresult.atomHistoryA)
     adata.uns["atomhistoryP"] = pd.Series(gapsresult.atomHistoryP)
-    adata.uns["averageQueueLengthA"] = gapsresult.averageQueueLengthA
-    adata.uns["averageQueueLengthP"] = gapsresult.averageQueueLengthP
+    adata.uns["averageQueueLengthA"] = float(gapsresult.averageQueueLengthA)
+    adata.uns["averageQueueLengthP"] = float(gapsresult.averageQueueLengthP)
     adata.uns["chisqHistory"] = pd.Series(gapsresult.chisqHistory)
-    adata.uns["equilibrationSnapshotsA"] = gapsresult.equilibrationSnapshotsA
-    adata.uns["equilibrationSnapshotsP"] = gapsresult.equilibrationSnapshotsP
-    adata.uns["meanChiSq"] = gapsresult.meanChiSq
-    adata.uns["meanPatternAssignment"] = gapsresult.meanPatternAssignment
-    adata.uns["pumpMatrix"] = gapsresult.pumpMatrix
-    adata.uns["samplingSnapshotsA"] = gapsresult.samplingSnapshotsA
-    adata.uns["samplingSnapshotsP"] = gapsresult.samplingSnapshotsP
-    adata.uns["seed"] = gapsresult.seed
-    adata.uns["totalRunningTime"] = gapsresult.totalRunningTime
-    adata.uns["totalUpdates"] = gapsresult.totalUpdates
+    adata.uns["equilibrationSnapshotsA"] = toNumpyFromVector(gapsresult.equilibrationSnapshotsA)
+    adata.uns["equilibrationSnapshotsP"] = toNumpyFromVector(gapsresult.equilibrationSnapshotsP)
+    adata.uns["meanChiSq"] = float(gapsresult.meanChiSq)
+    adata.uns["meanPatternAssignment"] = toNumpy(gapsresult.meanPatternAssignment)
+    adata.uns["pumpMatrix"] = toNumpy(gapsresult.pumpMatrix)
+    adata.uns["samplingSnapshotsA"] = toNumpyFromVector(gapsresult.samplingSnapshotsA)
+    adata.uns["samplingSnapshotsP"] = toNumpyFromVector(gapsresult.samplingSnapshotsP)
+    adata.uns["seed"] = int(gapsresult.seed)
+    adata.uns["totalRunningTime"] = int(gapsresult.totalRunningTime)
+    adata.uns["totalUpdates"] = int(gapsresult.totalUpdates)
 
     return adata
+
 
 
 def GapsParameters(path):
