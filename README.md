@@ -167,16 +167,15 @@ Setting `nSets` requires balancing available hardware and run time against the s
 A dictionary of the result as two representations is stored: an `anndata` object and `GapsResult` object. For simplicity and relevancy, we will only consider the `anndata` object. CoGAPS stores the lower dimensional representation of the samples (P matrix) in the `.var` slot and the weight of the features (A matrix) in the `.obs` slot. The standard deviation across sample points for each matrix are stored in the `.uns` slots.
 
 ## **Analyzing the Result**
-In order to analyze the data, we'll import the built-in CoGAPS functions. To do this, we'll make a new folder, `analysis/` which will house the analysis file and outputs. 
+In order to analyze the data, we'll need to first import the built-in CoGAPS functions. 
 
-Make sure you're in the `PyCoGAPS` folder, and copy the following commands in terminal, which will save plots generated from the example data:
+Make sure you're in the `PyCoGAPS` folder, and copy the following commands in terminal, which will save plots generated from the example data in the `output/` folder:
 ```
-mkdir analysis
-cd analysis
+cd results
 curl -O https://github.com/FertigLab/pycogaps/blob/master/PyCoGAPS/analysis_functions.py
-python3 analysis_functions.py ../output/result.pkl
+python3 analysis_functions.py result.pkl
 ```
-To analyze a different result, replace `../output/result.pkl` with the path to your desired result file in the command line.
+To analyze a different result, replace `result.pkl` with the path to your desired result file in the command line.
 
 ## **More on the Analysis Functions**
 Below details each of the analysis functions included in the package. 
