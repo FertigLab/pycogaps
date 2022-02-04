@@ -1,5 +1,6 @@
 '''
 This file runs PyCoGAPS using user-specified parameter inputs from params.yml
+This is intended for running Docker image of PyCoGAPS (latest pushed)  
 '''
 
 if __name__ == '__main__':
