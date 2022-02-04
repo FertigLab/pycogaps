@@ -173,8 +173,8 @@ In order to analyze the data, we'll need to first import the built-in CoGAPS fun
 
 Make sure you're in the `PyCoGAPS` folder, and copy the following commands in terminal, which will save plots generated from the example data in the `output/` folder:
 ```
-cd results
-curl -O https://github.com/FertigLab/pycogaps/blob/master/PyCoGAPS/analysis_functions.py
+cd output
+curl -O https://raw.githubusercontent.com/FertigLab/pycogaps/master/PyCoGAPS/analysis_functions.py
 python3 analysis_functions.py result.pkl
 ```
 To analyze a different result, replace `result.pkl` with the path to your desired result file in the command line.
