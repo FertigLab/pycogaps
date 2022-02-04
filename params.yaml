@@ -9,7 +9,7 @@ result_file: result.pkl
 
 standard_params:
   # number of patterns CoGAPS will learn
-  nPatterns: 7
+  nPatterns: 3
   # number of iterations for each phase of the algorithm
   nIterations: 1000
   # random number generator seed
@@ -59,10 +59,13 @@ distributed_params:
   # number of sets to break data into
   nSets: 4
   # number of branches at which to cut dendrogram used in pattern matching
+  # default: nPatterns
   cut: null
   # minimum of individual set contributions a cluster must contain
+  # default: math.ceil(cut / 2)
   minNS: null
   # maximum of individual set contributions a cluster can contain
+  # default: minNS + nSets
   maxNS: null
   # specify subsets by index or name
   explicitSets: null

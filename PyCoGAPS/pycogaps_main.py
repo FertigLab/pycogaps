@@ -163,7 +163,7 @@ def standardCoGAPS(path, params=None, nThreads=1, messages=True,
         raise Exception("make sure to pass transposeData=True argument in both CoParams() and CoGAPS()")
     # no longer returning the legacy formatted object
     result = GapsResultToAnnData(gapsresultobj, adata, prm)
-    # show(result["anndata"])
+    show(result)
     return result
 
 
