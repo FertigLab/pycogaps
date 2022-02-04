@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.stats import zscore
 
-def plot(obj, groups=None, title=None):
+def plot(obj, groups=None, title=None, fn=""):
     """ Plots how patterns vary across samples
 
     Args:
@@ -19,7 +19,6 @@ def plot(obj, groups=None, title=None):
         fig: figure of plot
     """    
     
-    obj = obj["anndata"]
     if groups is not None:
         if len(groups) == len(obj.var_names):
             obj.var_names = groups
@@ -46,8 +45,7 @@ def plot(obj, groups=None, title=None):
             ax.set_title(title)
         else:
             ax.set_title('Patterns over Samples')
-        plt.show()
-        return fig
+        
     else:
         samples = obj.var
         nsamples = np.shape(samples)[0]
@@ -62,11 +60,12 @@ def plot(obj, groups=None, title=None):
             ax.set_title(title)
         else:
             ax.set_title('Patterns over Samples')
-        plt.show()
+    plt.savefig("{}_plot.png".format(fn))
+    plt.show()
     return fig
 
 
-def patternBoxPlot(obj, groups):
+def patternBoxPlot(obj, groups, fn=""):
     """ generate a boxplot where each subplot displays amplitudes for each group for each pattern
 
     Args:
@@ -77,7 +76,7 @@ def patternBoxPlot(obj, groups):
         fig: figure of plot
     """    
     
-    obj = obj['anndata']
+    # obj = obj['anndata']
     if len(groups) == len(obj.var_names):
         obj.var_names = groups
     else:
@@ -100,6 +99,7 @@ def patternBoxPlot(obj, groups):
         ax.set_ylabel("Amplitude")
         plt.tight_layout()
         df.boxplot(ax=ax, rot=20, fontsize=6)
+    plt.savefig("{}_patternBoxPlot.png".format(fn))
     return df
 
 
@@ -144,7 +144,7 @@ def reconstructGene(object: anndata, genes=None):
     return D
 
 
-def binaryA(object, threshold, nrows="all", cluster=False):
+def binaryA(object, threshold, nrows="all", cluster=False, fn=""):
     """ plots a binary heatmap with each entry representing whether
     that position in the A matrix has a value greater than (black)
     or lesser than (white) the specified threshold * the standard
@@ -162,7 +162,7 @@ def binaryA(object, threshold, nrows="all", cluster=False):
         fig: a matplotlib plot object
     """    
 
-    object = object["anndata"]
+    # object = object["anndata"]
     binA = calcZ(object, whichMatrix="featureLoadings")
     if nrows != "all":
         binA = binA[1:nrows, :]
@@ -175,11 +175,12 @@ def binaryA(object, threshold, nrows="all", cluster=False):
     else:
         hm = sns.heatmap(binA, cbar=False)
     plt.title('Binary Heatmap')
+    plt.savefig("{}_binaryA.png".format(fn))
     plt.show()
     return hm
 
 
-def plotResiduals(object, uncertainty=None, legend=False, groups=None, ids=None):
+def plotResiduals(object, uncertainty=None, legend=False, groups=None, ids=None, fn=""):
     """ Generate a residual plot
 
     Args:
@@ -193,7 +194,7 @@ def plotResiduals(object, uncertainty=None, legend=False, groups=None, ids=None)
         fig: matplotlib figure
     """   
 
-    object = object["anndata"]
+    # object = object["anndata"]
     # if groups is not None:
     #
     rawdata = object.X
@@ -208,6 +209,7 @@ def plotResiduals(object, uncertainty=None, legend=False, groups=None, ids=None)
     residual = pd.DataFrame(residual, columns=samplelabels, index=markerlabels)
     hm = sns.heatmap(residual, cmap="Spectral", cbar=legend)
     plt.title('Residuals Plot')
+    plt.savefig("{}_residualsPlot.png".format(fn))
     plt.show()
     return hm
 
@@ -369,11 +371,11 @@ def calcCoGAPSStat(object, sets, whichMatrix='featureLoadings', numPerm=1000):
     if not isinstance(sets, list):
         raise Exception("Sets must be a list of either measurements or samples")
 
-    zMatrix = calcZ(object['anndata'], whichMatrix)
+    zMatrix = calcZ(object, whichMatrix)
 
-    pattern_labels = (object['anndata'].obs).columns
+    pattern_labels = (object.obs).columns
 
-    zMatrix = pd.DataFrame(zMatrix, index=object['anndata'].obs_names, columns=pattern_labels)
+    zMatrix = pd.DataFrame(zMatrix, index=object.obs_names, columns=pattern_labels)
     pvalUpReg = []
 
     lessThanCount = np.zeros(zMatrix.shape[1])
@@ -414,9 +416,9 @@ def calcGeneGSStat(object, GStoGenes, numPerm, Pw=None, nullGenes=False):
     Returns:
         dataframe: gene similiarity statistic
     """    
-    featureLoadings = object['anndata'].obs
+    featureLoadings = object.obs
     
-    adata = object['anndata']
+    # adata = object
 
     if Pw is None:
         Pw = np.ones(featureLoadings.shape[1])
@@ -429,13 +431,13 @@ def calcGeneGSStat(object, GStoGenes, numPerm, Pw=None, nullGenes=False):
             raise Exception('Invalid weighting')
         gsStat = gsStat*Pw
     
-    stddev = object['anndata'].uns['asd']
+    stddev = object.uns['asd']
     if 0 in stddev:
         print("zeros detected in the standard deviation matrix; they have been replaced by small values")
         stddev[stddev == 0] = 1 ** -6
-    stddev = pd.DataFrame(stddev, index=adata.obs_names, columns=(adata.obs).columns)
+    stddev = pd.DataFrame(stddev, index=object.obs_names, columns=(object.obs).columns)
 
-    featureLoadings = pd.DataFrame(featureLoadings, index=adata.obs_names, columns=(adata.obs).columns)
+    featureLoadings = pd.DataFrame(featureLoadings, index=object.obs_names, columns=(object.obs).columns)
 
     if nullGenes:
         ZD = featureLoadings.loc[(featureLoadings.index).difference(GStoGenes),:].values / stddev.loc[(featureLoadings.index).difference(GStoGenes),:].values
@@ -479,8 +481,8 @@ def computeGeneGSProb(object, GStoGenes, numPerm=500, Pw=None, PwNull=False):
         for each gene containined in the set specified in GSGenes.
     """    
 
-    featureLoadings = object['anndata'].obs
-    adata = object['anndata']
+    featureLoadings = object.obs
+    # adata = object['anndata']
     
     if Pw is None:
         Pw = np.ones(featureLoadings.shape[1])
@@ -504,7 +506,7 @@ def computeGeneGSProb(object, GStoGenes, numPerm=500, Pw=None, PwNull=False):
 
 def plotPatternMarkers(data, patternmarkers=None, groups = None, patternPalette=None,
                        samplePalette=None, colorscheme="coolwarm",
-                       colDendrogram=True, rowDendrogram=False, scale="row", legend_pos=None):
+                       colDendrogram=True, rowDendrogram=False, scale="row", legend_pos=None, fn=""):
     """ Plots pattern markers of most associated pattern for each gene.
 
     Args:
@@ -526,7 +528,7 @@ def plotPatternMarkers(data, patternmarkers=None, groups = None, patternPalette=
         fig: a clustergrid instance
     """    
 
-    data = data["anndata"]
+    # data = data["anndata"]
     if patternmarkers is None:
         patternmarkers=patternMarkers(data)
     if samplePalette is None:
@@ -607,18 +609,19 @@ def plotPatternMarkers(data, patternmarkers=None, groups = None, patternPalette=
     hm = sns.clustermap(plotdata_z, cmap=colorscheme, row_cluster=rowDendrogram, col_cluster=colDendrogram,
                         row_colors=patternPalette, col_colors=samplePalette, cbar_pos=legend_pos)
     plt.title('Pattern Markers Plot')
+    plt.savefig("{}_patternMarkers.png".format(fn))
     plt.show()
     return hm
 
 
-def plotUMAP(result, genes_in_rows=True):
+def plotUMAP(result, genes_in_rows=True, fn=""):
     """ Create a UMAP plot
 
     Args:
         result (anndata or CogapsResult): An anndata object of result or CogapsResult object
         genes_in_rows (bool, optional): Scanpy needs genes in columns, cells in rows. Defaults to True.
     """    
-    result=result["anndata"]
+    # result=result["anndata"]
     if genes_in_rows:
         # scanpy needs genes in columns, cells in rows
         result = result.transpose()
@@ -630,7 +633,7 @@ def plotUMAP(result, genes_in_rows=True):
     sc.settings.set_figure_params(dpi=80, facecolor='white')
     # result.var_names_make_unique()
     # filter genes and cells
-    sc.pl.highest_expr_genes(result, n_top=20, )
+    sc.pl.highest_expr_genes(result, n_top=20, save="{}_highestExpressedGenes.png".format(fn))
     sc.pp.filter_cells(result, min_genes=200)
     sc.pp.filter_genes(result, min_cells=3)
     sc.pp.log1p(result)
@@ -640,11 +643,12 @@ def plotUMAP(result, genes_in_rows=True):
     sc.tl.pca(result, svd_solver='arpack')
     sc.pp.neighbors(result)
     sc.tl.umap(result)
-    sc.pl.umap(result, color=patterns)
+    sc.pl.umap(result, color=patterns, save="{}_UMAP.png".format(fn))
 
 if __name__ == '__main__':
     import pickle
     import sys
+    import os
     import matplotlib as mpl
     mpl.use('tkagg')
 
@@ -654,9 +658,12 @@ if __name__ == '__main__':
     # this unpickles the result object for use
     result = pickle.load(open(pkl_path, "rb"))
 
+    # get filename, to name the saved plots
+    filename = os.path.basename(pkl_path).split('.')[0]
+
     # call some of the plotting functions and save
-    plot(result)
-    binaryA(result, threshold=2)
-    plotPatternMarkers(result)
-    plotResiduals(result)
-    plotUMAP(result)
+    plot(result, fn=filename)
+    binaryA(result, threshold=2, fn=filename)
+    plotPatternMarkers(result, fn=filename)
+    plotResiduals(result, fn=filename)
+    plotUMAP(result, fn=filename)
