@@ -169,7 +169,17 @@ Setting `nSets` requires balancing available hardware and run time against the s
 A dictionary of the result as two representations is stored: an `anndata` object and `GapsResult` object. For simplicity and relevancy, we will only consider the `anndata` object. CoGAPS stores the lower dimensional representation of the samples (P matrix) in the `.var` slot and the weight of the features (A matrix) in the `.obs` slot. The standard deviation across sample points for each matrix are stored in the `.uns` slots.
 
 ## **Analyzing the Result**
-In order to analyze the data, we'll need to first import the built-in CoGAPS functions. 
+We provide two ways to analyze the result from PyCoGAPS. The first includes an interactive notebook interface using the web-based GenePattern Notebook (recommended for less experienced python/programming users), and the secoond includes running a python script from the command line (recommended for more experienced python/programming users). 
+
+## **I. GenePattern Notebook** 
+Here are the following steps to use the interactive GenePattern Notebook to analyze results:
+1. Login to your GenePattern account or register a new account here: https://notebook.genepattern.org/hub/login
+2. Go to the PyCoGAPS Analysis Notebook found here: https://notebook.genepattern.org/hub/preview?id=440
+3. Click 'Run'
+4. Follow the instructions in the notebook to run your analysis.
+
+## **II. Python Script via Terminal** 
+In order to analyze the data, we'll need to make sure to install the necessary dependencies and import the built-in PyCoGAPS functions. 
 
 Make sure you're in the `PyCoGAPS` folder, and copy the following commands in terminal, which will save plots generated from the example data in the `output/` folder:
 ```
