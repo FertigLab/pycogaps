@@ -98,12 +98,10 @@ Please follow the steps below to run PyCoGAPS with custom parameters:
 4. For Mac/Linux OS, copy the command and paste in terminal:
 ```
 docker run -v $PWD:$PWD ashleyt2000/pycogaps:docker_pycogaps $PWD/params.yaml
-
 ```
 4. For MARCC, copy the command and paste in terminal:
 ```
 python3 vignette.py
-
 ```
 ## **Example Snippet of `params.yaml`**
 
