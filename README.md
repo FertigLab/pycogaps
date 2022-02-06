@@ -18,7 +18,7 @@ We'll first begin with setting up your working environment and running CoGAPS on
 
 We'll be using a Docker image, which we will pull from the Docker repository, and this contains a set of instructions to build and run PyCoGAPS. With this Docker image, there's no need to install any dependencies, import packages, etc. as the environment is already set up and directly ready to run on your computer.
 
-Please follow the steps below to run the PyCoGAPS vignette:
+Please follow the steps below to run the PyCoGAPS vignette on Mac/Linux OS:
 1. Install Docker at https://docs.docker.com/desktop/mac/install/ 
 2. Open Docker
 3. Copy the commands and paste in terminal (Tested via Mac OX)
@@ -35,6 +35,21 @@ cd ..
 docker run -v $PWD:$PWD ashleyt2000/pycogaps:docker_pycogaps $PWD/params.yaml
 
 ```
+Please follow the steps below to run the PyCoGAPS vignette on MARCC:
+1. Copy the commands and paste in terminal
+
+```
+git clone —recurse-submodules https://github.com/FertigLab/pycogaps.git
+ml anaconda
+conda create —name pycogaps python=3.8
+condo activate pycogaps
+cd pycogaps
+pip install -r requirements.txt —user
+python3 setup.py install
+python3 vignette.py
+
+```
+
 This produces a CoGAPS run on a simple dataset with default parameters. You should then see the following output:
 ```
 This is pycogaps version  0.0.1
@@ -80,9 +95,15 @@ Please follow the steps below to run PyCoGAPS with custom parameters:
   **Note**: Make sure you have moved your data into the created `data/` folder
 2. Modify any additional desired parameters
 3. Save the file
-4. Copy the command and paste in terminal:
+4. For Mac/Linux OS, copy the command and paste in terminal:
 ```
 docker run -v $PWD:$PWD ashleyt2000/pycogaps:docker_pycogaps $PWD/params.yaml
+
+```
+4. For MARCC, copy the command and paste in terminal:
+```
+python3 vignette.py
+
 ```
 ## **Example Snippet of `params.yaml`**
 
