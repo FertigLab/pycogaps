@@ -91,10 +91,9 @@ In order to analyze your desired data, we'll need to input it and modify the def
 
 Please follow the steps below to run PyCoGAPS with custom parameters:
 1. Open `params.yaml` with any text or code editor
-2. Modify the `path` parameter value by replacing the default `data/GIST.csv` with `data/{your-datafile-name}`  
+2. Modify the `path` parameter value by replacing the default `data/GIST.csv` with `data/your-datafile-name`  
   **Note**: Make sure you have moved your data into the created `data/` folder
-2. Modify any additional desired parameters
-3. Save the file
+3. Modify any additional desired parameters and save
 4. For Mac/Linux OS, run the following in terminal:
 ```
 docker run -v $PWD:$PWD ashleyt2000/pycogaps:docker_pycogaps $PWD/params.yaml
