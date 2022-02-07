@@ -16,7 +16,9 @@ This package, PyCoGAPS, presents a unified Python interface, with a parallel, ef
 # **1. Getting Started with PyCoGAPS**
 We'll first begin with setting up your working environment and running CoGAPS on an example dataset with default parameters.
 
-We'll be using a Docker image, which we will pull from the Docker repository, and this contains a set of instructions to build and run PyCoGAPS. With this Docker image, there's no need to install any dependencies, import packages, etc. as the environment is already set up and directly ready to run on your computer.
+For Mac/Linux OS users, we'll be using a Docker image, which we will pull from the Docker repository, and this contains a set of instructions to build and run PyCoGAPS. With this Docker image, there's no need to install any dependencies, import packages, etc. as the environment is already set up and directly ready to run on your computer.
+
+For MARCC users, we'll be building the pycogaps package and installing all dependencies in a conda environment.
 
 Please follow the steps below to run the PyCoGAPS vignette on Mac/Linux OS:
 1. Install Docker at https://docs.docker.com/desktop/mac/install/ 
