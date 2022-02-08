@@ -208,7 +208,7 @@ Make sure you're in the `PyCoGAPS` folder, and copy the following commands in te
 ```
 cd output
 curl -O https://raw.githubusercontent.com/FertigLab/pycogaps/master/PyCoGAPS/analysis_functions.py
-curl-O https://raw.githubusercontent.com/FertigLab/pycogaps/master/PyCoGAPS/requirements_analysis.txt
+curl -O https://raw.githubusercontent.com/FertigLab/pycogaps/master/PyCoGAPS/requirements_analysis.txt
 pip install -r requirements_analysis.txt --user
 python3 analysis_functions.py result.pkl
 ```
