@@ -193,8 +193,7 @@ We provide two ways to analyze the result from PyCoGAPS. The first includes an i
 
 ## **I. GenePattern Notebook** 
 Here are the following steps to use the interactive GenePattern Notebook to analyze results:
-1. Login to your GenePattern account or register a new account here: https://notebook.genepattern.org/hub/login
-2. Go to the PyCoGAPS Analysis Notebook found here: https://notebook.genepattern.org/hub/preview?id=440
+1. Go to the PyCoGAPS Analysis Notebook found here: https://notebook.genepattern.org/hub/preview?id=440. 
 3. Click 'Run'
 4. Follow the instructions in the notebook to run your analysis.
 
