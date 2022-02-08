@@ -20,8 +20,11 @@ For Mac/Linux OS users, we'll be using a Docker image, which we will pull from t
 
 Please follow the steps below to run the PyCoGAPS vignette on Mac/Linux OS:
 1. Install Docker at https://docs.docker.com/desktop/mac/install/ 
-2. Open Docker
-3. Copy the commands and paste in terminal (Tested via Mac OX)
+2. Open the Docker application or paste the following in terminal:
+```
+docker run -d -p 80:80 docker/getting-started
+```
+4. Copy the commands and paste in terminal (Tested via Mac OX)
 
 ```
 docker pull ashleyt2000/pycogaps:docker_pycogaps
