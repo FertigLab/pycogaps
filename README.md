@@ -38,7 +38,7 @@ docker run -v $PWD:$PWD ashleyt2000/pycogaps:docker_pycogaps $PWD/params.yaml
 For MARCC users, we'll be building the pycogaps package and installing all dependencies in a conda environment.
 
 Please follow the steps below to run the PyCoGAPS vignette on MARCC:
-1. Copy the commands and paste in terminal
+1. Copy the commands and paste in terminal   
 **Note:** If you're encountering an error with `import pycogaps`, make sure that you have the intel/18.0 core module loaded instead of gcc.
 
 ```
