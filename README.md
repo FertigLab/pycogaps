@@ -48,7 +48,7 @@ Please follow the steps below to run the PyCoGAPS vignette on MARCC:
 git clone --recurse-submodules https://github.com/FertigLab/pycogaps.git
 ml anaconda
 conda create --name pycogaps python=3.8
-condo activate pycogaps
+conda activate pycogaps
 cd pycogaps
 pip install -r requirements.txt --user
 python3 setup.py install
