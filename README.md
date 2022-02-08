@@ -186,7 +186,7 @@ Setting `nSets` requires balancing available hardware and run time against the s
 
 <img src="https://github.com/FertigLab/pycogaps/blob/update-setup-instructions/rm/anndata-result.png" alt="anndata result obj" width="300" align="center">
 
-A dictionary of the result as two representations is stored: an `anndata` object and `GapsResult` object. For simplicity and relevancy, we will only consider the `anndata` object. CoGAPS stores the lower dimensional representation of the samples (P matrix) in the `.var` slot and the weight of the features (A matrix) in the `.obs` slot. The standard deviation across sample points for each matrix are stored in the `.uns` slots.
+A dictionary of the result as two representations is stored: an `anndata` object. CoGAPS stores the lower dimensional representation of the samples (P matrix) in the `.var` slot and the weight of the features (A matrix) in the `.obs` slot. The standard deviation across sample points for each matrix are stored in the `.uns` slots.
 
 ## **Analyzing the Result**
 We provide two ways to analyze the result from PyCoGAPS. The first includes an interactive notebook interface using the web-based GenePattern Notebook (recommended for less experienced python/programming users), and the secoond includes running a python script from the command line (recommended for more experienced python/programming users). 
