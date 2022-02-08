@@ -39,6 +39,7 @@ For MARCC users, we'll be building the pycogaps package and installing all depen
 
 Please follow the steps below to run the PyCoGAPS vignette on MARCC:
 1. Copy the commands and paste in terminal
+**Note:** If you're encountering an error with `import pycogaps`, make sure that you have the intel/18.0 core module loaded instead of gcc.
 
 ```
 git clone --recurse-submodules https://github.com/FertigLab/pycogaps.git
