@@ -14,7 +14,7 @@ if __name__ == "__main__":
     # counts = scipy.io.mmread("/Users/jeanette/fertiglab/PDAC_Atlas_Pipeline/CoGAPS/counts.mtx")
     # countsarray = counts.toarray()
     # adata.X = np.transpose(countsarray)
-    adata = adata.T
+    # adata = adata.T
     # scale data matrix (beginning single cell workflow)
     # sc.pp.normalize_total(adata)
     sc.pp.log1p(adata)
@@ -26,7 +26,7 @@ if __name__ == "__main__":
         'seed': 42,
         'nPatterns': 8,
         'useSparseOptimization': True,
-        'distributed': "single-cell",
+        'distributed': "genome-wide",
     })
 
     params.setDistributedParams(nSets=15, minNS=8, maxNS=23, cut=8)

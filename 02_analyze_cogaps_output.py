@@ -1,6 +1,6 @@
 import pickle
 
-with open('./data/PDACCoGAPSResult031422.pkl', 'rb') as fp:
+with open('./data/testing032522.pkl', 'rb') as fp:
     cogaps_result = pickle.load(fp)
 
 # cogaps_result
@@ -11,14 +11,17 @@ with open('./data/PDACCoGAPSResult031422.pkl', 'rb') as fp:
 # 'pumpMatrix', 'samplingSnapshotsA', 'samplingSnapshotsP', 'seed', 'totalRunningTime', 'totalUpdates'
 
 import scanpy as sc
-adata = sc.read_h5ad("/Users/jeanette/fertiglab/PDAC_Atlas_Pipeline/PDAC.h5ad")
+import scipy
+# adata = sc.read_h5ad("/Users/jeanette/fertiglab/PDAC_Atlas_Pipeline/PDAC.h5ad")
+
 # copy over gene names (should probably do this earlier.. oh well)
-cogaps_result.var_names = cogaps_result.var_names = adata.var["gene_short_name"]
+# cogaps_result.var_names = cogaps_result.var_names = adata.var["gene_short_name"]
 from PyCoGAPS import *
 from PyCoGAPS.analysis_functions import *
 from PyCoGAPS.helper_functions import *
 
 adata = cogaps_result
+adata.X = scipy.sparse.csr_matrix(adata.X)
 sc.pp.highly_variable_genes(adata)
 adata = adata[:, adata.var.highly_variable]
 
@@ -35,4 +38,10 @@ sc.tl.umap(adata)
 # adata.obs['majorCluster']=list(majorCluster)
 
 # plot pattern amplitude on UMAP
-sc.pl.umap(adata, color="")
+patterns = list(adata.obs.columns)[0:7]
+sc.pl.umap(adata, color=patterns)
+
+
+
+# PATTERNS IMPORTED FROM R
+

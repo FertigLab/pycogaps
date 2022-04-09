@@ -180,7 +180,7 @@ def distributedCoGAPS(path, params, uncertainty=None):
         warnings.warn("Data subset dimension less than nPatterns. Aborting.")
         return 1
 
-    setParams(params, {'checkpointOutFile': ""})
+    # setParams(params, {'checkpointOutFile': ""})
 
     if params.coparams["fixedPatterns"] is None:
         print("Running Across Subsets...\n\n")
@@ -235,14 +235,14 @@ def distributedCoGAPS(path, params, uncertainty=None):
         pool.join()
         finalresult = list(finalresult)
 
-    stitched = stitchTogether(finalresult, result, params, sets)
+    stitched = stitchTogether(finalresult, result, params, sets, data)
 
 
-    adata = anndata.AnnData(data.X)
-    adata.obs = pd.DataFrame(data=stitched["Amean"], index=data.obs_names)
-    adata.var = pd.DataFrame(data=stitched["Pmean"], index=adata.var_names)
-    adata.uns["asd"] = pd.DataFrame(data=stitched["Asd"], index=adata.obs_names)
-    adata.uns["psd"] = pd.DataFrame(data=stitched["Psd"], index=adata.var_names)
+    adata = data
+    adata.obs = stitched["Amean"]
+    adata.var = stitched["Pmean"]
+    adata.uns["asd"] = stitched["Asd"]
+    adata.uns["psd"] = stitched["Psd"]
     adata.uns["atomhistoryA"] = finalresult[0].uns["atomhistoryA"]
     adata.uns["atomhistoryP"] = finalresult[0].uns["atomhistoryP"]
     adata.uns["averageQueueLengthA"] = finalresult[0].uns["averageQueueLengthA"]
@@ -301,7 +301,7 @@ def callInternalCoGAPS(paramlst):
         samples = np.array(params.coparams['sampleNames'])
         samplesubset = np.take(samples, subsetIndices)
         params.coparams['sampleNames'] = samplesubset
-        adata = adata[samplesubset, :]
+        adata = adata[subsetIndices, :]
         params.coparams['subsetDim'] = 2
        
     params.coparams['subsetIndices'] = subsetIndices

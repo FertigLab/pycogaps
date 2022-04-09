@@ -188,12 +188,14 @@ def setParam(paramobj: CoParams, whichParam, value):
             paramobj.coparams[whichParam] = value
     elif whichParam in "distributed":
         if value == "genome-wide":
+            print("running genome-wide. if you wish to perform single-cell distributed cogaps, please run setParams(params, "
+                  "\"distributed\", ""\"single-cell\")")
             paramobj.gaps.runningDistributed = True
             paramobj.coparams['distributed'] = value
-        elif (value is not None) and (value is not False):
-            # print("if you wish to perform genome-wide distributed cogaps, please run setParams(params, "
-            #       "\"distributed\", ""\"genome-wide\")")
-            paramobj.coparams['distributed'] = 'genome-wide'
+        elif value == "single-cell":
+            print("running single-cell. if you wish to perform genome-wide distributed cogaps, please run setParams(params, "
+                  "\"distributed\", ""\"genome-wide\")")
+            paramobj.coparams['distributed'] = 'single-cell'
             paramobj.gaps.runningDistributed = True
         else:
             paramobj.gaps.runningDistributed = False
