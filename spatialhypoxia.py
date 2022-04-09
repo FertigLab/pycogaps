@@ -20,14 +20,14 @@ if __name__ == "__main__":
     params = CoParams(path)
 
     setParams(params, {
-        'nIterations': 1000,
+        'nIterations': 100,
         'seed': 42,
         'nPatterns': 4,
         'useSparseOptimization': True,
         'distributed': "genome-wide"
     })
 
-    params.setDistributedParams(nSets=8, minNS=4, maxNS=23)
+    params.setDistributedParams(nSets=8)
     params.printParams()
     start = time.time()
     result = CoGAPS(rawdata, params)

@@ -441,10 +441,16 @@ def GapsResultToAnnData(gapsresult, adata, prm):
     if len(Pmean.shape) > 2:
         Pmean = Pmean[0, :, :]
         Psd = Psd[0, :, :]
+    # if prm.coparams["distributed"] == "genome-wide":
     adata.obs = pd.DataFrame(data=Amean, index=adata.obs_names, columns=pattern_labels)
     adata.var = pd.DataFrame(data=Pmean, index=adata.var_names, columns=pattern_labels)
     adata.uns["asd"] = pd.DataFrame(data=Asd, index=adata.obs_names, columns=pattern_labels)
     adata.uns["psd"] = pd.DataFrame(data=Psd, index=adata.var_names, columns=pattern_labels)
+    # else:
+    #     adata.obs = pd.DataFrame(data=Pmean, index=adata.obs_names, columns=pattern_labels)
+    #     adata.var = pd.DataFrame(data=Amean, index=adata.var_names, columns=pattern_labels)
+    #     adata.uns["asd"] = pd.DataFrame(data=Asd, index=adata.var_names, columns=pattern_labels)
+    #     adata.uns["psd"] = pd.DataFrame(data=Psd, index=adata.obs_names, columns=pattern_labels)
     adata.uns["atomhistoryA"] = pd.Series(gapsresult.atomHistoryA)
     adata.uns["atomhistoryP"] = pd.Series(gapsresult.atomHistoryP)
     adata.uns["averageQueueLengthA"] = float(gapsresult.averageQueueLengthA)
