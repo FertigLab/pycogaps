@@ -186,7 +186,7 @@ def setParam(paramobj: CoParams, whichParam, value):
     elif whichParam in coparam_params:
         if value is not None:
             paramobj.coparams[whichParam] = value
-    elif whichParam in "distributed":
+    elif whichParam == "distributed":
         if value == "genome-wide":
             print("running genome-wide. if you wish to perform single-cell distributed cogaps, please run setParams(params, "
                   "\"distributed\", ""\"single-cell\")")
@@ -210,9 +210,33 @@ def setParam(paramobj: CoParams, whichParam, value):
     elif whichParam in ("fixedPatterns", "whichMatrixFixed"):
         # print("please set \'", whichParam, "\' with setFixedPatterns")
         return
-    elif whichParam in "singleCell":
+    elif whichParam == "singleCell":
         print(whichParam, " has been deprecated, this parameter will be ignored")
         return
+    elif whichParam == "nThreads":
+        whichParam = "maxThreads"
+        setattr(paramobj.gaps, whichParam, value)
+    elif whichParam == "messages":
+        whichParam = "printMessages"
+        setattr(paramobj.gaps, whichParam, value)
+    elif whichParam == "nSnapshots":
+        whichParam = "snapshotFrequency"
+        setattr(paramobj.gaps, whichParam, value)
+    elif whichParam == "checkpointInFile":
+        whichParam = "checkpointFile"
+        setattr(paramobj.gaps, whichParam, value)
+    elif whichParam == "snapshotPhase":
+        if value == "sampling":
+            value = pycogaps.GAPS_SAMPLING_PHASE
+        elif value == "equilibration":
+            value = pycogaps.GAPS_EQUILIBRATION_PHASE
+        elif value == "all":
+            value = pycogaps.GAPS_ALL_PHASES
+        # else:
+        #     print("The snapshot phase you indicated is not recognized.")
+        #     print("Please choose one of: sampling, equilibration, all")
+        #     return
+        setattr(paramobj.gaps, whichParam, value)
     else:
         setattr(paramobj.gaps, whichParam, value)
     return paramobj
