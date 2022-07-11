@@ -42,6 +42,7 @@ if __name__ == '__main__':
     
     # set all standard, sparsity, additional parameters
     setParams(params, prm['standard_params'])
+    setParams(params, prm['run_params'])
     setParams(params, prm['sparsity_params'])
     setParams(params, prm['additional_params'])
 
