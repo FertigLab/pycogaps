@@ -3,12 +3,9 @@ this script reads parameters from the command line to run CoGAPS
 supports integration with genepattern notebook
 '''
 
-import sys
-
 if __name__ == '__main__':
-    from PyCoGAPS.config import *
-    from PyCoGAPS.parameters import *
-    from PyCoGAPS.pycogaps_main import CoGAPS
+    from parameters import *
+    from pycogaps_main import CoGAPS
     import pickle
     import argparse
     

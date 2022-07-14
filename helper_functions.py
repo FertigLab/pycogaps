@@ -1,6 +1,6 @@
 import pandas as pd
 
-from PyCoGAPS.config import *
+from config import *
 
 import h5py
 import scipy.io

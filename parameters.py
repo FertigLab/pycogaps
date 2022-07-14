@@ -1,6 +1,5 @@
-from PyCoGAPS.config import *
-from PyCoGAPS.helper_functions import *
-from PyCoGAPS.subset_data import *
+from config import *
+
 
 class CoParams:
     """ Encapsulates all parameters for PyCoGAPS.
