@@ -16,9 +16,7 @@ import scipy
 
 # copy over gene names (should probably do this earlier.. oh well)
 # cogaps_result.var_names = cogaps_result.var_names = adata.var["gene_short_name"]
-from PyCoGAPS import *
-from PyCoGAPS.analysis_functions import *
-from PyCoGAPS.helper_functions import *
+from pycogaps.helper_functions import *
 
 adata = cogaps_result
 adata.X = scipy.sparse.csr_matrix(adata.X)

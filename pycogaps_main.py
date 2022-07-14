@@ -1,15 +1,7 @@
-import anndata
-
-from PyCoGAPS.config import *
-from PyCoGAPS.helper_functions import *
-from PyCoGAPS.subset_data import *
-from PyCoGAPS.parameters import *
-from PyCoGAPS.distributed_functions import *
+from config import *
 
 import multiprocessing
 
-
-sys.setrecursionlimit(10000)
 
 print("""\
 
