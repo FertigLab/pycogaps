@@ -3,7 +3,9 @@
 Coordinated Gene Activity in Pattern Sets (CoGAPS) implements a Bayesian MCMC matrix factorization algorithm, GAPS, and links it to gene set statistic methods to infer biological process activity. It can be used to perform sparse matrix factorization on any data, and when this data represents biomolecules, to do gene set analysis.
 
 This package, PyCoGAPS, presents a unified Python interface, with a parallel, efficient underlying implementation in C++.
+
 <img width="285" alt="image" src="https://user-images.githubusercontent.com/25310425/177400924-48b0c78a-16b5-4565-9de7-2a0f2b3d7ac6.png">
+
 ## **Table of Contents**
 
 1. [ Getting Started with PyCoGAPS ](#1-getting-started-with-pycogaps)
