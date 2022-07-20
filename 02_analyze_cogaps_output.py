@@ -44,4 +44,24 @@ sc.pl.umap(adata, color=patterns)
 
 
 # PATTERNS IMPORTED FROM R
+samplefactors = pd.read_csv("/Users/jeanette/fertiglab/PDAC_Atlas_Pipeline/PDACsampleFactors.csv", index_col=0)
+featureloadings = pd.read_csv("/Users/jeanette/fertiglab/PDAC_Atlas_Pipeline/PDACfeatureLoadings.csv", index_col=0)
+epiMtx = sc.read_mtx("/Users/jeanette/Downloads/epiMat.mtx")
+epiMtx.X = scipy.sparse.csr_matrix(epiMtx.X)
+epiMtx.obs = featureloadings
+epiMtx.var = samplefactors
+plaindata = epiMtx
+epiMtx = epiMtx.T
 
+coldata = pd.read_csv("/Users/jeanette/fertiglab/PDAC_Atlas_Pipeline/PDACcoldata.csv")
+epiMtx.obs["cell type"] = list(coldata["TN_assigned_cell_type_immune_specific"])
+
+sc.pp.normalize_total(epiMtx)
+# sc.pp.log1p(epiMtx)
+
+sc.pp.scale(epiMtx)
+sc.tl.pca(epiMtx, svd_solver='arpack')
+sc.pp.neighbors(epiMtx, n_pcs=25, n_neighbors=50)
+sc.tl.leiden(epiMtx, resolution=0.1)
+sc.tl.umap(epiMtx, min_dist=.1)
+sc.pl.umap(epiMtx, color=list(epiMtx.obs.columns), legend_loc="on data")

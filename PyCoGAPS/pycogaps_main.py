@@ -190,7 +190,7 @@ def distributedCoGAPS(path, params, uncertainty=None):
             paramlst = []
             for i in range(len(sets)):
                 paramlst.append([data, params, i, sets[i], uncertainty])
-            result = pool.imap(callInternalCoGAPS, paramlst)
+            result = pool.imap_unordered(callInternalCoGAPS, paramlst)
             pool.close()
             pool.join()
             result = list(result)
@@ -230,7 +230,7 @@ def distributedCoGAPS(path, params, uncertainty=None):
         paramlst = []
         for i in range(len(sets)):
             paramlst.append([data, params, i, sets[i], uncertainty])
-        finalresult = pool.imap(callInternalCoGAPS, paramlst)
+        finalresult = pool.imap_unordered(callInternalCoGAPS, paramlst)
         pool.close()
         pool.join()
         finalresult = list(finalresult)

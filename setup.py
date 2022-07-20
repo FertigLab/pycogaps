@@ -1,12 +1,13 @@
+import setuptools
 from setuptools import setup
 from setuptools.command.build_ext import build_ext
 import sys
-import setuptools
-
+import pybind11
 from pybind11.setup_helpers import Pybind11Extension, build_ext
 
 __version__ = '0.0.1'
-
+import sys
+print(sys.path)
 
 class get_pybind_include(object):
     """Helper class to determine the pybind11 include path
@@ -39,6 +40,7 @@ ext_modules = [
                        'src/CoGAPS/src/data_structures/HybridMatrix.cpp',
                        'src/CoGAPS/src/data_structures/HybridVector.cpp',
                        'src/CoGAPS/src/data_structures/Matrix.cpp',
+                       # 'src/CoGAPS/src/data_structures/Matrix.h',
                        'src/CoGAPS/src/data_structures/SparseIterator.cpp',
                        'src/CoGAPS/src/data_structures/SparseMatrix.cpp',
                        'src/CoGAPS/src/data_structures/SparseVector.cpp',
@@ -60,8 +62,15 @@ ext_modules = [
                           # Path to pybind11 headers
                           get_pybind_include(),
                           get_pybind_include(user=True),
-                          './src/CoGAPS/src/include/'
+                          'src/CoGAPS/src/include/',
+                          'src/CoGAPS/src/',
+                          'src/CoGAPS/src/data_structures'
                       ],
+                      # depends=[
+                      #   'src/CoGAPS/src/data_structures/Matrix.h',
+                      #   'src/CoGAPS/src/data_structures/Vector.h'
+                      # ],
+                      language="c++"
                       ),
 ]
 
@@ -107,8 +116,9 @@ class BuildExt(build_ext):
     def build_extensions(self):
         ct = self.compiler.compiler_type
         opts = self.c_opts.get(ct, [])
-        opts.append("-I ./src/CoGAPS/src/include/")
-        opts.append(("-Lsrc"))
+        opts.append("-I/src/CoGAPS/src/include/")
+        opts.append("-I/src/CoGAPS/src/*")
+        opts.append("-I/src/CoGAPS/src/data_structures/")
         if ct == 'unix':
             opts.append('-DVERSION_INFO="%s"' % self.distribution.get_version())
             opts.append(cpp_flag(self.compiler))
@@ -124,14 +134,14 @@ class BuildExt(build_ext):
 setup(
     name='pycogaps',
     version=__version__,
-    author='Thomas Sherman',
-    author_email='tomsherman159@gmail.com',
+    author='Jeanette Johnson',
+    author_email='jjohn450@jhmi.edu',
     url='https://github.com/FertigLab/pycogaps',
-    description='Non-Negative Matrix Factorization Algorithm',
+    description='Python interface to the Non-Negative Matrix Factorization Algorithm CoGAPS',
     long_description='',
     ext_modules=ext_modules,
     install_requires=['pybind11>=2.2'],
     cmdclass={'build_ext': BuildExt},
     zip_safe=False,
-    language="c++",
+    language="c++"
 )
