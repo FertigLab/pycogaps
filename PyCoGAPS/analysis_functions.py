@@ -122,7 +122,7 @@ def calcZ(object: anndata, whichMatrix):
     else:
         print('whichMatrix must be either \'featureLoadings\' or \'sampleFactors\'')
         return
-    if 0 in stddev:
+    if 0 in stddev.values:
         print("zeros detected in the standard deviation matrix; they have been replaced by small values")
         stddev[stddev == 0] = 1 ** -6
     return mean / stddev
@@ -308,7 +308,7 @@ def patternMarkers(adata, threshold='all', lp=None, axis=1):
             pmax = np.nanmax(As.values, axis=1, keepdims=True)
             Arowmax = As / pmax
 
-            ssl = pd.DataFrame().reindex_like(As.drop_duplicates())
+            ssl = pd.DataFrame().reindex_like(As)
             import math
             for i in np.arange(As.shape[1]):
                 lp = np.repeat(0, As.shape[1])
@@ -316,7 +316,7 @@ def patternMarkers(adata, threshold='all', lp=None, axis=1):
                 def stat(x):
                     return (math.sqrt(np.matmul(np.transpose(x-lp), (x-lp))))
 
-                ssl.stat = Arowmax.drop_duplicates().apply(func=stat, axis=1)
+                ssl.stat = Arowmax.apply(func=stat, axis=1)
                 order = np.argsort(ssl.stat)
                 ssl["Pattern"+str(i+1)] = order.values
 
@@ -337,7 +337,7 @@ def patternMarkers(adata, threshold='all', lp=None, axis=1):
             geneThresh = int(thispattern[thispattern > globalmins].min())
 
             markerGenes = sortSim[1:geneThresh]
-            markersByPattern[pname] = markerGenes.values
+            markersByPattern[pname] = list(markerGenes.values)
 
     elif threshold == "all":
         patternsByMarker = markerScores.columns[np.argmin(markerScores.values, axis=1)]
@@ -345,7 +345,7 @@ def patternMarkers(adata, threshold='all', lp=None, axis=1):
             markersByPattern['Pattern' + str(i + 1)] = markerScores[
                 markerScores.columns[i] == patternsByMarker].index.values
 
-    dict = {"PatternMarkers": markersByPattern, "PatternMarkerRanks": np.argsort(markerScores, axis=0),
+    dict = {"PatternMarkers": (markersByPattern), "PatternMarkerRanks": np.argsort(markerScores, axis=0),
             "PatternMarkerScores": markerScores}
     return dict
 
@@ -359,7 +359,7 @@ def calcCoGAPSStat(object, sets, whichMatrix='featureLoadings', numPerm=1000):
         sets (list): list of sets of measurements/samples
         whichMatrix (str, optional): either "featureLoadings" or "sampleFactors" indicating which matrix
         to calculate the statistics. Defaults to 'featureLoadings'.
-        numPerm (int, optional): number of permutations to use when calculatin p-value. Defaults to 1000.
+        numPerm (int, optional): number of permutations to use when calculating p-value. Defaults to 1000.
 
     Raises:
         Exception: If sets are not a list of measurements or samples
@@ -379,7 +379,8 @@ def calcCoGAPSStat(object, sets, whichMatrix='featureLoadings', numPerm=1000):
     pvalUpReg = []
 
     lessThanCount = np.zeros(zMatrix.shape[1])
-    actualZScore = np.mean(zMatrix.loc[sets,:].values, axis=0)
+    arr = zMatrix.loc[sets].values
+    actualZScore = np.mean(arr[np.isfinite(arr)])
     for n in range(numPerm):
         permutedIndices = np.random.choice(np.arange(1, zMatrix.shape[0]), size=len(sets), replace=False)
         permutedZScore = np.mean(zMatrix.iloc[permutedIndices,:].values, axis=0)
