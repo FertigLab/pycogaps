@@ -1,10 +1,9 @@
 if __name__ == "__main__":
-    from PyCoGAPS import *
     import pickle
     from PyCoGAPS.parameters import *
     from PyCoGAPS.pycogaps_main import CoGAPS
     import scanpy as sc
-    import anndata
+
     # load CoGAPS result object
     path = "/Users/jeanette/fertiglab/spatialhypoxia/outs/filtered_feature_bc_matrix/matrix.mtx"
     rawdata = sc.read_mtx(path)
@@ -20,7 +19,7 @@ if __name__ == "__main__":
     params = CoParams(path)
 
     setParams(params, {
-        'nIterations': 100,
+        'nIterations': 1000,
         'seed': 42,
         'nPatterns': 4,
         'useSparseOptimization': True,
