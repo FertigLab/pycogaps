@@ -1,6 +1,5 @@
-from PyCoGAPS.config import *
-from PyCoGAPS.helper_functions import *
-from PyCoGAPS.subset_data import *
+from config import *
+from helper_functions import *
 
 import itertools
 from sklearn.cluster import AgglomerativeClustering

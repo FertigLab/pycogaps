@@ -1,15 +1,7 @@
-import anndata
-
-from PyCoGAPS.config import *
-from PyCoGAPS.helper_functions import *
-from PyCoGAPS.subset_data import *
-from PyCoGAPS.parameters import *
-from PyCoGAPS.distributed_functions import *
+from config import *
 
 import multiprocessing
 
-
-sys.setrecursionlimit(10000)
 
 print("""\
 
@@ -92,17 +84,17 @@ def standardCoGAPS(path, params=None, nThreads=1, messages=True,
             print("requesting multi-threaded version of CoGAPS but compiler did not support OpenMP")
         asynchronousUpdates = False
         nThreads = 1
-    # convert sampling phase to enum
-    if snapshotPhase == "sampling":
-        snapshotPhase = pycogaps.GAPS_SAMPLING_PHASE
-    elif snapshotPhase == "equilibration":
-        snapshotPhase = pycogaps.GAPS_EQUILIBRATION_PHASE
-    elif snapshotPhase == "all":
-        snapshotPhase = pycogaps.GAPS_ALL_PHASES
-    else:
-        print("The snapshot phase you indicated is not recognized.")
-        print("Please choose one of: sampling, equilibration, all")
-        return
+    # # convert sampling phase to enum
+    # if snapshotPhase == "sampling":
+    #     snapshotPhase = pycogaps.GAPS_SAMPLING_PHASE
+    # elif snapshotPhase == "equilibration":
+    #     snapshotPhase = pycogaps.GAPS_EQUILIBRATION_PHASE
+    # elif snapshotPhase == "all":
+    #     snapshotPhase = pycogaps.GAPS_ALL_PHASES
+    # else:
+    #     print("The snapshot phase you indicated is not recognized.")
+    #     print("Please choose one of: sampling, equilibration, all")
+    #     return
 
     gapsresultobj = None
 

@@ -1,5 +1,5 @@
-from PyCoGAPS.config import *
-from PyCoGAPS.helper_functions import nrowHelper, ncolHelper, getDimNames
+from pycogaps.config import *
+from helper_functions import nrowHelper, ncolHelper, getDimNames
 
 # explicitSets either list of indices or names
 def sampleWithExplicitSets(allParams, data):

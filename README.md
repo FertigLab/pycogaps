@@ -1,22 +1,105 @@
+<img width="285" alt="image" src="https://user-images.githubusercontent.com/25310425/177400924-48b0c78a-16b5-4565-9de7-2a0f2b3d7ac6.png">
+
 # **PyCoGAPS**
 
 Coordinated Gene Activity in Pattern Sets (CoGAPS) implements a Bayesian MCMC matrix factorization algorithm, GAPS, and links it to gene set statistic methods to infer biological process activity. It can be used to perform sparse matrix factorization on any data, and when this data represents biomolecules, to do gene set analysis.
 
-This package, PyCoGAPS, presents a unified Python interface, with a parallel, efficient underlying implementation in C++.
+This package, PyCoGAPS, presents a unified Python interface, with a parallel, efficient underlying implementation in C++. The R implementation of CoGAPS can be found here: https://github.com/FertigLab/CoGAPS/
 
 ## **Table of Contents**
 
-1. [ Getting Started with PyCoGAPS ](#1-getting-started-with-pycogaps)
-2. [ Running PyCoGAPS on Your Data](#2-running-pycogaps-on-your-data)   
+1. [ Using the PyCoGAPS Library ](#1-using-the-pycogaps-library)
+2. [ Running PyCoGAPS Using Docker](#2-running-pycogaps-using-docker)   
 3. [ Analyzing the PyCoGAPS Result ](#3-analyzing-the-pycogaps-result)
 4. [ Additional Features of PyCoGAPS ](#4-additional-features-of-pycogaps)     
 5. [ Citing PyCoGAPS ](#5-citing-pycogaps)
 
 
-# **1. Getting Started with PyCoGAPS**
+
+# **1. Using the PyCoGAPS library**
+
+To install, please clone our GitHub repository as follows: 
+```
+git clone https://github.com/FertigLab/pycogaps.git --recursive
+cd pycogaps 
+python setup.py install
+```
+When PyCoGAPS has installed and built correctly, you should see this message:
+```
+Finished processing dependencies for pycogaps==0.0.1
+```
+Which means it is ready to use! You may need to install some Python dependencies before everything can build, so don’t be deterred if it takes a couple of tries to install.
+
 We'll first begin with setting up your working environment and running CoGAPS on an example dataset with default parameters.
 
-For Mac/Linux OS users, we'll be using a Docker image, which we will pull from the Docker repository, and this contains a set of instructions to build and run PyCoGAPS. With this Docker image, there's no need to install any dependencies, import packages, etc. as the environment is already set up and directly ready to run on your computer.
+To use the PyCoGAPS python package, import dependencies as follows:
+
+```
+from parameters import *
+from pycogaps_main import CoGAPS
+import scanpy as sc
+```
+NOTE: if you wish to run distributed (parallel), please wrap all subsequent code in this check to avoid thread reentry issues:
+```
+if __name__ == "__main__":
+```
+Load input data (acceptable formats: h5ad, h5, csv, txt, mtx, tsv)
+```
+path = "/Users/jeanette/fertiglab/PDAC_Atlas_Pipeline/PDAC.h5ad"
+adata = sc.read_h5ad(path)
+```
+We recommend log normalizing count data
+```
+sc.pp.log1p(adata)
+```
+Now, set run parameters by creating a CoParams object. 
+```
+params = CoParams(path)
+
+setParams(params, {
+    'nIterations': 50000,
+    'seed': 42,
+    'nPatterns': 8,
+    'useSparseOptimization': True,
+    'distributed': "genome-wide",
+})
+```
+If you are running in parallel, distributed parameters can be modified like this:
+```
+params.setDistributedParams(nSets=15, minNS=8, maxNS=23, cut=8)
+```
+Now, start your CoGAPS run by passing your data object and parameter object. Since CoGAPS runs can take significant time to complete, we recommend keeping track of how run times scale with increasing patterns and iterations.
+```
+start = time.time()
+result = CoGAPS(adata, params)
+end = time.time()
+
+print("TIME:", end - start)
+```
+While CoGAPS is running, you will see periodic status messages saying how many iterations have been completed, the current ChiSq value, and how much time has elapsed out of the estimated total runtime.
+```
+1000 of 50000, Atoms: 5424(A), 21232(P), ChiSq: 138364000, Time: 00:03:47 / 11:13:32
+2000 of 50000, Atoms: 5394(A), 20568(P), ChiSq: 133824536, Time: 00:03:46 / 11:10:34
+3000 of 50000, Atoms: 5393(A), 21161(P), ChiSq: 133621048, Time: 00:03:51 / 11:25:24
+4000 of 50000, Atoms: 5527(A), 22198(P), ChiSq: 137671296, Time: 00:04:00 / 11:52:06
+5000 of 50000, Atoms: 5900(A), 20628(P), ChiSq: 137228688, Time: 00:03:58 / 11:46:10
+```
+When the run is finished, CoGAPS will print a message like this:
+```
+GapsResult result object with 5900 features and 20628 samples
+8 patterns were learned
+```
+We strongly recommend saving your result object as soon as it returns. One option to do so is using Python’s serialization library, pickle64.
+```
+print("Pickling...")
+pickle.dump(result, open("./data/PDACresult_50kiterations.pkl", "wb"))
+print("Pickling complete!")
+```
+Now you have successfully generated a CoGAPS result! To continue to visualization and analysis guides, please skip to the section below titled “Analyzing the PyCoGAPS Result” 
+
+# **2. Running PyCoGAPS using Docker**
+
+The second option for running PyCoGAPS is using a Docker image, which we will pull from the Docker repository, and this contains a set of instructions to build and run PyCoGAPS. With this Docker image, there's no need to install any dependencies, import packages, etc. as the environment is already set up and directly ready to run on your computer.
 
 Please follow the steps below to run the PyCoGAPS vignette on Mac/Linux OS:
 1. Install Docker at https://docs.docker.com/desktop/mac/install/ 
@@ -88,8 +171,6 @@ PyCoGAPS
 ├── output
 │   └── result.pkl
 ```
-
-# **2. Running PyCoGAPS on Your Data**
 
 Now, you're ready to run CoGAPS for analysis on your own data with custom parameters. 
 
