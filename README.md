@@ -8,14 +8,14 @@ This package, PyCoGAPS, presents a unified Python interface, with a parallel, ef
 
 ## **Table of Contents**
 
-1. [ Getting Started with PyCoGAPS ](#1-getting-started-with-pycogaps)
-2. [ Running PyCoGAPS on Your Data](#2-running-pycogaps-on-your-data)   
+1. [ Using the PyCoGAPS Library ](#1-using-the-pycogaps-library)
+2. [ Running PyCoGAPS Using Docker](#2-running-pycogaps-using-docker)   
 3. [ Analyzing the PyCoGAPS Result ](#3-analyzing-the-pycogaps-result)
 4. [ Additional Features of PyCoGAPS ](#4-additional-features-of-pycogaps)     
 5. [ Citing PyCoGAPS ](#5-citing-pycogaps)
 
 
-# **1. Getting Started with PyCoGAPS**
+# **1. Using the PyCoGAPS library**
 
 To install, please clone our GitHub repository as follows: 
 ```
@@ -96,6 +96,8 @@ print("Pickling complete!")
 ```
 Now you have successfully generated a CoGAPS result! To continue to visualization and analysis guides, please skip to the section below titled “Analyzing the PyCoGAPS Result” 
 
+# **2. Running PyCoGAPS using Docker**
+
 The second option for running PyCoGAPS is using a Docker image, which we will pull from the Docker repository, and this contains a set of instructions to build and run PyCoGAPS. With this Docker image, there's no need to install any dependencies, import packages, etc. as the environment is already set up and directly ready to run on your computer.
 
 Please follow the steps below to run the PyCoGAPS vignette on Mac/Linux OS:
@@ -168,8 +170,6 @@ PyCoGAPS
 ├── output
 │   └── result.pkl
 ```
-
-# **2. Running PyCoGAPS on Your Data**
 
 Now, you're ready to run CoGAPS for analysis on your own data with custom parameters. 
 
