@@ -4,8 +4,8 @@ supports integration with genepattern notebook
 '''
 
 if __name__ == '__main__':
-    from parameters import *
-    from pycogaps_main import CoGAPS
+    from PyCoGAPS.parameters import *
+    from PyCoGAPS.pycogaps_main import CoGAPS
     import pickle
     import argparse
     

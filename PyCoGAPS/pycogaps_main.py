@@ -1,4 +1,8 @@
-from config import *
+from PyCoGAPS.config import *
+from PyCoGAPS.helper_functions import *
+from PyCoGAPS.subset_data import *
+from PyCoGAPS.parameters import *
+from PyCoGAPS.distributed_functions import *
 
 import multiprocessing
 
