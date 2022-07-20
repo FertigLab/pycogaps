@@ -1,7 +1,7 @@
 if __name__ == "__main__":
     import pickle
-    from PyCoGAPS.parameters import *
-    from PyCoGAPS.pycogaps_main import CoGAPS
+    from parameters import *
+    from pycogaps_main import CoGAPS
     import scanpy as sc
 
     # load CoGAPS result object

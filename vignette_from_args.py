@@ -4,9 +4,9 @@ This is intended for running Docker image of PyCoGAPS (latest pushed)
 '''
 
 if __name__ == '__main__':
-    from PyCoGAPS.config import *
-    from PyCoGAPS.parameters import *
-    from PyCoGAPS.pycogaps_main import CoGAPS
+    from pycogaps.config import *
+    from pycogaps.parameters import *
+    from pycogaps.pycogaps_main import CoGAPS
 
     import yaml
     import pickle
@@ -42,6 +42,7 @@ if __name__ == '__main__':
     
     # set all standard, sparsity, additional parameters
     setParams(params, prm['standard_params'])
+    setParams(params, prm['run_params'])
     setParams(params, prm['sparsity_params'])
     setParams(params, prm['additional_params'])
 

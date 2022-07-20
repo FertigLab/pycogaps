@@ -1,8 +1,7 @@
 if __name__ == '__main__':
-    from PyCoGAPS import *
     import pickle
-    from PyCoGAPS.parameters import *
-    from PyCoGAPS.pycogaps_main import CoGAPS
+    from pycogaps.parameters import *
+    from pycogaps.pycogaps_main import CoGAPS
     print("This vignette was built using pycogaps version", getVersion())
     path = "data/GSE98638_HCC.TCell.S5063.count.txt"
     pd_table = pd.read_table(path)
