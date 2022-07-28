@@ -110,7 +110,7 @@ docker run -d -p 80:80 docker/getting-started
 3. Copy the commands and paste in terminal (Tested via Mac OX)
 
 ```
-docker pull ashleyt2000/pycogaps:docker_pycogaps
+docker pull fertiglab/pycogaps
 mkdir PyCoGAPS
 cd PyCoGAPS
 curl -O https://raw.githubusercontent.com/FertigLab/pycogaps/master/params.yaml
@@ -118,7 +118,7 @@ mkdir data
 cd data
 curl -O https://raw.githubusercontent.com/FertigLab/pycogaps/master/data/GIST.csv
 cd ..
-docker run -v $PWD:$PWD ashleyt2000/pycogaps:docker_pycogaps $PWD/params.yaml
+docker run -v $PWD:$PWD fertiglab/pycogaps $PWD/params.yaml
 
 ```
 For MARCC users, we'll be building the pycogaps package and installing all dependencies in a conda environment.
