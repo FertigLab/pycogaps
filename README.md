@@ -17,8 +17,11 @@ This package, PyCoGAPS, presents a unified Python interface, with a parallel, ef
 
 
 # **1. Using the PyCoGAPS library**
-
-To install, please clone our GitHub repository as follows: 
+Install via pip:
+```
+pip install pycogaps==0.0.1
+```
+Or install via GitHub: 
 ```
 git clone https://github.com/FertigLab/pycogaps.git --recursive
 cd pycogaps 
