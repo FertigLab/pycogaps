@@ -7,7 +7,8 @@ class CoParams:
 
     """
 
-    def __init__(self, path=None, matrix=None, transposeData=False, hdfKey=None, hdfRowKey=None, hdfColKey=None):
+    def __init__(self, adata=None, path=None, matrix=None, transposeData=False, hdfKey=None, hdfRowKey=None,
+                 hdfColKey=None):
         """ Initializes CoParams object. 
             self.gaps : GapsParameters object
             self.cogaps : dictionary of additional parameters (not in GapsParameters)
@@ -24,16 +25,21 @@ class CoParams:
             Exception: If path or params not passed as an argument.
         """        
 
-        if matrix is not None:
+        if adata is not None:
+            matrix = pycogaps.Matrix(adata.X)
+            self.gaps = GapsParameters(matrix)
+        elif matrix is not None:
             self.gaps = GapsParameters(pycogaps.Matrix(matrix.X))
             adata = matrix
         elif path is not None:
-            if path.lower().endswith(".h5"):
-                adata = toAnndata(path, hdfKey, hdfRowKey, hdfColKey, transposeData=transposeData)
-            elif path.lower().endswith(".txt"):
-                table = pd.read_table(path)
-                adata = anndata.AnnData(table.iloc[:, 2:])
-                adata.obs_names = table["symbol"]
+            if isinstance(path, str):
+                if path.lower().endswith(".h5"):
+                    adata = toAnndata(path, hdfKey, hdfRowKey, hdfColKey, transposeData=transposeData)
+                elif path.lower().endswith(".txt"):
+                    table = pd.read_table(path, header=None)
+                    adata = anndata.AnnData(table)
+                # adata.obs_names = table["symbol"] 
+                # we cannot assume this will be in the text file and will trip an error
             else:
                 adata = toAnndata(path, transposeData=transposeData)
             matrix = pycogaps.Matrix(adata.X)
