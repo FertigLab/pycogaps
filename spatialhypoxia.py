@@ -16,7 +16,7 @@ if __name__ == "__main__":
 
     sc.pp.log1p(rawdata)
 
-    params = CoParams(path)
+    params = CoParams(path=path)
 
     setParams(params, {
         'nIterations': 1000,

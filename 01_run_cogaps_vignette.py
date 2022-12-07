@@ -4,7 +4,6 @@ if __name__ == "__main__":
     from PyCoGAPS.pycogaps_main import CoGAPS
     import scanpy as sc
 
-    # load CoGAPS result object
     path = "/Users/jeanette/fertiglab/PDAC_Atlas_Pipeline/PDAC.h5ad"
     adata = sc.read_h5ad(path)
 
@@ -18,7 +17,7 @@ if __name__ == "__main__":
     # sc.pp.normalize_total(adata)
     sc.pp.log1p(adata)
 
-    params = CoParams(path)
+    params = CoParams(path=path)
 
     setParams(params, {
         'nIterations': 1000,

@@ -136,8 +136,7 @@ if __name__ == '__main__':
 
     data_path = args.path
     
-    params = CoParams(path=data_path, transposeData=args.transposeData, 
-                      hdfKey=args.hdfKey, hdfRowKey=args.hdfRowKey,
+    params = CoParams(path=data_path, transposeData=args.transposeData, hdfKey=args.hdfKey, hdfRowKey=args.hdfRowKey,
                       hdfColKey=args.hdfColKey)
 
     prm_dict = vars(args)
