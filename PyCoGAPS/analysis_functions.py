@@ -639,9 +639,9 @@ def plotPatternUMAP(result, genes_in_rows=True, fn=""):
     # sc.pl.highest_expr_genes(result, n_top=20, save="{}_highestExpressedGenes.png".format(fn))
     # sc.pp.filter_cells(result, min_genes=200)
     # sc.pp.filter_genes(result, min_cells=3)
-    sc.pp.log1p(result)
-    # sc.pp.highly_variable_genes(result, min_mean=0.0125, max_mean=3, min_disp=0.5)
-    # result = result[:, result.var.highly_variable]
+    # sc.pp.log1p(result)
+    sc.pp.highly_variable_genes(result, min_mean=0.0125, max_mean=3, min_disp=0.5)
+    result = result[:, result.var.highly_variable]
     sc.pp.scale(result, max_value=10)
     sc.tl.pca(result, svd_solver='arpack')
     sc.pp.neighbors(result)

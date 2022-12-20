@@ -3,16 +3,16 @@ if __name__ == "__main__":
     from PyCoGAPS.pycogaps_main import CoGAPS
     import scanpy as sc
 
-    path = "/Users/jeanette/fertiglab/PDAC_Atlas_Pipeline/PDAC.h5ad"
+    path = "/Users/jeanette/fertiglab/PDAC_Atlas_Pipeline/PDAC_Peng_Epi.h5ad"
     adata = sc.read_h5ad(path)
-    adata.X = adata.X.todense()
+    # adata.X = adata.X.todense()
     adata = adata.T
     sc.pp.log1p(adata)
 
     params = CoParams(adata=adata)
 
     setParams(params, {
-        'nIterations': 1000,
+        'nIterations': 50000,
         'seed': 42,
         'nPatterns': 8,
         'useSparseOptimization': True,
