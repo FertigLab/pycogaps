@@ -1,6 +1,6 @@
 import anndata
 import scanpy as sc
-import pandas as pd
+# import pandas as pd
 
 pycogapsresult = anndata.read_h5ad("data/pdacresult.h5ad")
 
@@ -18,6 +18,7 @@ adata = pycogapsresult
 # get readable gene names from original object
 adata_original = sc.read_h5ad("/Users/jeanette/fertiglab/PDAC_Atlas_Pipeline/PDAC_Peng_Epi.h5ad").T
 adata.obs_names = adata_original.obs["gene_short_name"]
+adata.var["cell_type"] = adata_original.var["TN_assigned_cell_type_immune_broad"]
 
 # adata = pycogapsresult.T
 
@@ -68,3 +69,8 @@ pm["PatternMarkers"]["Pattern7"]
 pm["PatternMarkers"]["Pattern8"]
 # ['GFI1', 'KRCC1', 'LRRC8B', 'FGF5', 'HENMT1', 'RNPEP', 'GPBP1', 'PXDC1', 'CLDN11', 'UAP1', 'SAYSD1', 'SPTA1',
 # 'IGSF10', 'CREBRF', 'SPINK9', 'ZNF346', 'FAM135A', 'PGM3', 'MANF', 'CENPF', 'PCDHGA9', 'DDX46']
+
+
+
+# from PyCoGAPS.parameters import *
+# from PyCoGAPS.pycogaps_main import CoGAPS
