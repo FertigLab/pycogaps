@@ -18,7 +18,6 @@ adata = pycogapsresult
 # get readable gene names from original object
 adata_original = sc.read_h5ad("/Users/jeanette/fertiglab/PDAC_Atlas_Pipeline/PDAC_Peng_Epi.h5ad").T
 adata.obs_names = adata_original.obs["gene_short_name"]
-adata.var["cell_type"] = adata_original.var["TN_assigned_cell_type_immune_broad"]
 
 # adata = pycogapsresult.T
 
@@ -28,7 +27,8 @@ from PyCoGAPS.analysis_functions import *
 plotPatternUMAP(adata)
 
 pm = patternMarkers(adata, threshold="cut")
-
+# add cell type annotations
+adata.var["cell_type"] = adata_original.var["TN_assigned_cell_type_immune_broad"]
 pm["PatternMarkers"]["Pattern1"]
 # ['ID3', 'CYP20A1', 'ST3GAL6', 'VGLL4', 'PCDHB14', 'CTSO', 'YARS', 'HMGCLL1', 'ITIH1', 'NCDN', 'TRIM10', 'SMYD2',
 # 'HBEGF', 'DHX16', 'TMCO6', 'HSPA1A', 'PHAX', 'EPO', 'CLCN3', 'LSMEM2', 'LY6G5B', 'NDFIP1', 'MICB', 'RUFY1', 'NT5DC2',
@@ -74,3 +74,90 @@ pm["PatternMarkers"]["Pattern8"]
 
 # from PyCoGAPS.parameters import *
 # from PyCoGAPS.pycogaps_main import CoGAPS
+pm = patternMarkers(adata, threshold="all")
+# trying to get hallmark results
+markers = pm["PatternMarkers"]
+# colnames = list(markers)
+# pattern_names = {sub for sub in colnames if sub.startswith('Pattern')}
+p1_markers = list(markers["Pattern1"])
+for key in markers:
+    print(markers[key])
+    thispattern_markers = markers[key]
+
+# trying this probably
+# https://pypi.org/project/gsea-api/
+
+
+from pandas import read_table
+
+# from gsea_api.molecular_signatures_db import GeneSets
+# from gsea_api.gsea import GSEADesktop
+# hallmarks = GeneSets.from_gmt("msigdb_hallmarks/h.all.v2022.1.Hs.symbols.gmt")
+# gsea = GSEADesktop()
+
+# result = gsea.run(
+#     p1_markers,
+#     hallmarks
+# )
+#
+# from gsea_api.molecular_signatures_db import MolecularSignaturesDatabase
+#
+# from gseapy import Biomart
+# bm = Biomart()
+#
+# msigdb = MolecularSignaturesDatabase('msigdb', version=7.1)
+# msigdb.gene_sets
+
+
+import gseapy as gp
+# run enrichr
+# if you are only intrested in dataframe that enrichr returned, please set outdir=None
+enr = gp.enrichr(gene_list=p1_markers, # or "./tests/data/gene_list.txt",
+                 gene_sets=['MSigDB_Hallmark_2020'],
+                 organism='human', # don't forget to set organism to the one you desired! e.g. Yeast
+                 outdir=None, # don't write to disk
+                )
+
+gsea = pd.DataFrame(enr.results)
+
+# simple plotting function
+from gseapy import barplot, dotplot
+# categorical scatterplot
+# ax = dotplot(enr.results,
+#               column="Adjusted P-value",
+#               x='Gene_set', # set x axis, so you could do a multi-sample/library comparsion
+#               size=10,
+#               top_term=5,
+#               figsize=(3,5),
+#               title = "KEGG",
+#               xticklabels_rot=45, # rotate xtick labels
+#               show_ring=True, # set to False to revmove outer ring
+#               marker='o',
+#              )
+import matplotlib.pyplot as plt
+# categorical scatterplot
+gsea = gsea[gsea["Adjusted P-value"] < 0.05]
+
+import seaborn as sns
+
+
+
+sns.barplot(data= gsea, x="Term", y="Adjusted P-value")
+
+p2_markers = markers["Pattern2"]
+p3_markers = markers["Pattern3"]
+p4_markers = markers["Pattern4"]
+p5_markers = markers["Pattern5"]
+p6_markers = markers["Pattern6"]
+p7_markers = markers["Pattern7"]
+p7enr = gp.enrichr(gene_list=p7_markers, # or "./tests/data/gene_list.txt",
+                 gene_sets=['MSigDB_Hallmark_2020'],
+                 organism='human', # don't forget to set organism to the one you desired! e.g. Yeast
+                 outdir=None, # don't write to disk
+                )
+p7gsea = pd.DataFrame(p7enr.results)
+p7gsea = p7gsea[p7gsea["P-value"] < 0.2]
+sns.barplot(data= p7gsea, x="Term", y="P-value")
+
+p8_markers = markers["Pattern8"]
+
