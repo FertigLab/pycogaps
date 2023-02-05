@@ -66,9 +66,38 @@ def plot(obj, groups=None, title=None, fn=""):
     plt.show()
     return fig
 
-def patternGSEA(obj):
+def patternGSEA(obj, patternmarkers=None, verbose=True, gene_sets = ['MSigDB_Hallmark_2020'], organism="human"):
+    import pandas as pd
+    pd.options.mode.chained_assignment = None  # default='warn'
+    if patternmarkers is None:
+        patternmarkers = patternMarkers(obj, threshold="all")
 
-    return obj
+    markers = patternmarkers["PatternMarkers"]
+    import gseapy as gp
+    print("This is a wrapper function around the pygsea enrichr API. \n"
+          "Documentation can be found at: https://gseapy.readthedocs.io/en/latest/introduction.html")
+    gsea_results = dict()
+    for pattern in markers:
+        geneset = list(markers[pattern])
+        if(verbose):
+            print("\nUsing " + str(len(geneset)) +" markers of "+ pattern + ":\n")
+            print(geneset)
+        gsea_enr_res = gp.enrichr(gene_list=geneset,
+                           gene_sets=gene_sets,
+                           organism=organism,
+                           outdir=None,  # don't write to disk
+                           verbose=verbose,
+                           )
+
+        gsea_enr_df = pd.DataFrame(gsea_enr_res.results)
+        # plot_enr_df = gsea_enr_df[gsea_enr_df["P-value"] < 0.05]
+        plot_enr_df = gsea_enr_df
+        neg_log_q = (-10) * np.log10(list(plot_enr_df["P-value"]))
+        plot_enr_df["neg.log.q"] = neg_log_q
+
+        gsea_results[pattern] = plot_enr_df
+        # sns.barplot(data=plot_enr_df, x="neg.log.q", y="Term")
+    return gsea_results
 
 
 def patternBoxPlot(obj, groups, fn=""):
