@@ -110,6 +110,15 @@ def patternGSEA(obj, patternmarkers=None, verbose=True, gene_sets = ['MSigDB_Hal
         # sns.barplot(data=plot_enr_df, x="neg.log.q", y="Term")
     return gsea_results
 
+def plotPatternGSEA(patternGSEAResults, whichPattern):
+    import seaborn as sns
+    patternName = list(patternGSEAResults.keys())[whichPattern - 1]
+
+    gsea_enr_df = patternGSEAResults[patternName]
+    plot_df = gsea_enr_df[gsea_enr_df["P-value"] < 0.05] # only want to see significant terms
+    sns.barplot(data=plot_df, x="neg.log.q", y="Term").set_title(patternName + " Enriched Terms")
+    plt.show()
+    return plt
 
 def patternBoxPlot(obj, groups, fn=""):
     """ generate a boxplot where each subplot displays amplitudes for each group for each pattern
