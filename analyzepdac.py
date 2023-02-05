@@ -1,4 +1,5 @@
 import anndata
+import pandas as pd
 import scanpy as sc
 # import pandas as pd
 
@@ -16,8 +17,7 @@ pycogapsresult = anndata.read_h5ad("data/pdacresult.h5ad")
 #       dtype='object')
 adata = pycogapsresult
 # get readable gene names from original object
-adata_original = sc.read_h5ad("/Users/jeanette/fertiglab/PDAC_Atlas_Pipeline/PDAC_Peng_Epi.h5ad").T
-adata.obs_names = adata_original.obs["gene_short_name"]
+adata_original = sc.read_h5ad("data/PDAC_Peng_Epi.h5ad").T
 
 # adata = pycogapsresult.T
 
@@ -46,23 +46,17 @@ for key in markers:
 
 
 import gseapy as gp
-# run enrichr
-# if you are only intrested in dataframe that enrichr returned, please set outdir=None
-enr = gp.enrichr(gene_list=p1_markers, # or "./tests/data/gene_list.txt",
-                 gene_sets=['MSigDB_Hallmark_2020'],
-                 organism='human', # don't forget to set organism to the one you desired! e.g. Yeast
-                 outdir=None, # don't write to disk
-                )
 
-gsea = pd.DataFrame(enr.results)
 
-gsea = gsea[gsea["Adjusted P-value"] < 0.05]
+# gsea = pd.DataFrame(enr.results)
+#
+# gsea = gsea[gsea["Adjusted P-value"] < 0.05]
 
 import seaborn as sns
 
 
 
-sns.barplot(data= gsea, x="Term", y="Adjusted P-value")
+# sns.barplot(data= gsea, x="Term", y="Adjusted P-value")
 
 p2_markers = markers["Pattern2"]
 p3_markers = markers["Pattern3"]
@@ -76,8 +70,34 @@ p7enr = gp.enrichr(gene_list=p7_markers, # or "./tests/data/gene_list.txt",
                  outdir=None, # don't write to disk
                 )
 p7gsea = pd.DataFrame(p7enr.results)
-p7gsea = p7gsea[p7gsea["P-value"] < 0.2]
-sns.barplot(data= p7gsea, x="Term", y="P-value")
+p7gsea = p7gsea[p7gsea["P-value"] < 0.05]
+sns.barplot(data= p7gsea, x="P-value", y="Term")
 
 p8_markers = markers["Pattern8"]
 
+
+prerank = adata.obs["Pattern7"]
+
+
+
+marker_ranks = pm["PatternMarkerRanks"]
+p7_markers_prerank = pd.DataFrame(markers["Pattern7"])
+
+p7_ranks = marker_ranks["Pattern7"]
+
+p7prerank = gp.prerank(rnk=p7_scores, # or rnk = rnk,
+                     gene_sets='MSigDB_Hallmark_2020',
+                     threads=4,
+                     min_size=5,
+                     max_size=1000,
+                     permutation_num=1000, # reduce number to speed up testing
+                     outdir=None, # don't write to disk
+                     seed=6,
+                     verbose=True, # see what's going on behind the scenes
+                    )
+
+p7prerank_df = pd.DataFrame(p7prerank.results)
+plotdf = p7prerank_df.T
+plotdf = plotdf[plotdf["pval"] < 0.05]
+
+sns.barplot(data= plotdf, x="neg.log.q", y="Term")
