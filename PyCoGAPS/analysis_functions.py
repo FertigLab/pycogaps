@@ -66,6 +66,10 @@ def plot(obj, groups=None, title=None, fn=""):
     plt.show()
     return fig
 
+def patternGSEA(obj):
+
+    return obj
+
 
 def patternBoxPlot(obj, groups, fn=""):
     """ generate a boxplot where each subplot displays amplitudes for each group for each pattern
