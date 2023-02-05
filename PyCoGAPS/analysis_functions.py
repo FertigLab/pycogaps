@@ -67,7 +67,7 @@ def plot(obj, groups=None, title=None, fn=""):
     return fig
 
 def patternGSEA(obj, patternmarkers=None, verbose=True, gene_sets = ['MSigDB_Hallmark_2020'], organism="human"):
-    """ Calculates the Z-score for each element based on input mean and standard deviation matrices
+    """ Run pygsea enrichr API on gene list for each pattern, return dictionary of results
 
     Args:
         obj (anndata): Anndata CoGAPSresult object
