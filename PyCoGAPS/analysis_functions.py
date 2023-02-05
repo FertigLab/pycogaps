@@ -67,6 +67,17 @@ def plot(obj, groups=None, title=None, fn=""):
     return fig
 
 def patternGSEA(obj, patternmarkers=None, verbose=True, gene_sets = ['MSigDB_Hallmark_2020'], organism="human"):
+    """ Calculates the Z-score for each element based on input mean and standard deviation matrices
+
+    Args:
+        obj (anndata): Anndata CoGAPSresult object
+        patternmarkers (optional, default = None): output from patternMarkers() function
+        verbose (optional, default = True): Indicates whether to print messages
+        gene_sets (optional, default = ['MSigDB_Hallmark_2020']): a list of one or more gene sets for enrichr to use
+        organism (optional, default = "human"): which organism your data comes from
+    Returns:
+        gseares: a dictionary of pygsea enrichr API results for each pattern in obj
+    """
     import pandas as pd
     pd.options.mode.chained_assignment = None  # default='warn'
     if patternmarkers is None:
