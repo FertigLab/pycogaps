@@ -120,6 +120,42 @@ def plotPatternGSEA(patternGSEAResults, whichPattern):
     plt.show()
     return plt
 
+def MANOVA(obj, orig, interested_vars):
+    """ performs MANOVA test on user given dependent variables
+
+    Args:
+        obj (anndata): Anndata CoGAPSresult object
+        orig (anndata): Anndata original data
+        interested_vars (list, default = None): output from patternMarkers() function
+    Returns:
+        manova_result: manova result output from calling statsmodels.multivariate.manova function
+    """
+    from statsmodels.multivariate.manova import MANOVA
+
+    # create formula string from interested groups
+    formula = ''
+    for i in interested_vars:
+        formula += ' + ' + i
+    formula = formula[3:]
+
+    # patterns
+    pmat = obj.var
+    npatterns = len(pmat.columns)
+
+    # get columns of interest
+    interested = orig.var[interested_vars]
+
+    for p in range(1,npatterns):
+        pattern = 'Pattern' + str(p)
+        data = pd.concat([pmat[pattern], interested], axis=1)
+        
+        manova_result = MANOVA.from_formula(formula + ' ~ ' + pattern, data)
+        
+        print(pattern + ' MANOVA result:')
+        print(manova_result.mv_test())
+    
+    return manova_result
+
 def patternBoxPlot(obj, groups, fn=""):
     """ generate a boxplot where each subplot displays amplitudes for each group for each pattern
 
