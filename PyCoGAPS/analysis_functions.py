@@ -1,5 +1,5 @@
-from PyCoGAPS.config import *
-from PyCoGAPS.helper_functions import *
+# from PyCoGAPS.config import *
+# from PyCoGAPS.helper_functions import *
 import pandas as pd
 import numpy as np
 import anndata
@@ -745,17 +745,17 @@ if __name__ == '__main__':
     mpl.use('tkagg')
 
     # path to your result file, from command line
-    pkl_path = sys.argv[1]
+    path = sys.argv[1]
     
     # this unpickles the result object for use
-    result = pickle.load(open(pkl_path, "rb"))
+    result = anndata.read_h5ad(path)
 
     # get filename, to name the saved plots
-    filename = os.path.basename(pkl_path).split('.')[0]
+    filename = os.path.basename(path).split('.')[0]
 
     # call some of the plotting functions and save
     plot(result, fn=filename)
-    binaryA(result, threshold=2, fn=filename)
+    # # binaryA(result, threshold=2, fn=filename)
     plotPatternMarkers(result, fn=filename)
-    plotResiduals(result, fn=filename)
+    # plotResiduals(result, fn=filename)
     plotPatternUMAP(result, fn=filename)
