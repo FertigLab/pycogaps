@@ -40,8 +40,8 @@ class CoParams:
                     adata = anndata.AnnData(table)
                 # adata.obs_names = table["symbol"] 
                 # we cannot assume this will be in the text file and will trip an error
-            else:
-                adata = toAnndata(path, transposeData=transposeData)
+                else:
+                    adata = toAnndata(path, transposeData=transposeData)
             matrix = pycogaps.Matrix(adata.X)
             self.gaps = GapsParameters(matrix)
         else:
