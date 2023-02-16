@@ -2,10 +2,10 @@
 ## To modify default parameters, simply replace parameter values below with user-specified values, and save file. 
 
 # RELATIVE path to data -- make sure to move your data into the created data/ folder
-path: data/GIST.csv
+path: data/ModSimData.txt
 
-# result output file name (output saved as a .pkl file)
-result_file: result.pkl
+# result output file name (output saved as a .h5ad file)
+result_file: ModSimResult.h5ad
 
 standard_params:
   # number of patterns CoGAPS will learn
