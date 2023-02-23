@@ -1,4 +1,4 @@
-![pycogapslogo](https://user-images.githubusercontent.com/25310425/221020385-7e33f8b2-aa24-4627-a778-d07920ef8c82.png)
+![pycogapslogo](https://user-images.githubusercontent.com/25310425/221020385-7e33f8b2-aa24-4627-a778-d07920ef8c82.png =250x250)
 
 # **PyCoGAPS**
 
