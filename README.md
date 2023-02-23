@@ -1,4 +1,4 @@
-<img width="285" alt="image" src="https://user-images.githubusercontent.com/25310425/177400924-48b0c78a-16b5-4565-9de7-2a0f2b3d7ac6.png">
+![pycogapslogo](https://user-images.githubusercontent.com/25310425/221020385-7e33f8b2-aa24-4627-a778-d07920ef8c82.png)
 
 # **PyCoGAPS**
 
