@@ -17,11 +17,7 @@ This package, PyCoGAPS, presents a unified Python interface, with a parallel, ef
 
 
 # **1. Using the PyCoGAPS library**
-Install via pip:
-```
-pip install pycogaps==0.0.1
-```
-Or install via GitHub: 
+Install:
 ```
 git clone https://github.com/FertigLab/pycogaps.git --recursive
 cd pycogaps 
@@ -92,11 +88,9 @@ When the run is finished, CoGAPS will print a message like this:
 GapsResult result object with 5900 features and 20628 samples
 8 patterns were learned
 ```
-We strongly recommend saving your result object as soon as it returns. One option to do so is using Python’s serialization library, pickle64.
+We strongly recommend saving your result object as soon as it returns.
 ```
-print("Pickling...")
-pickle.dump(result, open("./data/PDACresult_50kiterations.pkl", "wb"))
-print("Pickling complete!")
+result.write("data/pdacresult.h5ad")
 ```
 Now you have successfully generated a CoGAPS result! To continue to visualization and analysis guides, please skip to the section below titled “Analyzing the PyCoGAPS Result” 
 
