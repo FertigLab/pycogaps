@@ -64,7 +64,7 @@ ext_modules = [
                           get_pybind_include(user=True),
                           'src/CoGAPS/src/include/',
                           'src/CoGAPS/src/',
-                          'src/CoGAPS/src/data_structures'
+                          'src/CoGAPS/src/data_structures/'
                       ],
                       # depends=[
                       #   'src/CoGAPS/src/data_structures/Matrix.h',

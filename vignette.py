@@ -4,8 +4,8 @@ This is intended for running development version of PyCoGAPS (from github)
 '''
 
 if __name__ == '__main__':
-    from pycogaps.parameters import *
-    from pycogaps.pycogaps_main import CoGAPS
+    from PyCoGAPS.parameters import *
+    from PyCoGAPS.pycogaps_main import CoGAPS
 
     import yaml
     import pickle
