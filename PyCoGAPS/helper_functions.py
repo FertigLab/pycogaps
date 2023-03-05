@@ -79,7 +79,7 @@ def toAnndata(file, hdf_counts_key=None, hdf_dim1_key=None, hdf_dim2_key=None, t
         # table = pd.read_table(file)
         # adata = anndata.AnnData(table.iloc[:, 2:])
         # adata.obs_names = table["symbol"]
-        pd_table = pd.read_table(file)
+        pd_table = pd.read_table(file, header=None))
         table = pd.DataFrame(data=pd_table.values, index=pd_table.index, columns=pd_table.columns)
         adata = anndata.AnnData(table)
     elif file.lower().endswith(".tsv"):
@@ -414,24 +414,26 @@ def toNumpyFromVector(vector):
 
 def GapsResultToAnnData(gapsresult, adata, prm):
     """ Converts a CogapsResult object to anndata object.
-
     Args:
         gapsresult (CogapsResult): Dictionary result object.
         adata (anndata): Anndata object populated by CoGAPS.
         prm (CoParams): CoParams object.
-
     Returns:
         anndata: An anndata object.
-    """    
+    """  
     # need to subset matrices based on which dimension we're in...
     if prm.coparams['subsetDim'] == 1:
         Amean = toNumpy(gapsresult.Amean)[prm.coparams["subsetIndices"], :]
+        if prm.coparams["subsetIndices"] is not None:
+            adata = adata[prm.coparams["subsetIndices"], :]
         Pmean = toNumpy(gapsresult.Pmean)
         Asd = toNumpy(gapsresult.Asd)[prm.coparams["subsetIndices"], :]
         Psd = toNumpy(gapsresult.Psd)
     else:
         Amean = toNumpy(gapsresult.Amean)
-        Pmean = toNumpy(gapsresult.Pmean)[prm.coparams["subsetIndices"], :]
+        Pmean = toNumpy(gapsresult.Pmean)[prm.coparams["subsetIndices"], :] 
+        if prm.coparams["subsetIndices"] is not None:
+            adata = adata[:, prm.coparams["subsetIndices"]]
         Asd = toNumpy(gapsresult.Asd)
         Psd = toNumpy(gapsresult.Psd)[prm.coparams["subsetIndices"], :]
     pattern_labels = ["Pattern" + str(i) for i in range(1, prm.gaps.nPatterns + 1)]
