@@ -1,5 +1,6 @@
 dat
  filter=lfs diff=lfs merge=lfs -text
-data/PDAC.h5ad filter=lfs diff=lfs merge=lfs -text
 *.h5ad filter=lfs diff=lfs merge=lfs -text
+data/inputdata.h5ad filter=lfs diff=lfs merge=lfs -text
+data/cogapsresult.h5ad filter=lfs diff=lfs merge=lfs -text
 data/testresult_102323.h5ad filter=lfs diff=lfs merge=lfs -text
