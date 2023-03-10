@@ -79,7 +79,7 @@ def toAnndata(file, hdf_counts_key=None, hdf_dim1_key=None, hdf_dim2_key=None, t
         # table = pd.read_table(file)
         # adata = anndata.AnnData(table.iloc[:, 2:])
         # adata.obs_names = table["symbol"]
-        pd_table = pd.read_table(file, header=None))
+        pd_table = pd.read_table(file, header=None)
         table = pd.DataFrame(data=pd_table.values, index=pd_table.index, columns=pd_table.columns)
         adata = anndata.AnnData(table)
     elif file.lower().endswith(".tsv"):
