@@ -3,9 +3,9 @@ import pandas as pd
 import scanpy as sc
 # import pandas as pd
 
-pycogapsresult = anndata.read_h5ad("data/pdacresult.h5ad")
-pdac = anndata.read_h5ad("data/PDAC.h5ad")
-pdac_peng_epi = anndata.read_h5ad("data/PDAC_Peng_Epi.h5ad")
+cogapsresult = anndata.read_h5ad("data/cogapsresult.h5ad")
+# pdac = anndata.read_h5ad("data/PDAC.h5ad")
+# pdac_peng_epi = anndata.read_h5ad("data/PDAC_Peng_Epi.h5ad")
 
 # coldata = pd.read_csv("data/PDACcoldata.csv")
 # Index(['Unnamed: 0', 'barcode_raw', 'celltype', 'sample_ID',
@@ -17,15 +17,15 @@ pdac_peng_epi = anndata.read_h5ad("data/PDAC_Peng_Epi.h5ad")
 #        'Classifier_T_duct', 'Classifier_T_Fibroblast_only',
 #        'Classifier_T_Fibroblast_Stellate'],
 #       dtype='object')
-
-adata = pycogapsresult
-# get readable gene names from original object
-adata_original = sc.read_h5ad("data/PDAC_Peng_Epi.h5ad").T
+#
+# adata = pycogapsresult
+# # get readable gene names from original object
+# adata_original = sc.read_h5ad("data/PDAC_Peng_Epi.h5ad").T
 
 # adata = pycogapsresult.T
 
 # adata.obs["cell type"] = list(coldata["TN_assigned_cell_type_immune_specific"])
-# adata = pycogapsresult.T
+adata = cogapsresult.T
 from PyCoGAPS.analysis_functions import *
 plotPatternUMAP(adata)
 

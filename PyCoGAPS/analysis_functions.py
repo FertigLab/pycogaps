@@ -348,12 +348,18 @@ def patternMarkers(adata, threshold='all', lp=None, axis=1):
     if axis not in [1, 2]:
         raise Exception("axis must be either 0 or 1")
 
+    patterns = list()
+    obs_columns = list(adata.obs.columns)
+    for column in obs_columns:
+        if (column.startswith("Pattern")):
+            patterns.append(column)
+
     if axis == 1:
-        resultMatrix = adata.obs
-        otherMatrix = adata.var
+        resultMatrix = adata.obs[patterns]
+        otherMatrix = adata.var[patterns]
     else:
-        resultMatrix = adata.var
-        otherMatrix = adata.obs
+        resultMatrix = adata.var[patterns]
+        otherMatrix = adata.obs[patterns]
 
     # Replacing infinite with 0
     resultMatrix.replace([np.inf, -np.inf, np.nan], 0, inplace=True)
@@ -409,7 +415,7 @@ def patternMarkers(adata, threshold='all', lp=None, axis=1):
 
                 ssl.stat = Arowmax.apply(func=stat, axis=1)
                 order = np.argsort(ssl.stat)
-                ssl["Pattern"+str(i+1)] = order.values
+                ssl[patterns[i]] = order.values
 
             return ssl[ssl >= 0]
 
@@ -419,7 +425,7 @@ def patternMarkers(adata, threshold='all', lp=None, axis=1):
 
         for i in np.arange(nP):
             # order gene names by significance for this pattern
-            pname = "Pattern"+str(i+1)
+            pname = patterns[i]
             sortSim = simGenes[pname].sort_values().index
             sortedGenes = simGenes.loc[sortSim, :]
             globalmins = sortedGenes.min(axis=1)
@@ -706,7 +712,7 @@ def plotPatternMarkers(data, patternmarkers=None, groups = None, patternPalette=
     return hm
 
 
-def plotPatternUMAP(result, genes_in_rows=True, fn=""):
+def plotPatternUMAP(result, genes_in_rows=True, fn=None):
     """ Create a UMAP plot
 
     Args:
@@ -719,23 +725,25 @@ def plotPatternUMAP(result, genes_in_rows=True, fn=""):
         result = result.transpose()
     import scanpy as sc
     # set up environment
-    patterns = list(result.obs.columns)
+    patterns = list()
+    obs_columns = list(result.obs.columns)
+    for column in obs_columns:
+        if (column.startswith("Pattern")):
+            patterns.append(column)
     sc.settings.verbosity = 3  # verbosity: errors (0), warnings (1), info (2), hints (3)
     sc.logging.print_header()
     sc.settings.set_figure_params(dpi=80, facecolor='white')
     # result.var_names_make_unique()
-    # filter genes and cells
-    # sc.pl.highest_expr_genes(result, n_top=20, save="{}_highestExpressedGenes.png".format(fn))
-    # sc.pp.filter_cells(result, min_genes=200)
-    # sc.pp.filter_genes(result, min_cells=3)
-    # sc.pp.log1p(result)
-    sc.pp.highly_variable_genes(result, min_mean=0.0125, max_mean=3, min_disp=0.5)
+    sc.pp.log1p(result)
+    sc.pp.highly_variable_genes(result)
     result = result[:, result.var.highly_variable]
     sc.pp.scale(result, max_value=10)
     sc.tl.pca(result, svd_solver='arpack')
     sc.pp.neighbors(result)
     sc.tl.umap(result)
-    sc.pl.umap(result, color=patterns, save="{}_UMAP.png".format(fn))
+    sc.pl.umap(result, color=patterns)
+    if fn is not None:
+        sc.pl.umap(result, color=patterns, save="{}_UMAP.png".format(fn))
 
 if __name__ == '__main__':
     import pickle
