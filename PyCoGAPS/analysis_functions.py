@@ -146,7 +146,7 @@ def MANOVA(obj, orig, interested_vars):
     interested = orig.var[interested_vars]
 
     for p in range(1,npatterns):
-        pattern = 'Pattern' + str(p)
+        pattern = 'Pattern_' + str(p)
         data = pd.concat([pmat[pattern], interested], axis=1)
         
         manova_result = MANOVA.from_formula(formula + ' ~ ' + pattern, data)
