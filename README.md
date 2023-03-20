@@ -525,11 +525,15 @@ distributed_params:
 ```
 
 # **5. Citing PyCoGAPS**
+If you use PyCoGAPS for your analysis, please ciite Johnson et al. (2022)
+
 If you use the CoGAPS package for your analysis, please cite Fertig et al. (2010)
 
 If you use the gene set statistic, please cite Ochs et al. (2009)
 
 # **References**
+Johnson, Jeanette, Ashley Tsang, Jacob Mitchell, David Zhou, et al. Inferring cellular and molecular processes in single-cell data with non-negative matrix factorization using Python, R, and GenePattern Notebook implementations of CoGAPS. bioRxiv (2022) doi:10.1101/2022.07.09.499398.
+
 Fertig, Elana J., Jie Ding, Alexander V. Favorov, Giovanni Parmigiani, and Michael F. Ochs. 2010. “CoGAPS: An R/C++ Package to Identify Patterns and Biological Process Activity in Transcriptomic Data.” Bioinformatics 26 (21): 2792–3. https://doi.org/10.1093/bioinformatics/btq503.
 
 Ochs, Michael F., Lori Rink, Chi Tarn, Sarah Mburu, Takahiro Taguchi, Burton Eisenberg, and Andrew K. Godwin. 2009. “Detection of Treatment-Induced Changes in Signaling Pathways in Gastrointestinal Stromal Tumors Using Transcriptomic Data.” Cancer Research 69 (23): 9125–32. https://doi.org/10.1158/0008-5472.CAN-09-1709.
