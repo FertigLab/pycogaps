@@ -21,7 +21,8 @@ Install:
 ```
 git clone https://github.com/FertigLab/pycogaps.git --recursive
 cd pycogaps 
-python setup.py install
+pip install -r requirements.txt
+python3 setup.py install
 ```
 When PyCoGAPS has installed and built correctly, you should see this message:
 ```
@@ -34,21 +35,42 @@ We'll first begin with setting up your working environment and running CoGAPS on
 To use the PyCoGAPS python package, import dependencies as follows:
 
 ```
-from parameters import *
-from pycogaps_main import CoGAPS
+from PyCoGAPS.parameters import *
+from PyCoGAPS.pycogaps_main import CoGAPS
 import scanpy as sc
 ```
 NOTE: if you wish to run distributed (parallel), please wrap all subsequent code in this check to avoid thread reentry issues:
 ```
 if __name__ == "__main__":
 ```
+Part 1 - ModSim Toy data
 Load input data (acceptable formats: h5ad, h5, csv, txt, mtx, tsv)
 ```
-path = "/Users/jeanette/fertiglab/PDAC_Atlas_Pipeline/PDAC.h5ad"
+modsimpath = "data/ModSimData.txt"
+modsim = sc.read_text(modsimpath)
+```
+Create a params object and set simple parameters:
+```
+params = CoParams(path)
+setParams(params, {
+    'nIterations': 50000,
+    'seed': 42,
+    'nPatterns': 3
+})
+```
+Run CoGAPS:
+```
+modsimresult = CoGAPS(modsim, params)
+```
+Part 2 - Single Cell Data
+Now that PyCoGAPS has been set up and run correctly, we can now proceed to analyzing experimental single-cell data.
+```
+path = "data/inputdata.h5ad"
 adata = sc.read_h5ad(path)
 ```
-We recommend log normalizing count data
+If data has not yet been log-normalized, please do so with the following command:
 ```
+adata.X = adata.X.todense()
 sc.pp.log1p(adata)
 ```
 Now, set run parameters by creating a CoParams object. 
@@ -65,7 +87,7 @@ setParams(params, {
 ```
 If you are running in parallel, distributed parameters can be modified like this:
 ```
-params.setDistributedParams(nSets=15, minNS=8, maxNS=23, cut=8)
+params.setDistributedParams(nSets=7)
 ```
 Now, start your CoGAPS run by passing your data object and parameter object. Since CoGAPS runs can take significant time to complete, we recommend keeping track of how run times scale with increasing patterns and iterations.
 ```
@@ -90,7 +112,11 @@ GapsResult result object with 5900 features and 20628 samples
 ```
 We strongly recommend saving your result object as soon as it returns.
 ```
-result.write("data/pdacresult.h5ad")
+result.write("data/my_pdac_result.h5ad")
+```
+To save as a .csv file, use the following line:
+```
+result.write_csvs(dirname=’./’, skip_data=True, sep=',')
 ```
 Now you have successfully generated a CoGAPS result! To continue to visualization and analysis guides, please skip to the section below titled “Analyzing the PyCoGAPS Result” 
 
