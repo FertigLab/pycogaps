@@ -16,7 +16,8 @@ def sampleWithExplicitSets(allParams, data):
         list: list of subsets
     """    
     explicit_sets = allParams.coparams['explicitSets']
-    if all(isinstance(item, int) for item in explicit_sets):
+
+    if all(isinstance(item, np.ndarray) for item in explicit_sets):
         print("using provided indexed subsets")
         return explicit_sets
 

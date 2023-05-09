@@ -36,7 +36,7 @@ def CoGAPS(path, params=None, nThreads=1, messages=True,
             """
 
 
-            if params.coparams['distributed'] == 'genome-wide':
+            if params.coparams['distributed'] is not None:
                 result = distributedCoGAPS(path, params, uncertainty=None)
             else:
                 result = standardCoGAPS(path, params=params, nThreads=nThreads, messages=messages,
@@ -296,8 +296,8 @@ def callInternalCoGAPS(paramlst):
     else:
         samples = np.array(params.coparams['sampleNames'])
         samplesubset = np.take(samples, subsetIndices)
-        params.coparams['sampleNames'] = samplesubset
-        adata = adata[subsetIndices, :]
+        params.coparams['sampleNames'] = set(samplesubset)
+        adata = adata[:, subsetIndices]
         params.coparams['subsetDim'] = 2
        
     params.coparams['subsetIndices'] = subsetIndices

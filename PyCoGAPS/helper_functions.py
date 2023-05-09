@@ -432,8 +432,8 @@ def GapsResultToAnnData(gapsresult, adata, prm):
     else:
         Amean = toNumpy(gapsresult.Amean)
         Pmean = toNumpy(gapsresult.Pmean)[prm.coparams["subsetIndices"], :] 
-        if prm.coparams["subsetIndices"] is not None:
-            adata = adata[:, prm.coparams["subsetIndices"]]
+        # if prm.coparams["subsetIndices"] is not None:
+        #     adata = adata[:, prm.coparams["subsetIndices"]]
         Asd = toNumpy(gapsresult.Asd)
         Psd = toNumpy(gapsresult.Psd)[prm.coparams["subsetIndices"], :]
     pattern_labels = ["Pattern" + str(i) for i in range(1, prm.gaps.nPatterns + 1)]
