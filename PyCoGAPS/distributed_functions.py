@@ -117,15 +117,25 @@ def stitchTogether(finalresult, result, params, sets, adata):
         Psd = finalresult[0].uns['psd'].reindex(adata.var_names)
 
     else:
-        Pmean = np.array(finalresult[0].var)
-        Psd = np.array(finalresult[0].uns['psd'])
+        Pmean = finalresult[0].var
+        Psd = finalresult[0].uns['psd']
         for r in finalresult[1:]:
-            df1 = np.array(r.var)
-            df2 = np.array(r.uns['psd'])
-            Pmean = np.append(Pmean, df1, axis=0)
-            Psd = np.append(Psd, df2, axis=0)
-        Pmean = np.array(finalresult[0].obs)
-        Psd = np.array(finalresult[0].uns['psd'])
+            Pmean = Pmean.append(r.var)
+            Psd = Psd.append(r.uns["psd"])
+        Pmean.reindex_like(adata.var)
+        Psd.reindex_like(adata.var)
+        Amean = finalresult[0].obs.reindex(adata.obs_names)
+        Asd = finalresult[0].uns['asd'].reindex(adata.obs_names)
+
+        # Pmean = np.array(finalresult[0].var)
+        # Psd = np.array(finalresult[0].uns['psd'])
+        # for r in finalresult[1:]:
+        #     df1 = np.array(r.var)
+        #     df2 = np.array(r.uns['psd'])
+        #     Pmean = np.append(Pmean, df1, axis=0)
+        #     Psd = np.append(Psd, df2, axis=0)
+        # Pmean = np.array(finalresult[0].obs)
+        # Psd = np.array(finalresult[0].uns['psd'])
         
     reslist = {
         "Amean": Amean,
