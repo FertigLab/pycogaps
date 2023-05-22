@@ -424,8 +424,8 @@ def GapsResultToAnnData(gapsresult, adata, prm):
     # need to subset matrices based on which dimension we're in...
     if prm.coparams['subsetDim'] == 1:
         Amean = toNumpy(gapsresult.Amean)[prm.coparams["subsetIndices"], :]
-        if prm.coparams["subsetIndices"] is not None:
-            adata = adata[prm.coparams["subsetIndices"], :]
+        # if prm.coparams["subsetIndices"] is not None:
+        #     adata = adata[prm.coparams["subsetIndices"], :]
         Pmean = toNumpy(gapsresult.Pmean)
         Asd = toNumpy(gapsresult.Asd)[prm.coparams["subsetIndices"], :]
         Psd = toNumpy(gapsresult.Psd)

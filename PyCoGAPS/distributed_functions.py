@@ -109,10 +109,10 @@ def stitchTogether(finalresult, result, params, sets, adata):
         Amean = finalresult[0].obs
         Asd = finalresult[0].uns['asd']
         for r in finalresult[1:]:
-            Amean = Amean.append(r.obs)
-            Asd = Asd.append(r.uns["asd"])
-        Amean.reindex_like(adata.obs)
-        Asd.reindex_like(adata.obs)
+            Amean = pd.concat([Amean, r.obs])
+            Asd = pd.concat([Asd, r.uns["asd"]])
+        Amean.reindex(adata.obs_names_make_unique())
+        Asd.reindex(adata.obs_names_make_unique())
         Pmean = finalresult[0].var.reindex(adata.var_names)
         Psd = finalresult[0].uns['psd'].reindex(adata.var_names)
 
@@ -120,8 +120,8 @@ def stitchTogether(finalresult, result, params, sets, adata):
         Pmean = finalresult[0].var
         Psd = finalresult[0].uns['psd']
         for r in finalresult[1:]:
-            Pmean = Pmean.append(r.var)
-            Psd = Psd.append(r.uns["psd"])
+            Pmean = pd.concat([Pmean, r.var])
+            Psd = pd.concat([Psd,r.uns["psd"]])
         Pmean.reindex_like(adata.var)
         Psd.reindex_like(adata.var)
         Amean = finalresult[0].obs.reindex(adata.obs_names)
