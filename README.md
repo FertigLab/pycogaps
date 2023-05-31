@@ -1,4 +1,4 @@
-<img src="https://user-images.githubusercontent.com/25310425/221020385-7e33f8b2-aa24-4627-a778-d07920ef8c82.png" width="300">
+![pycogapslogo_transparent](https://github.com/FertigLab/pycogaps/assets/25310425/6fe64453-f52d-41e1-9def-63d8894c5c18)
 
 # **PyCoGAPS**
 
