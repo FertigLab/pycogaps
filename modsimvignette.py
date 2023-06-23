@@ -2,8 +2,8 @@ from PyCoGAPS.parameters import *
 from PyCoGAPS.pycogaps_main import CoGAPS
 import scanpy as sc
 
-modsimpath = "/Users/jeanette/fertiglab/pycogaps/data/ModSimData.txt"
-modsimbasespath = "/Users/jeanette/fertiglab/pycogaps/data/ModSimBases.txt"
+modsimpath = "data/ModSimData.txt"
+modsimbasespath = "data/ModSimBases.txt"
 
 modsim = sc.read_text(modsimpath)
 modsimbases = sc.read_text(modsimbasespath)
@@ -26,7 +26,7 @@ end = time.time()
 print("TIME:", end - start)
 
 # always write cogaps result to disc before doing anything else!
-modsimresult.write("/Users/jeanette/fertiglab/pycogaps/data/ModSimPyCoGAPSResult.h5ad")
+modsimresult.write("data/ModSimPyCoGAPSResult.h5ad")
 
 
 
