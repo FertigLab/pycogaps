@@ -6,7 +6,7 @@ if __name__ == "__main__":
 
     path = "data/VI_116_4"
     adata = sc.read_visium(path)
-    # adata.X = adata.X.todense()
+    adata.X = adata.X.todense()
     sc.pp.log1p(adata)
     adata = adata.T
     adata
@@ -16,7 +16,7 @@ if __name__ == "__main__":
     setParams(
         params,
         {
-            "nIterations": 50000,
+            "nIterations": 100,
             "seed": 42,
             "nPatterns": 8,
             "useSparseOptimization": True,
