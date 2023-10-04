@@ -1,20 +1,15 @@
 FROM python:3.8
 
-RUN useradd -ms /bin/bash user
-USER user
-WORKDIR /home/user
+COPY . /pycogaps
+WORKDIR pycogaps
 
-RUN git clone --recurse-submodules https://github.com/FertigLab/pycogaps.git
+RUN apt-get update && apt-get install -y libboost-all-dev
+RUN pip install --upgrade pip 
+RUN pip install -r requirements.txt
 
-WORKDIR ./pycogaps/
-RUN git pull
+RUN python ./setup.py install
 
-RUN pip install -r requirements.txt --user
+ENTRYPOINT ["python", "./vignette.py"]
 
-RUN python3 ./setup.py install --user
-
-ENTRYPOINT ["python", "./vignette_from_args.py"]
-
-CMD ["params.yaml"]
 
 
