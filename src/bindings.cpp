@@ -5,7 +5,6 @@
 #include "CoGAPS/src/math/Random.h"
 #include "CoGAPS/src/cpp_tests/catch.h"
 #include "CoGAPS/src/file_parser/FileParser.h"
-#include "CoGAPS/src/include/boost/algorithm/string/join.hpp"
 #include "CoGAPS/src/GapsStatistics.h"
 #include "CoGAPS/src/data_structures/Matrix.h"
 #include "CoGAPS/src/data_structures/Vector.h"
@@ -16,6 +15,7 @@
 #include <pybind11/numpy.h>
 #include <pybind11/operators.h>
 
+#include <boost/algorithm/string/join.hpp>
 
 #include <iostream>
 #include <vector>
