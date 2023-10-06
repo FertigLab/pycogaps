@@ -40,7 +40,6 @@ ext_modules = [
                        'src/CoGAPS/src/data_structures/HybridMatrix.cpp',
                        'src/CoGAPS/src/data_structures/HybridVector.cpp',
                        'src/CoGAPS/src/data_structures/Matrix.cpp',
-                       # 'src/CoGAPS/src/data_structures/Matrix.h',
                        'src/CoGAPS/src/data_structures/SparseIterator.cpp',
                        'src/CoGAPS/src/data_structures/SparseMatrix.cpp',
                        'src/CoGAPS/src/data_structures/SparseVector.cpp',
@@ -66,10 +65,6 @@ ext_modules = [
                           'src/CoGAPS/src/',
                           'src/CoGAPS/src/data_structures/'
                       ],
-                      # depends=[
-                      #   'src/CoGAPS/src/data_structures/Matrix.h',
-                      #   'src/CoGAPS/src/data_structures/Vector.h'
-                      # ],
                       language="c++"
                       ),
 ]
