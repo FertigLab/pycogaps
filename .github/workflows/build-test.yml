@@ -39,6 +39,9 @@ jobs:
       if: runner.os == 'macOS'
       run: brew install boost
 
+    - name: Update CMake
+      uses: jwlawson/actions-setup-cmake@v1.14
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
