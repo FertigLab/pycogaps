@@ -23,6 +23,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
+      with:
+        submodules: 'true'
 
     - name: Set up Python
       uses: actions/setup-python@v3
@@ -31,7 +33,7 @@ jobs:
 
     - name: Boost Linux
       if: runner.os == 'Linux'
-      run: sudo apt-get install libboost-dev
+      run: sudo apt-get install libboost-all-dev
     
     - name: Boost macOS
       if: runner.os == 'macOS'
