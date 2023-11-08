@@ -26,6 +26,11 @@ jobs:
       with:
         submodules: 'true'
 
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python }}
+
     - name: Boost Linux
       if: runner.os == 'Linux'
       run: sudo apt-get install libboost-all-dev
@@ -33,11 +38,6 @@ jobs:
     - name: Boost macOS
       if: runner.os == 'macOS'
       run: brew install boost
-
-    - name: Set up Python
-      uses: actions/setup-python@v3
-      with:
-        python-version: ${{ matrix.python }}
 
     - name: Install dependencies
       run: |
