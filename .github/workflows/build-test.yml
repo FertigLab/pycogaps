@@ -34,14 +34,11 @@ jobs:
       if: runner.os == 'Linux'
       run: sudo apt-get install libboost-all-dev
     
-    - name: Boost macOS
-      if: runner.os == 'macOS'
-      run: brew install boost
+    - name: Install deps
+      run: pip install -r requirements.txt
 
     - name: Install the app
-      run: |
-        python setup.py install
+      run: python setup.py install
 
     - name: Test
-      run: |
-        python -m unittest
+      run: python -m unittest
