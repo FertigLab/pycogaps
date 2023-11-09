@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        runs-on: [ubuntu-20.04, windows-2022, macos-latest]
+        runs-on: [windows-2022, ubuntu-20.04, macos-latest]
         python:
         - '3.8'
     name: "${{ matrix.runs-on }} - ${{ matrix.python }}"
@@ -38,9 +38,6 @@ jobs:
     - name: Boost macOS
       if: runner.os == 'macOS'
       run: brew install boost
-
-    - name: Update CMake
-      uses: jwlawson/actions-setup-cmake@v1.14
 
     - name: Install dependencies
       run: |
