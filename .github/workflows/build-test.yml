@@ -1,0 +1,47 @@
+# Based on the standard github action template for python
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+
+name: build-test-py
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        runs-on: [ubuntu-20.04]
+        python: ['3.8']
+    name: "${{ matrix.runs-on }} - ${{ matrix.python }}"
+    runs-on: ${{ matrix.runs-on }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        submodules: 'true'
+
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python }}
+
+    - name: Boost Linux
+      if: runner.os == 'Linux'
+      run: sudo apt-get install libboost-all-dev
+    
+    - name: Install deps
+      run: pip install -r requirements.txt
+
+    - name: Install the app
+      run: python setup.py install
+
+    - name: Test
+      run: python -m unittest
