@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        runs-on: [windows-2022, ubuntu-20.04, macos-latest]
+        runs-on: [windows-2022, ubuntu-20.04, macos-12]
         python:
         - '3.8'
     name: "${{ matrix.runs-on }} - ${{ matrix.python }}"
